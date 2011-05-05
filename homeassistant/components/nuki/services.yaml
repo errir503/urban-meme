@@ -1,0 +1,14 @@
+lock_n_go:
+  name: Lock 'n' go
+  description: "Nuki Lock 'n' Go"
+  target:
+    entity:
+      integration: nuki
+      domain: lock
+  fields:
+    unlatch:
+      name: Unlatch
+      description: Whether to unlatch the lock.
+      default: false
+      selector:
+        boolean:

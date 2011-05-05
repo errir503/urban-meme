@@ -1,0 +1,15 @@
+{
+  "domain": "yeelight",
+  "name": "Yeelight",
+  "documentation": "https://www.home-assistant.io/integrations/yeelight",
+  "requirements": ["yeelight==0.6.3"],
+  "codeowners": ["@rytilahti", "@zewelor", "@shenxn"],
+  "config_flow": true,
+  "iot_class": "local_polling",
+  "dhcp": [{
+    "hostname": "yeelink-*"
+  }],
+  "homekit": {
+    "models": ["YLDP*"]
+  }
+}
