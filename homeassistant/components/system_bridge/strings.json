@@ -1,11 +1,12 @@
 {
+  "title": "System Bridge",
   "config": {
     "abort": {
       "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
       "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]",
       "unknown": "[%key:common::config_flow::error::unknown%]"
     },
-    "flow_title": "{name}",
+    "flow_title": "System Bridge: {name}",
     "step": {
       "authenticate": {
         "data": {
