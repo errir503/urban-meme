@@ -2,7 +2,7 @@
 
 DOMAIN = "fritz"
 
-PLATFORMS = ["binary_sensor", "device_tracker"]
+PLATFORMS = ["device_tracker"]
 
 DATA_FRITZ = "fritz_data"
 

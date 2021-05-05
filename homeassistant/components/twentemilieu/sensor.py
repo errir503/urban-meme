@@ -1,6 +1,8 @@
 """Support for Twente Milieu sensors."""
 from __future__ import annotations
 
+from typing import Any, Callable
+
 from twentemilieu import (
     WASTE_TYPE_NON_RECYCLABLE,
     WASTE_TYPE_ORGANIC,
@@ -16,8 +18,7 @@ from homeassistant.const import CONF_ID
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import Entity
 
 from .const import DATA_UPDATE, DOMAIN
 
@@ -27,7 +28,7 @@ PARALLEL_UPDATES = 1
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[list[Entity], bool], None],
 ) -> None:
     """Set up Twente Milieu sensor based on a config entry."""
     twentemilieu = hass.data[DOMAIN][entry.data[CONF_ID]]
@@ -146,7 +147,7 @@ class TwenteMilieuSensor(SensorEntity):
             self._state = next_pickup.date().isoformat()
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> dict[str, Any]:
         """Return device information about Twente Milieu."""
         return {
             "identifiers": {(DOMAIN, self._unique_id)},

@@ -6,6 +6,7 @@ import logging
 
 from async_timeout import timeout
 
+from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.helpers import config_entry_flow
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
@@ -41,4 +42,6 @@ async def _async_has_devices(hass):
     return True
 
 
-config_entry_flow.register_discovery_flow(IZONE, "iZone Aircon", _async_has_devices)
+config_entry_flow.register_discovery_flow(
+    IZONE, "iZone Aircon", _async_has_devices, config_entries.CONN_CLASS_LOCAL_POLL
+)

@@ -1,6 +1,8 @@
 """Support for Vera binary sensors."""
 from __future__ import annotations
 
+from typing import Callable
+
 import pyvera as veraApi
 
 from homeassistant.components.binary_sensor import (
@@ -10,7 +12,7 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import Entity
 
 from . import VeraDevice
 from .common import ControllerData, get_controller_data
@@ -19,7 +21,7 @@ from .common import ControllerData, get_controller_data
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[list[Entity], bool], None],
 ) -> None:
     """Set up the sensor config entry."""
     controller_data = get_controller_data(hass, entry)

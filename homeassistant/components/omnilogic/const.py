@@ -2,8 +2,6 @@
 
 DOMAIN = "omnilogic"
 CONF_SCAN_INTERVAL = "polling_interval"
-DEFAULT_SCAN_INTERVAL = 6
-DEFAULT_PH_OFFSET = 0
 COORDINATOR = "coordinator"
 OMNI_API = "omni_api"
 ATTR_IDENTIFIERS = "identifiers"
@@ -22,7 +20,7 @@ PUMP_TYPES = {
 ALL_ITEM_KINDS = {
     "BOWS",
     "Filter",
-    "Heaters",
+    "Heater",
     "Chlorinator",
     "CSAD",
     "Lights",

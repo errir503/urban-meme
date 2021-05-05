@@ -6,6 +6,7 @@ import logging
 import voluptuous as vol
 from withings_api.common import AuthScope
 
+from homeassistant import config_entries
 from homeassistant.components.withings import const
 from homeassistant.config_entries import SOURCE_REAUTH
 from homeassistant.helpers import config_entry_oauth2_flow
@@ -18,7 +19,7 @@ class WithingsFlowHandler(
     """Handle a config flow."""
 
     DOMAIN = const.DOMAIN
-
+    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
     # Temporarily holds authorization data during the profile step.
     _current_data: dict[str, None | str | int] = {}
 

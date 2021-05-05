@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 import logging
-from typing import Any
+from typing import Any, Callable
 
 from pyvizio import VizioAsync
 from pyvizio.api.apps import find_app_name
@@ -33,8 +33,7 @@ from homeassistant.helpers.dispatcher import (
     async_dispatcher_connect,
     async_dispatcher_send,
 )
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
@@ -66,7 +65,7 @@ PARALLEL_UPDATES = 0
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[list[Entity], bool], None],
 ) -> None:
     """Set up a Vizio media player entry."""
     host = config_entry.data[CONF_HOST]
@@ -121,7 +120,7 @@ async def async_setup_entry(
     entity = VizioDevice(config_entry, device, name, device_class, apps_coordinator)
 
     async_add_entities([entity], update_before_add=True)
-    platform = entity_platform.async_get_current_platform()
+    platform = entity_platform.current_platform.get()
     platform.async_register_entity_service(
         SERVICE_UPDATE_SETTING, UPDATE_SETTING_SCHEMA, "async_update_setting"
     )
@@ -424,7 +423,7 @@ class VizioDevice(MediaPlayerEntity):
         return self._config_entry.unique_id
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> dict[str, Any]:
         """Return device registry information."""
         return {
             "identifiers": {(DOMAIN, self._config_entry.unique_id)},

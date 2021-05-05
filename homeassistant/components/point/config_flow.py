@@ -40,10 +40,12 @@ def register_flow_implementation(hass, domain, client_id, client_secret):
     }
 
 
-class PointFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+@config_entries.HANDLERS.register(DOMAIN)
+class PointFlowHandler(config_entries.ConfigFlow):
     """Handle a config flow."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self):
         """Initialize flow."""

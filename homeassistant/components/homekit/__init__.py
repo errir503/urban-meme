@@ -675,8 +675,7 @@ class HomeKit:
                 self.add_bridge_accessory(state)
             acc = self.bridge
 
-        # No need to load/persist as we do it in setup
-        self.driver.accessory = acc
+        await self.hass.async_add_executor_job(self.driver.add_accessory, acc)
 
     async def async_stop(self, *args):
         """Stop the accessory driver."""

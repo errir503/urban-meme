@@ -14,13 +14,6 @@
                     "password": "Heslo",
                     "username": "E-mail / Devolo ID"
                 }
-            },
-            "zeroconf_confirm": {
-                "data": {
-                    "mydevolo_url": "mydevolo URL",
-                    "password": "Heslo",
-                    "username": "E-mail / devolo ID"
-                }
             }
         }
     }

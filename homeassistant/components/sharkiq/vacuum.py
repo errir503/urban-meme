@@ -23,7 +23,6 @@ from homeassistant.components.vacuum import (
     SUPPORT_STOP,
     StateVacuumEntity,
 )
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN, SHARK
@@ -119,7 +118,7 @@ class SharkVacuumEntity(CoordinatorEntity, StateVacuumEntity):
         return self.sharkiq.oem_model_number
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> dict:
         """Device info dictionary."""
         return {
             "identifiers": {(DOMAIN, self.serial_number)},

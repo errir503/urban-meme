@@ -307,9 +307,7 @@ class FlowHandler:
 
     # Set by flow manager
     cur_step: dict[str, str] | None = None
-
-    # While not purely typed, it makes typehinting more useful for us
-    # and removes the need for constant None checks or asserts.
+    # Ignore types: https://github.com/PyCQA/pylint/issues/3167
     flow_id: str = None  # type: ignore
     hass: HomeAssistant = None  # type: ignore
     handler: str = None  # type: ignore

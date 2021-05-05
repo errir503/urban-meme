@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from typing import Callable
 
 from adguardhome import AdGuardHome, AdGuardHomeConnectionError
 
@@ -10,7 +11,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE, TIME_MILLISECONDS
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import PlatformNotReady
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import Entity
 
 from . import AdGuardHomeDeviceEntity
 from .const import DATA_ADGUARD_CLIENT, DATA_ADGUARD_VERSION, DOMAIN
@@ -22,7 +23,7 @@ PARALLEL_UPDATES = 4
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[list[Entity], bool], None],
 ) -> None:
     """Set up AdGuard Home sensor based on a config entry."""
     adguard = hass.data[DOMAIN][entry.entry_id][DATA_ADGUARD_CLIENT]

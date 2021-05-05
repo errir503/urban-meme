@@ -37,7 +37,6 @@ FLOWS = [
     "broadlink",
     "brother",
     "bsblan",
-    "buienradar",
     "canary",
     "cast",
     "cert_expiry",

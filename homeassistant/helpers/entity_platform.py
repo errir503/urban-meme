@@ -8,10 +8,7 @@ from datetime import datetime, timedelta
 import logging
 from logging import Logger
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Callable
-
-from typing_extensions import Protocol
-import voluptuous as vol
+from typing import TYPE_CHECKING, Callable
 
 from homeassistant import config_entries
 from homeassistant.const import (
@@ -59,15 +56,6 @@ DATA_ENTITY_PLATFORM = "entity_platform"
 PLATFORM_NOT_READY_BASE_WAIT_TIME = 30  # seconds
 
 _LOGGER = logging.getLogger(__name__)
-
-
-class AddEntitiesCallback(Protocol):
-    """Protocol type for EntityPlatform.add_entities callback."""
-
-    def __call__(
-        self, new_entities: Iterable[Entity], update_before_add: bool = False
-    ) -> None:
-        """Define add_entities type."""
 
 
 class EntityPlatform:
@@ -626,13 +614,7 @@ class EntityPlatform:
         )
 
     @callback
-    def async_register_entity_service(
-        self,
-        name: str,
-        schema: dict | vol.Schema,
-        func: str | Callable[..., Any],
-        required_features: Iterable[int] | None = None,
-    ) -> None:
+    def async_register_entity_service(self, name, schema, func, required_features=None):  # type: ignore[no-untyped-def]
         """Register an entity service.
 
         Services will automatically be shared by all platforms of the same domain.
@@ -694,15 +676,6 @@ class EntityPlatform:
 current_platform: ContextVar[EntityPlatform | None] = ContextVar(
     "current_platform", default=None
 )
-
-
-@callback
-def async_get_current_platform() -> EntityPlatform:
-    """Get the current platform from context."""
-    platform = current_platform.get()
-    if platform is None:
-        raise RuntimeError("Cannot get non-set current platform")
-    return platform
 
 
 @callback

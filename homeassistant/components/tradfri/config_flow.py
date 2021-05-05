@@ -29,7 +29,8 @@ class AuthError(Exception):
         self.code = code
 
 
-class FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+@config_entries.HANDLERS.register(DOMAIN)
+class FlowHandler(config_entries.ConfigFlow):
     """Handle a config flow."""
 
     VERSION = 1

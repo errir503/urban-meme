@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 import logging
+from typing import Any
 
 from sonarr import Sonarr, SonarrAccessRestricted, SonarrError
 
@@ -18,7 +19,7 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.entity import DeviceInfo, Entity
+from homeassistant.helpers.entity import Entity
 
 from .const import (
     ATTR_IDENTIFIERS,
@@ -138,7 +139,7 @@ class SonarrEntity(Entity):
         return self._enabled_default
 
     @property
-    def device_info(self) -> DeviceInfo | None:
+    def device_info(self) -> dict[str, Any]:
         """Return device information about the application."""
         if self._device_id is None:
             return None

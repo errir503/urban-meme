@@ -1,7 +1,7 @@
 """Representation of Z-Wave thermostats."""
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any, Callable, cast
 
 from zwave_js_server.client import Client as ZwaveClient
 from zwave_js_server.const import (
@@ -44,9 +44,6 @@ from homeassistant.components.climate.const import (
     SUPPORT_TARGET_TEMPERATURE,
     SUPPORT_TARGET_TEMPERATURE_RANGE,
 )
-from homeassistant.components.zwave_js.discovery_data_template import (
-    DynamicCurrentTempClimateDataTemplate,
-)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_TEMPERATURE,
@@ -56,13 +53,11 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.temperature import convert_temperature
 
 from .const import DATA_CLIENT, DATA_UNSUBSCRIBE, DOMAIN
 from .discovery import ZwaveDiscoveryInfo
 from .entity import ZWaveBaseEntity
-from .helpers import get_value_of_zwave_value
 
 # Map Z-Wave HVAC Mode to Home Assistant value
 # Note: We treat "auto" as "heat_cool" as most Z-Wave devices
@@ -103,9 +98,7 @@ ATTR_FAN_STATE = "fan_state"
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities: Callable
 ) -> None:
     """Set up Z-Wave climate from config entry."""
     client: ZwaveClient = hass.data[DOMAIN][config_entry.entry_id][DATA_CLIENT]
@@ -114,10 +107,7 @@ async def async_setup_entry(
     def async_add_climate(info: ZwaveDiscoveryInfo) -> None:
         """Add Z-Wave Climate."""
         entities: list[ZWaveBaseEntity] = []
-        if info.platform_hint == "dynamic_current_temp":
-            entities.append(DynamicCurrentTempClimate(config_entry, client, info))
-        else:
-            entities.append(ZWaveClimate(config_entry, client, info))
+        entities.append(ZWaveClimate(config_entry, client, info))
 
         async_add_entities(entities)
 
@@ -136,7 +126,7 @@ class ZWaveClimate(ZWaveBaseEntity, ClimateEntity):
     def __init__(
         self, config_entry: ConfigEntry, client: ZwaveClient, info: ZwaveDiscoveryInfo
     ) -> None:
-        """Initialize thermostat."""
+        """Initialize lock."""
         super().__init__(config_entry, client, info)
         self._hvac_modes: dict[str, int | None] = {}
         self._hvac_presets: dict[str, int | None] = {}
@@ -292,12 +282,12 @@ class ZWaveClimate(ZWaveBaseEntity, ClimateEntity):
     @property
     def current_humidity(self) -> int | None:
         """Return the current humidity level."""
-        return get_value_of_zwave_value(self._current_humidity)
+        return self._current_humidity.value if self._current_humidity else None
 
     @property
     def current_temperature(self) -> float | None:
         """Return the current temperature."""
-        return get_value_of_zwave_value(self._current_temp)
+        return self._current_temp.value if self._current_temp else None
 
     @property
     def target_temperature(self) -> float | None:
@@ -309,7 +299,7 @@ class ZWaveClimate(ZWaveBaseEntity, ClimateEntity):
             temp = self._setpoint_value(self._current_mode_setpoint_enums[0])
         except (IndexError, ValueError):
             return None
-        return get_value_of_zwave_value(temp)
+        return temp.value if temp else None
 
     @property
     def target_temperature_high(self) -> float | None:
@@ -321,7 +311,7 @@ class ZWaveClimate(ZWaveBaseEntity, ClimateEntity):
             temp = self._setpoint_value(self._current_mode_setpoint_enums[1])
         except (IndexError, ValueError):
             return None
-        return get_value_of_zwave_value(temp)
+        return temp.value if temp else None
 
     @property
     def target_temperature_low(self) -> float | None:
@@ -489,25 +479,3 @@ class ZWaveClimate(ZWaveBaseEntity, ClimateEntity):
         if preset_mode_value is None:
             raise ValueError(f"Received an invalid preset mode: {preset_mode}")
         await self.info.node.async_set_value(self._current_mode, preset_mode_value)
-
-
-class DynamicCurrentTempClimate(ZWaveClimate):
-    """Representation of a thermostat that can dynamically use a different Zwave Value for current temp."""
-
-    def __init__(
-        self, config_entry: ConfigEntry, client: ZwaveClient, info: ZwaveDiscoveryInfo
-    ) -> None:
-        """Initialize thermostat."""
-        super().__init__(config_entry, client, info)
-        self.data_template = cast(
-            DynamicCurrentTempClimateDataTemplate, self.info.platform_data_template
-        )
-
-    @property
-    def current_temperature(self) -> float | None:
-        """Return the current temperature."""
-        assert self.info.platform_data
-        val = get_value_of_zwave_value(
-            self.data_template.current_temperature_value(self.info.platform_data)
-        )
-        return val if val is not None else super().current_temperature

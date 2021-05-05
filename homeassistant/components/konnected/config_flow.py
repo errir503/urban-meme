@@ -164,6 +164,7 @@ class KonnectedFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Konnected Panels."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
 
     # class variable to store/share discovered host information
     discovered_hosts = {}

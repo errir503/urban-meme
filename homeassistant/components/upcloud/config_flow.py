@@ -19,6 +19,7 @@ class UpCloudConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """UpCloud config flow."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     username: str
     password: str

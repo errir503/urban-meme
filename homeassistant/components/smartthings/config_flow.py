@@ -44,6 +44,7 @@ class SmartThingsFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle configuration of SmartThings integrations."""
 
     VERSION = 2
+    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_PUSH
 
     def __init__(self):
         """Create a new instance of the flow handler."""

@@ -16,10 +16,12 @@ def configured_servers(hass):
     }
 
 
-class EmulatedRokuFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+@config_entries.HANDLERS.register(DOMAIN)
+class EmulatedRokuFlowHandler(config_entries.ConfigFlow):
     """Handle an emulated_roku config flow."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
 
     async def async_step_user(self, user_input=None):
         """Handle a flow initialized by the user."""

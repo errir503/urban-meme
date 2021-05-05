@@ -54,10 +54,12 @@ def register_flow_implementation(
     }
 
 
-class LogiCircleFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+@config_entries.HANDLERS.register(DOMAIN)
+class LogiCircleFlowHandler(config_entries.ConfigFlow):
     """Config flow for Logi Circle component."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self):
         """Initialize flow."""

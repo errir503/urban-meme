@@ -45,6 +45,7 @@ class BlinkConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a Blink config flow."""
 
     VERSION = 3
+    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self):
         """Initialize the blink flow."""

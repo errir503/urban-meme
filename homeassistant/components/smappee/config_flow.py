@@ -4,6 +4,7 @@ import logging
 from pysmappee import helper, mqtt
 import voluptuous as vol
 
+from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_IP_ADDRESS
 from homeassistant.helpers import config_entry_oauth2_flow
 
@@ -24,6 +25,7 @@ class SmappeeFlowHandler(
     """Config Smappee config flow."""
 
     DOMAIN = DOMAIN
+    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     async def async_oauth_create_entry(self, data):
         """Create an entry for the flow."""

@@ -4,22 +4,17 @@ import logging
 import pytest
 
 from homeassistant.components.cover import DOMAIN as COVER_DOMAIN
-from homeassistant.components.modbus.const import (
-    CALL_TYPE_COIL,
-    CALL_TYPE_REGISTER_HOLDING,
-    CONF_REGISTER,
-    CONF_STATUS_REGISTER_TYPE,
-)
+from homeassistant.components.modbus.const import CALL_TYPE_COIL, CONF_REGISTER
 from homeassistant.const import (
     CONF_COVERS,
     CONF_NAME,
     CONF_SCAN_INTERVAL,
     CONF_SLAVE,
-    STATE_CLOSED,
     STATE_OPEN,
+    STATE_OPENING,
 )
 
-from .conftest import ReadResult, base_config_test, base_test, prepare_service_update
+from .conftest import base_config_test, base_test
 
 
 @pytest.mark.parametrize(
@@ -57,23 +52,23 @@ async def test_config_cover(hass, do_options, read_type):
     [
         (
             [0x00],
-            STATE_CLOSED,
+            STATE_OPENING,
         ),
         (
             [0x80],
-            STATE_CLOSED,
+            STATE_OPENING,
         ),
         (
             [0xFE],
-            STATE_CLOSED,
+            STATE_OPENING,
         ),
         (
             [0xFF],
-            STATE_OPEN,
+            STATE_OPENING,
         ),
         (
             [0x01],
-            STATE_OPEN,
+            STATE_OPENING,
         ),
     ],
 )
@@ -104,7 +99,7 @@ async def test_coil_cover(hass, regs, expected):
     [
         (
             [0x00],
-            STATE_CLOSED,
+            STATE_OPEN,
         ),
         (
             [0x80],
@@ -173,32 +168,3 @@ async def test_unsupported_config_cover(hass, read_type, caplog):
 
     assert len(caplog.records) == 1
     assert caplog.records[0].levelname == "WARNING"
-
-
-async def test_service_cover_update(hass, mock_pymodbus):
-    """Run test for service homeassistant.update_entity."""
-
-    entity_id = "cover.test"
-    config = {
-        CONF_COVERS: [
-            {
-                CONF_NAME: "test",
-                CONF_REGISTER: 1234,
-                CONF_STATUS_REGISTER_TYPE: CALL_TYPE_REGISTER_HOLDING,
-            }
-        ]
-    }
-    mock_pymodbus.read_holding_registers.return_value = ReadResult([0x00])
-    await prepare_service_update(
-        hass,
-        config,
-    )
-    await hass.services.async_call(
-        "homeassistant", "update_entity", {"entity_id": entity_id}, blocking=True
-    )
-    assert hass.states.get(entity_id).state == STATE_CLOSED
-    mock_pymodbus.read_holding_registers.return_value = ReadResult([0x01])
-    await hass.services.async_call(
-        "homeassistant", "update_entity", {"entity_id": entity_id}, blocking=True
-    )
-    assert hass.states.get(entity_id).state == STATE_OPEN

@@ -6,6 +6,7 @@ from typing import Any
 from adguardhome import AdGuardHome, AdGuardHomeConnectionError
 import voluptuous as vol
 
+from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlow
 from homeassistant.const import (
     CONF_HOST,
@@ -25,6 +26,7 @@ class AdGuardHomeFlowHandler(ConfigFlow, domain=DOMAIN):
     """Handle a AdGuard Home config flow."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
     _hassio_discovery = None
 

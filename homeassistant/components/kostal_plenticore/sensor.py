@@ -9,7 +9,6 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_DEVICE_CLASS, ATTR_ICON, ATTR_UNIT_OF_MEASUREMENT
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
@@ -114,7 +113,7 @@ class PlenticoreDataSensor(CoordinatorEntity, SensorEntity):
         sensor_name: str,
         sensor_data: dict[str, Any],
         formatter: Callable[[str], Any],
-        device_info: DeviceInfo,
+        device_info: dict[str, Any],
     ):
         """Create a new Sensor Entity for Plenticore process data."""
         super().__init__(coordinator)
@@ -150,7 +149,7 @@ class PlenticoreDataSensor(CoordinatorEntity, SensorEntity):
         await super().async_will_remove_from_hass()
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> dict[str, Any]:
         """Return the device info."""
         return self._device_info
 

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Callable
 
 from gogogate2_api.common import AbstractDoor, DoorStatus, get_configured_doors
 
@@ -14,7 +15,7 @@ from homeassistant.components.cover import (
 )
 from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import Entity
 
 from .common import (
     DeviceDataUpdateCoordinator,
@@ -28,10 +29,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_platform(
-    hass: HomeAssistant,
-    config: dict,
-    add_entities: AddEntitiesCallback,
-    discovery_info=None,
+    hass: HomeAssistant, config: dict, add_entities: Callable, discovery_info=None
 ) -> None:
     """Convert old style file configs to new style configs."""
     _LOGGER.warning(
@@ -48,7 +46,7 @@ async def async_setup_platform(
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[list[Entity], bool | None], None],
 ) -> None:
     """Set up the config entry."""
     data_update_coordinator = get_data_update_coordinator(hass, config_entry)
