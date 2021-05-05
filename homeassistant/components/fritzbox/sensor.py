@@ -1,5 +1,5 @@
-"""Support for AVM FRITZ!SmartHome temperature sensor only devices."""
-from __future__ import annotations
+"""Support for AVM Fritz!Box smarthome temperature sensor only devices."""
+from typing import Callable
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -13,7 +13,6 @@ from homeassistant.const import (
     TEMP_CELSIUS,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import FritzBoxEntity
 from .const import (
@@ -22,14 +21,13 @@ from .const import (
     CONF_COORDINATOR,
     DOMAIN as FRITZBOX_DOMAIN,
 )
-from .model import SensorExtraAttributes
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: Callable
 ) -> None:
-    """Set up the FRITZ!SmartHome sensor from ConfigEntry."""
-    entities: list[FritzBoxEntity] = []
+    """Set up the Fritzbox smarthome sensor from ConfigEntry."""
+    entities = []
     coordinator = hass.data[FRITZBOX_DOMAIN][entry.entry_id][CONF_COORDINATOR]
 
     for ain, device in coordinator.data.items():
@@ -69,26 +67,26 @@ async def async_setup_entry(
 
 
 class FritzBoxBatterySensor(FritzBoxEntity, SensorEntity):
-    """The entity class for FRITZ!SmartHome sensors."""
+    """The entity class for Fritzbox sensors."""
 
     @property
-    def state(self) -> int | None:
+    def state(self):
         """Return the state of the sensor."""
-        return self.device.battery_level  # type: ignore [no-any-return]
+        return self.device.battery_level
 
 
 class FritzBoxTempSensor(FritzBoxEntity, SensorEntity):
-    """The entity class for FRITZ!SmartHome temperature sensors."""
+    """The entity class for Fritzbox temperature sensors."""
 
     @property
-    def state(self) -> float | None:
+    def state(self):
         """Return the state of the sensor."""
-        return self.device.temperature  # type: ignore [no-any-return]
+        return self.device.temperature
 
     @property
-    def extra_state_attributes(self) -> SensorExtraAttributes:
+    def extra_state_attributes(self):
         """Return the state attributes of the device."""
-        attrs: SensorExtraAttributes = {
+        attrs = {
             ATTR_STATE_DEVICE_LOCKED: self.device.device_lock,
             ATTR_STATE_LOCKED: self.device.lock,
         }

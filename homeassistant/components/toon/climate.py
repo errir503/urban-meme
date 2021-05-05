@@ -26,7 +26,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, TEMP_CELSIUS
 from homeassistant.core import HomeAssistant
 
-from . import ToonDataUpdateCoordinator
 from .const import DEFAULT_MAX_TEMP, DEFAULT_MIN_TEMP, DOMAIN
 from .helpers import toon_exception_handler
 from .models import ToonDisplayDeviceEntity
@@ -45,31 +44,28 @@ async def async_setup_entry(
 class ToonThermostatDevice(ToonDisplayDeviceEntity, ClimateEntity):
     """Representation of a Toon climate device."""
 
-    _attr_hvac_mode = HVAC_MODE_HEAT
-    _attr_max_temp = DEFAULT_MAX_TEMP
-    _attr_min_temp = DEFAULT_MIN_TEMP
-    _attr_supported_features = SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE
-    _attr_temperature_unit = TEMP_CELSIUS
+    @property
+    def unique_id(self) -> str:
+        """Return the unique ID for this thermostat."""
+        agreement_id = self.coordinator.data.agreement.agreement_id
+        # This unique ID is a bit ugly and contains unneeded information.
+        # It is here for lecagy / backward compatible reasons.
+        return f"{DOMAIN}_{agreement_id}_climate"
 
-    def __init__(
-        self,
-        coordinator: ToonDataUpdateCoordinator,
-        *,
-        name: str,
-        icon: str,
-    ) -> None:
-        """Initialize Toon climate entity."""
-        super().__init__(coordinator, name=name, icon=icon)
-        self._attr_hvac_modes = [HVAC_MODE_HEAT]
-        self._attr_preset_modes = [
-            PRESET_AWAY,
-            PRESET_COMFORT,
-            PRESET_HOME,
-            PRESET_SLEEP,
-        ]
-        self._attr_unique_id = (
-            f"{DOMAIN}_{coordinator.data.agreement.agreement_id}_climate"
-        )
+    @property
+    def supported_features(self) -> int:
+        """Return the list of supported features."""
+        return SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE
+
+    @property
+    def hvac_mode(self) -> str:
+        """Return hvac operation ie. heat, cool mode."""
+        return HVAC_MODE_HEAT
+
+    @property
+    def hvac_modes(self) -> list[str]:
+        """Return the list of available hvac operation modes."""
+        return [HVAC_MODE_HEAT]
 
     @property
     def hvac_action(self) -> str | None:
@@ -77,6 +73,11 @@ class ToonThermostatDevice(ToonDisplayDeviceEntity, ClimateEntity):
         if self.coordinator.data.thermostat.heating:
             return CURRENT_HVAC_HEAT
         return CURRENT_HVAC_IDLE
+
+    @property
+    def temperature_unit(self) -> str:
+        """Return the unit of measurement."""
+        return TEMP_CELSIUS
 
     @property
     def preset_mode(self) -> str | None:
@@ -90,6 +91,11 @@ class ToonThermostatDevice(ToonDisplayDeviceEntity, ClimateEntity):
         return mapping.get(self.coordinator.data.thermostat.active_state)
 
     @property
+    def preset_modes(self) -> list[str]:
+        """Return a list of available preset modes."""
+        return [PRESET_AWAY, PRESET_COMFORT, PRESET_HOME, PRESET_SLEEP]
+
+    @property
     def current_temperature(self) -> float | None:
         """Return the current temperature."""
         return self.coordinator.data.thermostat.current_display_temperature
@@ -98,6 +104,16 @@ class ToonThermostatDevice(ToonDisplayDeviceEntity, ClimateEntity):
     def target_temperature(self) -> float | None:
         """Return the temperature we try to reach."""
         return self.coordinator.data.thermostat.current_setpoint
+
+    @property
+    def min_temp(self) -> float:
+        """Return the minimum temperature."""
+        return DEFAULT_MIN_TEMP
+
+    @property
+    def max_temp(self) -> float:
+        """Return the maximum temperature."""
+        return DEFAULT_MAX_TEMP
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

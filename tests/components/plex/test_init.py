@@ -13,7 +13,12 @@ from homeassistant.components.plex.models import (
     TRANSIENT_SECTION,
     UNKNOWN_SECTION,
 )
-from homeassistant.config_entries import ConfigEntryState
+from homeassistant.config_entries import (
+    ENTRY_STATE_LOADED,
+    ENTRY_STATE_NOT_LOADED,
+    ENTRY_STATE_SETUP_ERROR,
+    ENTRY_STATE_SETUP_RETRY,
+)
 from homeassistant.const import (
     CONF_TOKEN,
     CONF_URL,
@@ -33,7 +38,7 @@ from tests.common import MockConfigEntry, async_fire_time_changed
 async def test_set_config_entry_unique_id(hass, entry, mock_plex_server):
     """Test updating missing unique_id from config entry."""
     assert len(hass.config_entries.async_entries(const.DOMAIN)) == 1
-    assert entry.state is ConfigEntryState.LOADED
+    assert entry.state == ENTRY_STATE_LOADED
 
     assert (
         hass.config_entries.async_entries(const.DOMAIN)[0].unique_id
@@ -52,7 +57,7 @@ async def test_setup_config_entry_with_error(hass, entry):
         await hass.async_block_till_done()
 
     assert len(hass.config_entries.async_entries(const.DOMAIN)) == 1
-    assert entry.state is ConfigEntryState.SETUP_RETRY
+    assert entry.state == ENTRY_STATE_SETUP_RETRY
 
     with patch(
         "homeassistant.components.plex.PlexServer.connect",
@@ -63,7 +68,7 @@ async def test_setup_config_entry_with_error(hass, entry):
         await hass.async_block_till_done()
 
     assert len(hass.config_entries.async_entries(const.DOMAIN)) == 1
-    assert entry.state is ConfigEntryState.SETUP_ERROR
+    assert entry.state == ENTRY_STATE_SETUP_ERROR
 
 
 async def test_setup_with_insecure_config_entry(hass, entry, setup_plex_server):
@@ -75,7 +80,7 @@ async def test_setup_with_insecure_config_entry(hass, entry, setup_plex_server):
     await setup_plex_server(config_entry=entry)
 
     assert len(hass.config_entries.async_entries(const.DOMAIN)) == 1
-    assert entry.state is ConfigEntryState.LOADED
+    assert entry.state == ENTRY_STATE_LOADED
 
 
 async def test_unload_config_entry(hass, entry, mock_plex_server):
@@ -83,7 +88,7 @@ async def test_unload_config_entry(hass, entry, mock_plex_server):
     config_entries = hass.config_entries.async_entries(const.DOMAIN)
     assert len(config_entries) == 1
     assert entry is config_entries[0]
-    assert entry.state is ConfigEntryState.LOADED
+    assert entry.state == ENTRY_STATE_LOADED
 
     server_id = mock_plex_server.machine_identifier
     loaded_server = hass.data[const.DOMAIN][const.SERVERS][server_id]
@@ -92,7 +97,7 @@ async def test_unload_config_entry(hass, entry, mock_plex_server):
     websocket = hass.data[const.DOMAIN][const.WEBSOCKETS][server_id]
     await hass.config_entries.async_unload(entry.entry_id)
     assert websocket.close.called
-    assert entry.state is ConfigEntryState.NOT_LOADED
+    assert entry.state == ENTRY_STATE_NOT_LOADED
 
 
 async def test_setup_with_photo_session(hass, entry, setup_plex_server):
@@ -100,7 +105,7 @@ async def test_setup_with_photo_session(hass, entry, setup_plex_server):
     await setup_plex_server(session_type="photo")
 
     assert len(hass.config_entries.async_entries(const.DOMAIN)) == 1
-    assert entry.state is ConfigEntryState.LOADED
+    assert entry.state == ENTRY_STATE_LOADED
     await hass.async_block_till_done()
 
     media_player = hass.states.get(
@@ -119,7 +124,7 @@ async def test_setup_with_live_tv_session(hass, entry, setup_plex_server):
     await setup_plex_server(session_type="live_tv")
 
     assert len(hass.config_entries.async_entries(const.DOMAIN)) == 1
-    assert entry.state is ConfigEntryState.LOADED
+    assert entry.state == ENTRY_STATE_LOADED
     await hass.async_block_till_done()
 
     media_player = hass.states.get(
@@ -139,7 +144,7 @@ async def test_setup_with_transient_session(hass, entry, setup_plex_server):
     await setup_plex_server(session_type="transient")
 
     assert len(hass.config_entries.async_entries(const.DOMAIN)) == 1
-    assert entry.state is ConfigEntryState.LOADED
+    assert entry.state == ENTRY_STATE_LOADED
     await hass.async_block_till_done()
 
     media_player = hass.states.get(
@@ -159,7 +164,7 @@ async def test_setup_with_unknown_session(hass, entry, setup_plex_server):
     await setup_plex_server(session_type="unknown")
 
     assert len(hass.config_entries.async_entries(const.DOMAIN)) == 1
-    assert entry.state is ConfigEntryState.LOADED
+    assert entry.state == ENTRY_STATE_LOADED
     await hass.async_block_till_done()
 
     media_player = hass.states.get(
@@ -221,7 +226,7 @@ async def test_setup_when_certificate_changed(
     assert await hass.config_entries.async_setup(old_entry.entry_id) is False
     await hass.async_block_till_done()
 
-    assert old_entry.state is ConfigEntryState.SETUP_ERROR
+    assert old_entry.state == ENTRY_STATE_SETUP_ERROR
     await hass.config_entries.async_unload(old_entry.entry_id)
 
     # Test with no servers found
@@ -231,7 +236,7 @@ async def test_setup_when_certificate_changed(
     assert await hass.config_entries.async_setup(old_entry.entry_id) is False
     await hass.async_block_till_done()
 
-    assert old_entry.state is ConfigEntryState.SETUP_ERROR
+    assert old_entry.state == ENTRY_STATE_SETUP_ERROR
     await hass.config_entries.async_unload(old_entry.entry_id)
 
     # Test with success
@@ -244,7 +249,7 @@ async def test_setup_when_certificate_changed(
     await hass.async_block_till_done()
 
     assert len(hass.config_entries.async_entries(const.DOMAIN)) == 1
-    assert old_entry.state is ConfigEntryState.LOADED
+    assert old_entry.state == ENTRY_STATE_LOADED
 
     assert old_entry.data[const.PLEX_SERVER_CONFIG][CONF_URL] == new_url
 
@@ -256,7 +261,7 @@ async def test_tokenless_server(entry, setup_plex_server):
     entry.data = TOKENLESS_DATA
 
     await setup_plex_server(config_entry=entry)
-    assert entry.state is ConfigEntryState.LOADED
+    assert entry.state == ENTRY_STATE_LOADED
 
 
 async def test_bad_token_with_tokenless_server(
@@ -267,7 +272,7 @@ async def test_bad_token_with_tokenless_server(
 
     await setup_plex_server()
 
-    assert entry.state is ConfigEntryState.LOADED
+    assert entry.state == ENTRY_STATE_LOADED
 
     # Ensure updates that rely on account return nothing
     trigger_plex_update(mock_websocket)

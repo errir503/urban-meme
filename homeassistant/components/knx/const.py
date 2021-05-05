@@ -1,6 +1,5 @@
 """Constants for the KNX integration."""
 from enum import Enum
-from typing import Final
 
 from homeassistant.components.climate.const import (
     HVAC_MODE_AUTO,
@@ -16,23 +15,19 @@ from homeassistant.components.climate.const import (
     PRESET_SLEEP,
 )
 
-DOMAIN: Final = "knx"
+DOMAIN = "knx"
 
 # Address is used for configuration and services by the same functions so the key has to match
-KNX_ADDRESS: Final = "address"
+KNX_ADDRESS = "address"
 
-CONF_KNX_ROUTING: Final = "routing"
-CONF_KNX_TUNNELING: Final = "tunneling"
-CONF_KNX_INDIVIDUAL_ADDRESS: Final = "individual_address"
-CONF_INVERT: Final = "invert"
-CONF_KNX_EXPOSE: Final = "expose"
-CONF_STATE_ADDRESS: Final = "state_address"
-CONF_SYNC_STATE: Final = "sync_state"
-CONF_RESET_AFTER: Final = "reset_after"
+CONF_INVERT = "invert"
+CONF_STATE_ADDRESS = "state_address"
+CONF_SYNC_STATE = "sync_state"
+CONF_RESET_AFTER = "reset_after"
 
-ATTR_COUNTER: Final = "counter"
-ATTR_SOURCE: Final = "source"
-ATTR_LAST_KNX_UPDATE: Final = "last_knx_update"
+ATTR_COUNTER = "counter"
+ATTR_SOURCE = "source"
+ATTR_LAST_KNX_UPDATE = "last_knx_update"
 
 
 class ColorTempModes(Enum):
@@ -58,7 +53,7 @@ class SupportedPlatforms(Enum):
 
 
 # Map KNX controller modes to HA modes. This list might not be complete.
-CONTROLLER_MODES: Final = {
+CONTROLLER_MODES = {
     # Map DPT 20.105 HVAC control modes
     "Auto": HVAC_MODE_AUTO,
     "Heat": HVAC_MODE_HEAT,
@@ -68,7 +63,7 @@ CONTROLLER_MODES: Final = {
     "Dry": HVAC_MODE_DRY,
 }
 
-PRESET_MODES: Final = {
+PRESET_MODES = {
     # Map DPT 20.102 HVAC operating modes to HA presets
     "Auto": PRESET_NONE,
     "Frost Protection": PRESET_ECO,

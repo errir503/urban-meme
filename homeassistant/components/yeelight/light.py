@@ -6,7 +6,15 @@ import logging
 
 import voluptuous as vol
 import yeelight
-from yeelight import Bulb, BulbException, Flow, RGBTransition, SleepTransition, flows
+from yeelight import (
+    Bulb,
+    BulbException,
+    Flow,
+    RGBTransition,
+    SleepTransition,
+    flows,
+    transitions as yee_transitions,
+)
 from yeelight.enums import BulbType, LightType, PowerMode, SceneClass
 
 from homeassistant.components.light import (
@@ -172,7 +180,9 @@ SERVICE_SCHEMA_SET_MODE = {
     vol.Required(ATTR_MODE): vol.In([mode.name.lower() for mode in PowerMode])
 }
 
-SERVICE_SCHEMA_SET_MUSIC_MODE = {vol.Required(ATTR_MODE_MUSIC): cv.boolean}
+SERVICE_SCHEMA_SET_MUSIC_MODE = {
+    vol.Required(ATTR_MODE_MUSIC): cv.boolean,
+}
 
 SERVICE_SCHEMA_START_FLOW = YEELIGHT_FLOW_TRANSITION_SCHEMA
 
@@ -348,7 +358,11 @@ def _async_setup_services(hass: HomeAssistant):
             transitions=_transitions_config_parser(service_call.data[ATTR_TRANSITIONS]),
         )
         await hass.async_add_executor_job(
-            partial(entity.set_scene, SceneClass.CF, flow)
+            partial(
+                entity.set_scene,
+                SceneClass.CF,
+                flow,
+            )
         )
 
     async def _async_set_auto_delay_off_scene(entity, service_call):
@@ -361,19 +375,27 @@ def _async_setup_services(hass: HomeAssistant):
             )
         )
 
-    platform = entity_platform.async_get_current_platform()
+    platform = entity_platform.current_platform.get()
 
     platform.async_register_entity_service(
-        SERVICE_SET_MODE, SERVICE_SCHEMA_SET_MODE, "set_mode"
+        SERVICE_SET_MODE,
+        SERVICE_SCHEMA_SET_MODE,
+        "set_mode",
     )
     platform.async_register_entity_service(
-        SERVICE_START_FLOW, SERVICE_SCHEMA_START_FLOW, _async_start_flow
+        SERVICE_START_FLOW,
+        SERVICE_SCHEMA_START_FLOW,
+        _async_start_flow,
     )
     platform.async_register_entity_service(
-        SERVICE_SET_COLOR_SCENE, SERVICE_SCHEMA_SET_COLOR_SCENE, _async_set_color_scene
+        SERVICE_SET_COLOR_SCENE,
+        SERVICE_SCHEMA_SET_COLOR_SCENE,
+        _async_set_color_scene,
     )
     platform.async_register_entity_service(
-        SERVICE_SET_HSV_SCENE, SERVICE_SCHEMA_SET_HSV_SCENE, _async_set_hsv_scene
+        SERVICE_SET_HSV_SCENE,
+        SERVICE_SCHEMA_SET_HSV_SCENE,
+        _async_set_hsv_scene,
     )
     platform.async_register_entity_service(
         SERVICE_SET_COLOR_TEMP_SCENE,
@@ -391,7 +413,9 @@ def _async_setup_services(hass: HomeAssistant):
         _async_set_auto_delay_off_scene,
     )
     platform.async_register_entity_service(
-        SERVICE_SET_MUSIC_MODE, SERVICE_SCHEMA_SET_MUSIC_MODE, "set_music_mode"
+        SERVICE_SET_MUSIC_MODE,
+        SERVICE_SCHEMA_SET_MUSIC_MODE,
+        "set_music_mode",
     )
 
 
@@ -683,11 +707,11 @@ class YeelightGenericLight(YeelightEntity, LightEntity):
         elif effect == EFFECT_FAST_RANDOM_LOOP:
             flow = flows.random_loop(duration=250)
         elif effect == EFFECT_WHATSAPP:
-            flow = flows.pulse(37, 211, 102, count=2)
+            flow = Flow(count=2, transitions=yee_transitions.pulse(37, 211, 102))
         elif effect == EFFECT_FACEBOOK:
-            flow = flows.pulse(59, 89, 152, count=2)
+            flow = Flow(count=2, transitions=yee_transitions.pulse(59, 89, 152))
         elif effect == EFFECT_TWITTER:
-            flow = flows.pulse(0, 172, 237, count=2)
+            flow = Flow(count=2, transitions=yee_transitions.pulse(0, 172, 237))
         else:
             return
 

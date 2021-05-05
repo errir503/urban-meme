@@ -1,7 +1,6 @@
 """Support for the GPSLogger device tracking."""
 from homeassistant.components.device_tracker import SOURCE_TYPE_GPS
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_BATTERY_LEVEL,
     ATTR_GPS_ACCURACY,
@@ -23,9 +22,7 @@ from .const import (
 )
 
 
-async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities
-):
+async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
     """Configure a dispatcher connection based on a config entry."""
 
     @callback

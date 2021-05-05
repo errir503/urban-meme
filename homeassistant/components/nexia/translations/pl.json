@@ -11,7 +11,6 @@
         "step": {
             "user": {
                 "data": {
-                    "brand": "Marka",
                     "password": "Has\u0142o",
                     "username": "Nazwa u\u017cytkownika"
                 },

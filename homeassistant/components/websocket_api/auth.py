@@ -1,31 +1,22 @@
 """Handle the auth of a connection."""
-from __future__ import annotations
-
-from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Final
-
-from aiohttp.web import Request
 import voluptuous as vol
 from voluptuous.humanize import humanize_error
 
 from homeassistant.auth.models import RefreshToken, User
 from homeassistant.components.http.ban import process_success_login, process_wrong_login
 from homeassistant.const import __version__
-from homeassistant.core import HomeAssistant
 
 from .connection import ActiveConnection
 from .error import Disconnect
 
-if TYPE_CHECKING:
-    from .http import WebSocketAdapter
+# mypy: allow-untyped-calls, allow-untyped-defs
 
+TYPE_AUTH = "auth"
+TYPE_AUTH_INVALID = "auth_invalid"
+TYPE_AUTH_OK = "auth_ok"
+TYPE_AUTH_REQUIRED = "auth_required"
 
-TYPE_AUTH: Final = "auth"
-TYPE_AUTH_INVALID: Final = "auth_invalid"
-TYPE_AUTH_OK: Final = "auth_ok"
-TYPE_AUTH_REQUIRED: Final = "auth_required"
-
-AUTH_MESSAGE_SCHEMA: Final = vol.Schema(
+AUTH_MESSAGE_SCHEMA = vol.Schema(
     {
         vol.Required("type"): TYPE_AUTH,
         vol.Exclusive("api_password", "auth"): str,
@@ -34,17 +25,17 @@ AUTH_MESSAGE_SCHEMA: Final = vol.Schema(
 )
 
 
-def auth_ok_message() -> dict[str, str]:
+def auth_ok_message():
     """Return an auth_ok message."""
     return {"type": TYPE_AUTH_OK, "ha_version": __version__}
 
 
-def auth_required_message() -> dict[str, str]:
+def auth_required_message():
     """Return an auth_required message."""
     return {"type": TYPE_AUTH_REQUIRED, "ha_version": __version__}
 
 
-def auth_invalid_message(message: str) -> dict[str, str]:
+def auth_invalid_message(message):
     """Return an auth_invalid message."""
     return {"type": TYPE_AUTH_INVALID, "message": message}
 
@@ -52,20 +43,16 @@ def auth_invalid_message(message: str) -> dict[str, str]:
 class AuthPhase:
     """Connection that requires client to authenticate first."""
 
-    def __init__(
-        self,
-        logger: WebSocketAdapter,
-        hass: HomeAssistant,
-        send_message: Callable[[str | dict[str, Any]], None],
-        request: Request,
-    ) -> None:
+    def __init__(self, logger, hass, send_message, request):
         """Initialize the authentiated connection."""
         self._hass = hass
         self._send_message = send_message
         self._logger = logger
         self._request = request
+        self._authenticated = False
+        self._connection = None
 
-    async def async_handle(self, msg: dict[str, str]) -> ActiveConnection:
+    async def async_handle(self, msg):
         """Handle authentication."""
         try:
             msg = AUTH_MESSAGE_SCHEMA(msg)

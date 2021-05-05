@@ -67,7 +67,7 @@ def options_data(user_input: dict) -> dict:
 class OptionsFlowHandler(config_entries.OptionsFlow):
     """Options for the component."""
 
-    def __init__(self, config_entry: ConfigEntry) -> None:
+    def __init__(self, config_entry: ConfigEntry):
         """Init object."""
         self.config_entry = config_entry
 

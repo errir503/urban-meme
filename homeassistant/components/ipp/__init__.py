@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 import logging
+from typing import Any
 
 from pyipp import IPP, IPPError, Printer as IPPPrinter
 
@@ -17,7 +18,6 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -82,7 +82,7 @@ class IPPDataUpdateCoordinator(DataUpdateCoordinator[IPPPrinter]):
         base_path: str,
         tls: bool,
         verify_ssl: bool,
-    ) -> None:
+    ):
         """Initialize global IPP data updater."""
         self.ipp = IPP(
             host=host,
@@ -145,7 +145,7 @@ class IPPEntity(CoordinatorEntity):
         return self._enabled_default
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> dict[str, Any]:
         """Return device information about this IPP device."""
         if self._device_id is None:
             return None

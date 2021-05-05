@@ -24,7 +24,7 @@ CONF_ID_TOKEN = "id_token"
 PLATFORMS = ["sensor"]
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up Flick Electric from a config entry."""
     auth = HassFlickAuth(hass, entry)
 
@@ -47,7 +47,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
 class HassFlickAuth(AbstractFlickAuth):
     """Implementation of AbstractFlickAuth based on a Home Assistant entity config."""
 
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry):
         """Flick authention based on a Home Assistant entity config."""
         super().__init__(aiohttp_client.async_get_clientsession(hass))
         self._entry = entry

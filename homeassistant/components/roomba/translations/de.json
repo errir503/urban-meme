@@ -3,8 +3,7 @@
         "abort": {
             "already_configured": "Ger\u00e4t ist bereits konfiguriert",
             "cannot_connect": "Verbindung fehlgeschlagen",
-            "not_irobot_device": "Das erkannte Ger\u00e4t ist kein iRobot-Ger\u00e4t",
-            "short_blid": "Das BLID wurde abgeschnitten"
+            "not_irobot_device": "Das erkannte Ger\u00e4t ist kein iRobot-Ger\u00e4t"
         },
         "error": {
             "cannot_connect": "Verbindung fehlgeschlagen"
@@ -34,7 +33,6 @@
                     "blid": "BLID",
                     "host": "Host"
                 },
-                "description": "Es wurde kein Roomba oder Braava in Ihrem Netzwerk entdeckt. Die BLID ist der Teil des Ger\u00e4te-Hostnamens nach `iRobot-` oder `Roomba-`. Bitte folgen Sie den Schritten, die in der Dokumentation unter: {auth_help_url}",
                 "title": "Manuell mit dem Ger\u00e4t verbinden"
             },
             "user": {

@@ -16,9 +16,7 @@ class VolvoSensor(VolvoEntity, BinarySensorEntity):
 
     @property
     def is_on(self):
-        """Return True if the binary sensor is on, but invert for the 'Door lock'."""
-        if self.instrument.attr == "is_locked":
-            return not self.instrument.is_on
+        """Return True if the binary sensor is on."""
         return self.instrument.is_on
 
     @property

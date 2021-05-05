@@ -1,7 +1,5 @@
 """Common methods used across tests for Netatmo."""
-from contextlib import contextmanager
 import json
-from unittest.mock import patch
 
 from homeassistant.components.webhook import async_handle_webhook
 from homeassistant.util.aiohttp import MockRequest
@@ -37,19 +35,13 @@ FAKE_WEBHOOK_ACTIVATION = {
     "push_type": "webhook_activation",
 }
 
-DEFAULT_PLATFORMS = ["camera", "climate", "light", "sensor"]
 
-
-async def fake_post_request(*args, **kwargs):
+def fake_post_request(**args):
     """Return fake data."""
-    if "url" not in kwargs:
+    if "url" not in args:
         return "{}"
 
-    endpoint = kwargs["url"].split("/")[-1]
-
-    if endpoint in "snapshot_720.jpg":
-        return b"test stream image bytes"
-
+    endpoint = args["url"].split("/")[-1]
     if endpoint in [
         "setpersonsaway",
         "setpersonshome",
@@ -63,7 +55,7 @@ async def fake_post_request(*args, **kwargs):
     return json.loads(load_fixture(f"netatmo/{endpoint}.json"))
 
 
-async def fake_post_request_no_data(*args, **kwargs):
+def fake_post_request_no_data(**args):
     """Fake error during requesting backend data."""
     return "{}"
 
@@ -76,12 +68,3 @@ async def simulate_webhook(hass, webhook_id, response):
     )
     await async_handle_webhook(hass, webhook_id, request)
     await hass.async_block_till_done()
-
-
-@contextmanager
-def selected_platforms(platforms):
-    """Restrict loaded platforms to list given."""
-    with patch("homeassistant.components.netatmo.PLATFORMS", platforms), patch(
-        "homeassistant.helpers.config_entry_oauth2_flow.async_get_config_entry_implementation",
-    ), patch("homeassistant.components.webhook.async_generate_url"):
-        yield

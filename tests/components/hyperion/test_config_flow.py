@@ -2,8 +2,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable
-from typing import Any
+from typing import Any, Awaitable
 from unittest.mock import AsyncMock, Mock, patch
 
 from hyperion import const
@@ -27,7 +26,6 @@ from homeassistant.const import (
     SERVICE_TURN_ON,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResult
 
 from . import (
     TEST_AUTH_REQUIRED_RESP,
@@ -102,7 +100,7 @@ TEST_SSDP_SERVICE_INFO = {
 
 async def _create_mock_entry(hass: HomeAssistant) -> MockConfigEntry:
     """Add a test Hyperion entity to hass."""
-    entry: MockConfigEntry = MockConfigEntry(
+    entry: MockConfigEntry = MockConfigEntry(  # type: ignore[no-untyped-call]
         entry_id=TEST_CONFIG_ENTRY_ID,
         domain=DOMAIN,
         unique_id=TEST_SYSINFO_ID,
@@ -113,7 +111,7 @@ async def _create_mock_entry(hass: HomeAssistant) -> MockConfigEntry:
             "instance": TEST_INSTANCE,
         },
     )
-    entry.add_to_hass(hass)
+    entry.add_to_hass(hass)  # type: ignore[no-untyped-call]
 
     # Setup
     client = create_mock_client()
@@ -140,7 +138,7 @@ async def _init_flow(
 
 
 async def _configure_flow(
-    hass: HomeAssistant, result: FlowResult, user_input: dict[str, Any] | None = None
+    hass: HomeAssistant, result: dict, user_input: dict[str, Any] | None = None
 ) -> Any:
     """Provide input to a flow."""
     user_input = user_input or {}
@@ -421,11 +419,6 @@ async def test_auth_create_token_approval_declined_task_canceled(
     class CanceledAwaitableMock(AsyncMock):
         """A canceled awaitable mock."""
 
-        def __init__(self):
-            super().__init__()
-            self.done = Mock(return_value=False)
-            self.cancel = Mock()
-
         def __await__(self) -> None:
             raise asyncio.CancelledError
 
@@ -442,15 +435,20 @@ async def test_auth_create_token_approval_declined_task_canceled(
     ), patch(
         "homeassistant.components.hyperion.config_flow.client.generate_random_auth_id",
         return_value=TEST_AUTH_ID,
+    ), patch.object(
+        hass, "async_create_task", side_effect=create_task
     ):
         result = await _configure_flow(
             hass, result, user_input={CONF_CREATE_TOKEN: True}
         )
         assert result["step_id"] == "create_token"
 
-        with patch.object(hass, "async_create_task", side_effect=create_task):
-            result = await _configure_flow(hass, result)
-            assert result["step_id"] == "create_token_external"
+        result = await _configure_flow(hass, result)
+        assert result["step_id"] == "create_token_external"
+
+        # Leave the task running, to ensure it is canceled.
+        mock_task.done = Mock(return_value=False)
+        mock_task.cancel = Mock()
 
         result = await _configure_flow(hass, result)
 

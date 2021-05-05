@@ -1,6 +1,6 @@
 {
   "config": {
-    "flow_title": "{name}",
+    "flow_title": "Roku: {name}",
     "step": {
       "user": {
         "description": "Enter your Roku information.",

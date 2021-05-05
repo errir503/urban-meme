@@ -23,6 +23,7 @@ class CoolmasterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a Coolmaster config flow."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
     @core.callback
     def _async_get_entry(self, data):

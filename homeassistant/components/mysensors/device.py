@@ -9,9 +9,9 @@ from mysensors import BaseAsyncGateway, Sensor
 from mysensors.sensor import ChildSensor
 
 from homeassistant.const import ATTR_BATTERY_LEVEL, STATE_OFF, STATE_ON
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.entity import DeviceInfo, Entity
+from homeassistant.helpers.entity import Entity
 
 from .const import (
     CHILD_CALLBACK,
@@ -37,8 +37,6 @@ MYSENSORS_PLATFORM_DEVICES = "mysensors_devices_{}"
 class MySensorsDevice:
     """Representation of a MySensors device."""
 
-    hass: HomeAssistant
-
     def __init__(
         self,
         gateway_id: GatewayId,
@@ -46,7 +44,7 @@ class MySensorsDevice:
         node_id: int,
         child_id: int,
         value_type: int,
-    ) -> None:
+    ):
         """Set up the MySensors device."""
         self.gateway_id: GatewayId = gateway_id
         self.gateway: BaseAsyncGateway = gateway
@@ -54,8 +52,9 @@ class MySensorsDevice:
         self.child_id: int = child_id
         self.value_type: int = value_type  # value_type as int. string variant can be looked up in gateway consts
         self.child_type = self._child.type
-        self._values: dict[int, Any] = {}
+        self._values = {}
         self._update_scheduled = False
+        self.hass = None
 
     @property
     def dev_id(self) -> DevId:
@@ -110,7 +109,7 @@ class MySensorsDevice:
         return f"{self.gateway_id}-{self.node_id}-{self.child_id}-{self.value_type}"
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> dict[str, Any] | None:
         """Return a dict that allows home assistant to puzzle all entities belonging to a node together."""
         return {
             "identifiers": {(DOMAIN, f"{self.gateway_id}-{self.node_id}")},

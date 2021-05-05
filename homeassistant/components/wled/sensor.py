@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from typing import Any
+from typing import Any, Callable
 
 from homeassistant.components.sensor import DEVICE_CLASS_CURRENT, SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -14,46 +14,84 @@ from homeassistant.const import (
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import Entity
 from homeassistant.util.dt import utcnow
 
-from . import WLEDDataUpdateCoordinator, WLEDEntity
+from . import WLEDDataUpdateCoordinator, WLEDDeviceEntity
 from .const import ATTR_LED_COUNT, ATTR_MAX_POWER, CURRENT_MA, DOMAIN
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[list[Entity], bool], None],
 ) -> None:
     """Set up WLED sensor based on a config entry."""
     coordinator: WLEDDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
 
     sensors = [
-        WLEDEstimatedCurrentSensor(coordinator),
-        WLEDUptimeSensor(coordinator),
-        WLEDFreeHeapSensor(coordinator),
-        WLEDWifiBSSIDSensor(coordinator),
-        WLEDWifiChannelSensor(coordinator),
-        WLEDWifiRSSISensor(coordinator),
-        WLEDWifiSignalSensor(coordinator),
+        WLEDEstimatedCurrentSensor(entry.entry_id, coordinator),
+        WLEDUptimeSensor(entry.entry_id, coordinator),
+        WLEDFreeHeapSensor(entry.entry_id, coordinator),
+        WLEDWifiBSSIDSensor(entry.entry_id, coordinator),
+        WLEDWifiChannelSensor(entry.entry_id, coordinator),
+        WLEDWifiRSSISensor(entry.entry_id, coordinator),
+        WLEDWifiSignalSensor(entry.entry_id, coordinator),
     ]
 
     async_add_entities(sensors, True)
 
 
-class WLEDEstimatedCurrentSensor(WLEDEntity, SensorEntity):
+class WLEDSensor(WLEDDeviceEntity, SensorEntity):
+    """Defines a WLED sensor."""
+
+    def __init__(
+        self,
+        *,
+        coordinator: WLEDDataUpdateCoordinator,
+        enabled_default: bool = True,
+        entry_id: str,
+        icon: str,
+        key: str,
+        name: str,
+        unit_of_measurement: str | None = None,
+    ) -> None:
+        """Initialize WLED sensor."""
+        self._unit_of_measurement = unit_of_measurement
+        self._key = key
+
+        super().__init__(
+            entry_id=entry_id,
+            coordinator=coordinator,
+            name=name,
+            icon=icon,
+            enabled_default=enabled_default,
+        )
+
+    @property
+    def unique_id(self) -> str:
+        """Return the unique ID for this sensor."""
+        return f"{self.coordinator.data.info.mac_address}_{self._key}"
+
+    @property
+    def unit_of_measurement(self) -> str:
+        """Return the unit this state is expressed in."""
+        return self._unit_of_measurement
+
+
+class WLEDEstimatedCurrentSensor(WLEDSensor):
     """Defines a WLED estimated current sensor."""
 
-    _attr_icon = "mdi:power"
-    _attr_unit_of_measurement = CURRENT_MA
-    _attr_device_class = DEVICE_CLASS_CURRENT
-
-    def __init__(self, coordinator: WLEDDataUpdateCoordinator) -> None:
+    def __init__(self, entry_id: str, coordinator: WLEDDataUpdateCoordinator) -> None:
         """Initialize WLED estimated current sensor."""
-        super().__init__(coordinator=coordinator)
-        self._attr_name = f"{coordinator.data.info.name} Estimated Current"
-        self._attr_unique_id = f"{coordinator.data.info.mac_address}_estimated_current"
+        super().__init__(
+            coordinator=coordinator,
+            entry_id=entry_id,
+            icon="mdi:power",
+            key="estimated_current",
+            name=f"{coordinator.data.info.name} Estimated Current",
+            unit_of_measurement=CURRENT_MA,
+        )
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
@@ -68,18 +106,25 @@ class WLEDEstimatedCurrentSensor(WLEDEntity, SensorEntity):
         """Return the state of the sensor."""
         return self.coordinator.data.info.leds.power
 
+    @property
+    def device_class(self) -> str | None:
+        """Return the class of this sensor."""
+        return DEVICE_CLASS_CURRENT
 
-class WLEDUptimeSensor(WLEDEntity, SensorEntity):
+
+class WLEDUptimeSensor(WLEDSensor):
     """Defines a WLED uptime sensor."""
 
-    _attr_device_class = DEVICE_CLASS_TIMESTAMP
-    _attr_entity_registry_enabled_default = False
-
-    def __init__(self, coordinator: WLEDDataUpdateCoordinator) -> None:
+    def __init__(self, entry_id: str, coordinator: WLEDDataUpdateCoordinator) -> None:
         """Initialize WLED uptime sensor."""
-        super().__init__(coordinator=coordinator)
-        self._attr_name = f"{coordinator.data.info.name} Uptime"
-        self._attr_unique_id = f"{coordinator.data.info.mac_address}_uptime"
+        super().__init__(
+            coordinator=coordinator,
+            enabled_default=False,
+            entry_id=entry_id,
+            icon="mdi:clock-outline",
+            key="uptime",
+            name=f"{coordinator.data.info.name} Uptime",
+        )
 
     @property
     def state(self) -> str:
@@ -87,19 +132,26 @@ class WLEDUptimeSensor(WLEDEntity, SensorEntity):
         uptime = utcnow() - timedelta(seconds=self.coordinator.data.info.uptime)
         return uptime.replace(microsecond=0).isoformat()
 
+    @property
+    def device_class(self) -> str | None:
+        """Return the class of this sensor."""
+        return DEVICE_CLASS_TIMESTAMP
 
-class WLEDFreeHeapSensor(WLEDEntity, SensorEntity):
+
+class WLEDFreeHeapSensor(WLEDSensor):
     """Defines a WLED free heap sensor."""
 
-    _attr_icon = "mdi:memory"
-    _attr_entity_registry_enabled_default = False
-    _attr_unit_of_measurement = DATA_BYTES
-
-    def __init__(self, coordinator: WLEDDataUpdateCoordinator) -> None:
+    def __init__(self, entry_id: str, coordinator: WLEDDataUpdateCoordinator) -> None:
         """Initialize WLED free heap sensor."""
-        super().__init__(coordinator=coordinator)
-        self._attr_name = f"{coordinator.data.info.name} Free Memory"
-        self._attr_unique_id = f"{coordinator.data.info.mac_address}_free_heap"
+        super().__init__(
+            coordinator=coordinator,
+            enabled_default=False,
+            entry_id=entry_id,
+            icon="mdi:memory",
+            key="free_heap",
+            name=f"{coordinator.data.info.name} Free Memory",
+            unit_of_measurement=DATA_BYTES,
+        )
 
     @property
     def state(self) -> int:
@@ -107,18 +159,20 @@ class WLEDFreeHeapSensor(WLEDEntity, SensorEntity):
         return self.coordinator.data.info.free_heap
 
 
-class WLEDWifiSignalSensor(WLEDEntity, SensorEntity):
+class WLEDWifiSignalSensor(WLEDSensor):
     """Defines a WLED Wi-Fi signal sensor."""
 
-    _attr_icon = "mdi:wifi"
-    _attr_unit_of_measurement = PERCENTAGE
-    _attr_entity_registry_enabled_default = False
-
-    def __init__(self, coordinator: WLEDDataUpdateCoordinator) -> None:
+    def __init__(self, entry_id: str, coordinator: WLEDDataUpdateCoordinator) -> None:
         """Initialize WLED Wi-Fi signal sensor."""
-        super().__init__(coordinator=coordinator)
-        self._attr_name = f"{coordinator.data.info.name} Wi-Fi Signal"
-        self._attr_unique_id = f"{coordinator.data.info.mac_address}_wifi_signal"
+        super().__init__(
+            coordinator=coordinator,
+            enabled_default=False,
+            entry_id=entry_id,
+            icon="mdi:wifi",
+            key="wifi_signal",
+            name=f"{coordinator.data.info.name} Wi-Fi Signal",
+            unit_of_measurement=PERCENTAGE,
+        )
 
     @property
     def state(self) -> int:
@@ -126,36 +180,45 @@ class WLEDWifiSignalSensor(WLEDEntity, SensorEntity):
         return self.coordinator.data.info.wifi.signal
 
 
-class WLEDWifiRSSISensor(WLEDEntity, SensorEntity):
+class WLEDWifiRSSISensor(WLEDSensor):
     """Defines a WLED Wi-Fi RSSI sensor."""
 
-    _attr_device_class = DEVICE_CLASS_SIGNAL_STRENGTH
-    _attr_unit_of_measurement = SIGNAL_STRENGTH_DECIBELS_MILLIWATT
-    _attr_entity_registry_enabled_default = False
-
-    def __init__(self, coordinator: WLEDDataUpdateCoordinator) -> None:
+    def __init__(self, entry_id: str, coordinator: WLEDDataUpdateCoordinator) -> None:
         """Initialize WLED Wi-Fi RSSI sensor."""
-        super().__init__(coordinator=coordinator)
-        self._attr_name = f"{coordinator.data.info.name} Wi-Fi RSSI"
-        self._attr_unique_id = f"{coordinator.data.info.mac_address}_wifi_rssi"
+        super().__init__(
+            coordinator=coordinator,
+            enabled_default=False,
+            entry_id=entry_id,
+            icon="mdi:wifi",
+            key="wifi_rssi",
+            name=f"{coordinator.data.info.name} Wi-Fi RSSI",
+            unit_of_measurement=SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
+        )
 
     @property
     def state(self) -> int:
         """Return the state of the sensor."""
         return self.coordinator.data.info.wifi.rssi
 
+    @property
+    def device_class(self) -> str | None:
+        """Return the class of this sensor."""
+        return DEVICE_CLASS_SIGNAL_STRENGTH
 
-class WLEDWifiChannelSensor(WLEDEntity, SensorEntity):
+
+class WLEDWifiChannelSensor(WLEDSensor):
     """Defines a WLED Wi-Fi Channel sensor."""
 
-    _attr_icon = "mdi:wifi"
-    _attr_entity_registry_enabled_default = False
-
-    def __init__(self, coordinator: WLEDDataUpdateCoordinator) -> None:
+    def __init__(self, entry_id: str, coordinator: WLEDDataUpdateCoordinator) -> None:
         """Initialize WLED Wi-Fi Channel sensor."""
-        super().__init__(coordinator=coordinator)
-        self._attr_name = f"{coordinator.data.info.name} Wi-Fi Channel"
-        self._attr_unique_id = f"{coordinator.data.info.mac_address}_wifi_channel"
+        super().__init__(
+            coordinator=coordinator,
+            enabled_default=False,
+            entry_id=entry_id,
+            icon="mdi:wifi",
+            key="wifi_channel",
+            name=f"{coordinator.data.info.name} Wi-Fi Channel",
+        )
 
     @property
     def state(self) -> int:
@@ -163,17 +226,19 @@ class WLEDWifiChannelSensor(WLEDEntity, SensorEntity):
         return self.coordinator.data.info.wifi.channel
 
 
-class WLEDWifiBSSIDSensor(WLEDEntity, SensorEntity):
+class WLEDWifiBSSIDSensor(WLEDSensor):
     """Defines a WLED Wi-Fi BSSID sensor."""
 
-    _attr_icon = "mdi:wifi"
-    _attr_entity_registry_enabled_default = False
-
-    def __init__(self, coordinator: WLEDDataUpdateCoordinator) -> None:
+    def __init__(self, entry_id: str, coordinator: WLEDDataUpdateCoordinator) -> None:
         """Initialize WLED Wi-Fi BSSID sensor."""
-        super().__init__(coordinator=coordinator)
-        self._attr_name = f"{coordinator.data.info.name} Wi-Fi BSSID"
-        self._attr_unique_id = f"{coordinator.data.info.mac_address}_wifi_bssid"
+        super().__init__(
+            coordinator=coordinator,
+            enabled_default=False,
+            entry_id=entry_id,
+            icon="mdi:wifi",
+            key="wifi_bssid",
+            name=f"{coordinator.data.info.name} Wi-Fi BSSID",
+        )
 
     @property
     def state(self) -> str:

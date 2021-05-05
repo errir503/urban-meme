@@ -45,7 +45,7 @@ def calls(hass):
     return async_mock_service(hass, "test", "automation")
 
 
-async def test_get_triggers(hass, device_reg, entity_reg, enable_custom_integrations):
+async def test_get_triggers(hass, device_reg, entity_reg):
     """Test we get the expected triggers from a sensor."""
     platform = getattr(hass.components, f"test.{DOMAIN}")
     platform.init()
@@ -85,9 +85,7 @@ async def test_get_triggers(hass, device_reg, entity_reg, enable_custom_integrat
     assert triggers == expected_triggers
 
 
-async def test_get_trigger_capabilities(
-    hass, device_reg, entity_reg, enable_custom_integrations
-):
+async def test_get_trigger_capabilities(hass, device_reg, entity_reg):
     """Test we get the expected capabilities from a sensor trigger."""
     platform = getattr(hass.components, f"test.{DOMAIN}")
     platform.init()
@@ -134,9 +132,7 @@ async def test_get_trigger_capabilities(
         assert capabilities == expected_capabilities
 
 
-async def test_get_trigger_capabilities_none(
-    hass, device_reg, entity_reg, enable_custom_integrations
-):
+async def test_get_trigger_capabilities_none(hass, device_reg, entity_reg):
     """Test we get the expected capabilities from a sensor trigger."""
     platform = getattr(hass.components, f"test.{DOMAIN}")
     platform.init()
@@ -172,9 +168,7 @@ async def test_get_trigger_capabilities_none(
         assert capabilities == expected_capabilities
 
 
-async def test_if_fires_not_on_above_below(
-    hass, calls, caplog, enable_custom_integrations
-):
+async def test_if_fires_not_on_above_below(hass, calls, caplog):
     """Test for value triggers firing."""
     platform = getattr(hass.components, f"test.{DOMAIN}")
     platform.init()
@@ -204,7 +198,7 @@ async def test_if_fires_not_on_above_below(
     assert "must contain at least one of below, above" in caplog.text
 
 
-async def test_if_fires_on_state_above(hass, calls, enable_custom_integrations):
+async def test_if_fires_on_state_above(hass, calls):
     """Test for value triggers firing."""
     platform = getattr(hass.components, f"test.{DOMAIN}")
     platform.init()
@@ -262,7 +256,7 @@ async def test_if_fires_on_state_above(hass, calls, enable_custom_integrations):
     )
 
 
-async def test_if_fires_on_state_below(hass, calls, enable_custom_integrations):
+async def test_if_fires_on_state_below(hass, calls):
     """Test for value triggers firing."""
     platform = getattr(hass.components, f"test.{DOMAIN}")
     platform.init()
@@ -320,7 +314,7 @@ async def test_if_fires_on_state_below(hass, calls, enable_custom_integrations):
     )
 
 
-async def test_if_fires_on_state_between(hass, calls, enable_custom_integrations):
+async def test_if_fires_on_state_between(hass, calls):
     """Test for value triggers firing."""
     platform = getattr(hass.components, f"test.{DOMAIN}")
     platform.init()
@@ -390,9 +384,7 @@ async def test_if_fires_on_state_between(hass, calls, enable_custom_integrations
     )
 
 
-async def test_if_fires_on_state_change_with_for(
-    hass, calls, enable_custom_integrations
-):
+async def test_if_fires_on_state_change_with_for(hass, calls):
     """Test for triggers firing with delay."""
     platform = getattr(hass.components, f"test.{DOMAIN}")
 

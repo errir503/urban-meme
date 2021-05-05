@@ -10,6 +10,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .common import async_process_devices
+from .config_flow import configured_instances
 from .const import (
     DOMAIN,
     SERVICE_UPDATE_DEVS,
@@ -26,17 +27,14 @@ PLATFORMS = ["switch", "fan", "light"]
 _LOGGER = logging.getLogger(__name__)
 
 CONFIG_SCHEMA = vol.Schema(
-    vol.All(
-        cv.deprecated(DOMAIN),
-        {
-            DOMAIN: vol.Schema(
-                {
-                    vol.Required(CONF_USERNAME): cv.string,
-                    vol.Required(CONF_PASSWORD): cv.string,
-                }
-            )
-        },
-    ),
+    {
+        DOMAIN: vol.Schema(
+            {
+                vol.Required(CONF_USERNAME): cv.string,
+                vol.Required(CONF_PASSWORD): cv.string,
+            }
+        )
+    },
     extra=vol.ALLOW_EXTRA,
 )
 
@@ -48,7 +46,7 @@ async def async_setup(hass, config):
     if conf is None:
         return True
 
-    if not hass.config_entries.async_entries(DOMAIN):
+    if not configured_instances(hass):
         hass.async_create_task(
             hass.config_entries.flow.async_init(
                 DOMAIN,

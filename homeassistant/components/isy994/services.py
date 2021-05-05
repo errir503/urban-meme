@@ -27,7 +27,7 @@ from .const import (
     ISY994_PROGRAMS,
     ISY994_VARIABLES,
     PLATFORMS,
-    PROGRAM_PLATFORMS,
+    SUPPORTED_PROGRAM_PLATFORMS,
 )
 
 # Common Services for All Platforms:
@@ -48,20 +48,15 @@ INTEGRATION_SERVICES = [
 # Entity specific methods (valid for most Groups/ISY Scenes, Lights, Switches, Fans)
 SERVICE_SEND_RAW_NODE_COMMAND = "send_raw_node_command"
 SERVICE_SEND_NODE_COMMAND = "send_node_command"
-SERVICE_GET_ZWAVE_PARAMETER = "get_zwave_parameter"
-SERVICE_SET_ZWAVE_PARAMETER = "set_zwave_parameter"
-SERVICE_RENAME_NODE = "rename_node"
 
 # Services valid only for dimmable lights.
 SERVICE_SET_ON_LEVEL = "set_on_level"
 SERVICE_SET_RAMP_RATE = "set_ramp_rate"
 
-CONF_PARAMETER = "parameter"
 CONF_PARAMETERS = "parameters"
 CONF_VALUE = "value"
 CONF_INIT = "init"
 CONF_ISY = "isy"
-CONF_SIZE = "size"
 
 VALID_NODE_COMMANDS = [
     "beep",
@@ -86,7 +81,6 @@ VALID_PROGRAM_COMMANDS = [
     "enable_run_at_startup",
     "disable_run_at_startup",
 ]
-VALID_PARAMETER_SIZES = [1, 2, 4]
 
 
 def valid_isy_commands(value: Any) -> str:
@@ -120,16 +114,6 @@ SERVICE_SEND_RAW_NODE_COMMAND_SCHEMA = {
 
 SERVICE_SEND_NODE_COMMAND_SCHEMA = {
     vol.Required(CONF_COMMAND): vol.In(VALID_NODE_COMMANDS)
-}
-
-SERVICE_RENAME_NODE_SCHEMA = {vol.Required(CONF_NAME): cv.string}
-
-SERVICE_GET_ZWAVE_PARAMETER_SCHEMA = {vol.Required(CONF_PARAMETER): vol.Coerce(int)}
-
-SERVICE_SET_ZWAVE_PARAMETER_SCHEMA = {
-    vol.Required(CONF_PARAMETER): vol.Coerce(int),
-    vol.Required(CONF_VALUE): vol.Coerce(int),
-    vol.Required(CONF_SIZE): vol.All(vol.Coerce(int), vol.In(VALID_PARAMETER_SIZES)),
 }
 
 SERVICE_SET_VARIABLE_SCHEMA = vol.All(
@@ -199,12 +183,12 @@ def async_setup_services(hass: HomeAssistant):  # noqa: C901
                     address,
                     isy.configuration["uuid"],
                 )
-                await isy.query(address)
+                await hass.async_add_executor_job(isy.query, address)
                 return
             _LOGGER.debug(
                 "Requesting system query of ISY %s", isy.configuration["uuid"]
             )
-            await isy.query()
+            await hass.async_add_executor_job(isy.query)
 
     async def async_run_network_resource_service_handler(service):
         """Handle a network resource service call."""
@@ -224,10 +208,10 @@ def async_setup_services(hass: HomeAssistant):  # noqa: C901
             if name:
                 command = isy.networking.get_by_name(name)
             if command is not None:
-                await command.run()
+                await hass.async_add_executor_job(command.run)
                 return
         _LOGGER.error(
-            "Could not run network resource command; not found or enabled on the ISY"
+            "Could not run network resource command. Not found or enabled on the ISY"
         )
 
     async def async_send_program_command_service_handler(service):
@@ -247,9 +231,9 @@ def async_setup_services(hass: HomeAssistant):  # noqa: C901
             if name:
                 program = isy.programs.get_by_name(name)
             if program is not None:
-                await getattr(program, command)()
+                await hass.async_add_executor_job(getattr(program, command))
                 return
-        _LOGGER.error("Could not send program command; not found or enabled on the ISY")
+        _LOGGER.error("Could not send program command. Not found or enabled on the ISY")
 
     async def async_set_variable_service_handler(service):
         """Handle a set variable service call."""
@@ -270,9 +254,9 @@ def async_setup_services(hass: HomeAssistant):  # noqa: C901
             if address and vtype:
                 variable = isy.variables.vobjs[vtype].get(address)
             if variable is not None:
-                await variable.set_value(value, init)
+                await hass.async_add_executor_job(variable.set_value, value, init)
                 return
-        _LOGGER.error("Could not set variable value; not found or enabled on the ISY")
+        _LOGGER.error("Could not set variable value. Not found or enabled on the ISY")
 
     async def async_cleanup_registry_entries(service) -> None:
         """Remove extra entities that are no longer part of the integration."""
@@ -299,7 +283,7 @@ def async_setup_services(hass: HomeAssistant):  # noqa: C901
                     if hasattr(node, "address"):
                         current_unique_ids.append(f"{uuid}_{node.address}")
 
-            for platform in PROGRAM_PLATFORMS:
+            for platform in SUPPORTED_PROGRAM_PLATFORMS:
                 for _, node, _ in hass_isy_data[ISY994_PROGRAMS][platform]:
                     if hasattr(node, "address"):
                         current_unique_ids.append(f"{uuid}_{node.address}")
@@ -371,7 +355,7 @@ def async_setup_services(hass: HomeAssistant):  # noqa: C901
 
     async def _async_send_raw_node_command(call: ServiceCall):
         await hass.helpers.service.entity_service_call(
-            async_get_platforms(hass, DOMAIN), "async_send_raw_node_command", call
+            async_get_platforms(hass, DOMAIN), SERVICE_SEND_RAW_NODE_COMMAND, call
         )
 
     hass.services.async_register(
@@ -383,7 +367,7 @@ def async_setup_services(hass: HomeAssistant):  # noqa: C901
 
     async def _async_send_node_command(call: ServiceCall):
         await hass.helpers.service.entity_service_call(
-            async_get_platforms(hass, DOMAIN), "async_send_node_command", call
+            async_get_platforms(hass, DOMAIN), SERVICE_SEND_NODE_COMMAND, call
         )
 
     hass.services.async_register(
@@ -391,42 +375,6 @@ def async_setup_services(hass: HomeAssistant):  # noqa: C901
         service=SERVICE_SEND_NODE_COMMAND,
         schema=cv.make_entity_service_schema(SERVICE_SEND_NODE_COMMAND_SCHEMA),
         service_func=_async_send_node_command,
-    )
-
-    async def _async_get_zwave_parameter(call: ServiceCall):
-        await hass.helpers.service.entity_service_call(
-            async_get_platforms(hass, DOMAIN), "async_get_zwave_parameter", call
-        )
-
-    hass.services.async_register(
-        domain=DOMAIN,
-        service=SERVICE_GET_ZWAVE_PARAMETER,
-        schema=cv.make_entity_service_schema(SERVICE_GET_ZWAVE_PARAMETER_SCHEMA),
-        service_func=_async_get_zwave_parameter,
-    )
-
-    async def _async_set_zwave_parameter(call: ServiceCall):
-        await hass.helpers.service.entity_service_call(
-            async_get_platforms(hass, DOMAIN), "async_set_zwave_parameter", call
-        )
-
-    hass.services.async_register(
-        domain=DOMAIN,
-        service=SERVICE_SET_ZWAVE_PARAMETER,
-        schema=cv.make_entity_service_schema(SERVICE_SET_ZWAVE_PARAMETER_SCHEMA),
-        service_func=_async_set_zwave_parameter,
-    )
-
-    async def _async_rename_node(call: ServiceCall):
-        await hass.helpers.service.entity_service_call(
-            async_get_platforms(hass, DOMAIN), "async_rename_node", call
-        )
-
-    hass.services.async_register(
-        domain=DOMAIN,
-        service=SERVICE_RENAME_NODE,
-        schema=cv.make_entity_service_schema(SERVICE_RENAME_NODE_SCHEMA),
-        service_func=_async_rename_node,
     )
 
 
@@ -457,11 +405,11 @@ def async_unload_services(hass: HomeAssistant):
 @callback
 def async_setup_light_services(hass: HomeAssistant):
     """Create device-specific services for the ISY Integration."""
-    platform = entity_platform.async_get_current_platform()
+    platform = entity_platform.current_platform.get()
 
     platform.async_register_entity_service(
-        SERVICE_SET_ON_LEVEL, SERVICE_SET_VALUE_SCHEMA, "async_set_on_level"
+        SERVICE_SET_ON_LEVEL, SERVICE_SET_VALUE_SCHEMA, SERVICE_SET_ON_LEVEL
     )
     platform.async_register_entity_service(
-        SERVICE_SET_RAMP_RATE, SERVICE_SET_RAMP_RATE_SCHEMA, "async_set_ramp_rate"
+        SERVICE_SET_RAMP_RATE, SERVICE_SET_RAMP_RATE_SCHEMA, SERVICE_SET_RAMP_RATE
     )

@@ -448,7 +448,6 @@ async def test_advanced_option_flow(hass, aioclient_mock):
 
     assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
     assert result["step_id"] == "device_tracker"
-    assert not result["last_step"]
     assert set(
         result["data_schema"].schema[CONF_SSID_FILTER].options.keys()
     ).intersection(("SSID 1", "SSID 2", "SSID 2_IOT", "SSID 3"))
@@ -466,7 +465,6 @@ async def test_advanced_option_flow(hass, aioclient_mock):
 
     assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
     assert result["step_id"] == "client_control"
-    assert not result["last_step"]
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -479,7 +477,6 @@ async def test_advanced_option_flow(hass, aioclient_mock):
 
     assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
     assert result["step_id"] == "statistics_sensors"
-    assert result["last_step"]
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -522,7 +519,6 @@ async def test_simple_option_flow(hass, aioclient_mock):
 
     assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
     assert result["step_id"] == "simple_options"
-    assert result["last_step"]
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],

@@ -1,4 +1,7 @@
 """The flume integration."""
+from functools import partial
+import logging
+
 from pyflume import FlumeAuth, FlumeDeviceList
 from requests import Session
 from requests.exceptions import RequestException
@@ -11,7 +14,7 @@ from homeassistant.const import (
     CONF_USERNAME,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryNotReady
 
 from .const import (
     BASE_TOKEN_FILENAME,
@@ -22,9 +25,12 @@ from .const import (
     PLATFORMS,
 )
 
+_LOGGER = logging.getLogger(__name__)
 
-def _setup_entry(hass: HomeAssistant, entry: ConfigEntry):
-    """Config entry set up in executor."""
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+    """Set up flume from a config entry."""
+
     config = entry.data
 
     username = config[CONF_USERNAME]
@@ -36,31 +42,32 @@ def _setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     http_session = Session()
 
     try:
-        flume_auth = FlumeAuth(
-            username,
-            password,
-            client_id,
-            client_secret,
-            flume_token_file=flume_token_full_path,
-            http_session=http_session,
+        flume_auth = await hass.async_add_executor_job(
+            partial(
+                FlumeAuth,
+                username,
+                password,
+                client_id,
+                client_secret,
+                flume_token_file=flume_token_full_path,
+                http_session=http_session,
+            )
         )
-        flume_devices = FlumeDeviceList(flume_auth, http_session=http_session)
+        flume_devices = await hass.async_add_executor_job(
+            partial(
+                FlumeDeviceList,
+                flume_auth,
+                http_session=http_session,
+            )
+        )
     except RequestException as ex:
         raise ConfigEntryNotReady from ex
     except Exception as ex:  # pylint: disable=broad-except
-        raise ConfigEntryAuthFailed from ex
+        _LOGGER.error("Invalid credentials for flume: %s", ex)
+        return False
 
-    return flume_auth, flume_devices, http_session
-
-
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up flume from a config entry."""
-
-    flume_auth, flume_devices, http_session = await hass.async_add_executor_job(
-        _setup_entry, hass, entry
-    )
-
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN][entry.entry_id] = {
         FLUME_DEVICES: flume_devices,
         FLUME_AUTH: flume_auth,
         FLUME_HTTP_SESSION: http_session,

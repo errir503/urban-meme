@@ -262,8 +262,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 class XiaomiGatewaySwitch(XiaomiGatewayDevice, SwitchEntity):
     """Representation of a XiaomiGatewaySwitch."""
 
-    _attr_device_class = DEVICE_CLASS_SWITCH
-
     def __init__(self, coordinator, sub_device, entry, variable):
         """Initialize the XiaomiSensor."""
         super().__init__(coordinator, sub_device, entry)
@@ -271,6 +269,11 @@ class XiaomiGatewaySwitch(XiaomiGatewayDevice, SwitchEntity):
         self._data_key = f"status_ch{self._channel}"
         self._unique_id = f"{sub_device.sid}-ch{self._channel}"
         self._name = f"{sub_device.name} ch{self._channel} ({sub_device.sid})"
+
+    @property
+    def device_class(self):
+        """Return the device class of this entity."""
+        return DEVICE_CLASS_SWITCH
 
     @property
     def is_on(self):

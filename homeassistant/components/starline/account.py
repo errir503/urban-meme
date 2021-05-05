@@ -8,7 +8,6 @@ from starline import StarlineApi, StarlineDevice
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.event import async_track_time_interval
 
 from .const import (
@@ -26,7 +25,7 @@ from .const import (
 class StarlineAccount:
     """StarLine Account class."""
 
-    def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
+    def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry):
         """Initialize StarLine account."""
         self._hass: HomeAssistant = hass
         self._config_entry: ConfigEntry = config_entry
@@ -126,7 +125,7 @@ class StarlineAccount:
             self._unsubscribe_auto_obd_updater = None
 
     @staticmethod
-    def device_info(device: StarlineDevice) -> DeviceInfo:
+    def device_info(device: StarlineDevice) -> dict[str, Any]:
         """Device information for entities."""
         return {
             "identifiers": {(DOMAIN, device.device_id)},

@@ -29,25 +29,20 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 CONFIG_SCHEMA = vol.Schema(
-    vol.All(
-        # Deprecated in Home Assistant 2021.6
-        cv.deprecated(DOMAIN),
-        {
-            DOMAIN: vol.Schema(
-                {
-                    vol.Optional(CONF_SERVER_ID): cv.positive_int,
-                    vol.Optional(
-                        CONF_SCAN_INTERVAL,
-                        default=timedelta(minutes=DEFAULT_SCAN_INTERVAL),
-                    ): cv.positive_time_period,
-                    vol.Optional(CONF_MANUAL, default=False): cv.boolean,
-                    vol.Optional(
-                        CONF_MONITORED_CONDITIONS, default=list(SENSOR_TYPES)
-                    ): vol.All(cv.ensure_list, [vol.In(list(SENSOR_TYPES))]),
-                }
-            )
-        },
-    ),
+    {
+        DOMAIN: vol.Schema(
+            {
+                vol.Optional(CONF_SERVER_ID): cv.positive_int,
+                vol.Optional(
+                    CONF_SCAN_INTERVAL, default=timedelta(minutes=DEFAULT_SCAN_INTERVAL)
+                ): cv.positive_time_period,
+                vol.Optional(CONF_MANUAL, default=False): cv.boolean,
+                vol.Optional(
+                    CONF_MONITORED_CONDITIONS, default=list(SENSOR_TYPES)
+                ): vol.All(cv.ensure_list, [vol.In(list(SENSOR_TYPES))]),
+            }
+        )
+    },
     extra=vol.ALLOW_EXTRA,
 )
 
@@ -165,17 +160,11 @@ class SpeedTestDataCoordinator(DataUpdateCoordinator):
             server_id = self.config_entry.options.get(CONF_SERVER_ID)
             self.api.get_servers(servers=[server_id])
 
-        try:
-            self.api.get_best_server()
-        except speedtest.SpeedtestBestServerFailure as err:
-            raise UpdateFailed(
-                "Failed to retrieve best server for speedtest", err
-            ) from err
-
+        self.api.get_best_server()
         _LOGGER.debug(
-            "Executing speedtest.net speed test with server_id: %s",
-            self.api.best["id"],
+            "Executing speedtest.net speed test with server_id: %s", self.api.best["id"]
         )
+
         self.api.download()
         self.api.upload()
         return self.api.results.dict()

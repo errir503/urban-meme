@@ -1,70 +1,162 @@
 """Support for the Fitbit API."""
-
-from __future__ import annotations
-
 import datetime
 import logging
 import os
 import time
-from typing import Any, Final, cast
 
-from aiohttp.web import Request
 from fitbit import Fitbit
 from fitbit.api import FitbitOauth2Client
 from oauthlib.oauth2.rfc6749.errors import MismatchingStateError, MissingTokenError
 import voluptuous as vol
 
 from homeassistant.components.http import HomeAssistantView
-from homeassistant.components.sensor import (
-    PLATFORM_SCHEMA as PARENT_PLATFORM_SCHEMA,
-    SensorEntity,
-)
+from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntity
 from homeassistant.const import (
     ATTR_ATTRIBUTION,
     CONF_CLIENT_ID,
     CONF_CLIENT_SECRET,
     CONF_UNIT_SYSTEM,
+    LENGTH_FEET,
+    MASS_KILOGRAMS,
+    MASS_MILLIGRAMS,
+    PERCENTAGE,
+    TIME_MILLISECONDS,
+    TIME_MINUTES,
 )
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import callback
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.icon import icon_for_battery_level
 from homeassistant.helpers.network import get_url
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.util.json import load_json, save_json
 
-from .const import (
-    ATTR_ACCESS_TOKEN,
-    ATTR_LAST_SAVED_AT,
-    ATTR_REFRESH_TOKEN,
-    ATTRIBUTION,
-    BATTERY_LEVELS,
-    CONF_CLOCK_FORMAT,
-    CONF_MONITORED_RESOURCES,
-    DEFAULT_CLOCK_FORMAT,
-    DEFAULT_CONFIG,
-    FITBIT_AUTH_CALLBACK_PATH,
-    FITBIT_AUTH_START,
-    FITBIT_CONFIG_FILE,
-    FITBIT_DEFAULT_RESOURCES,
-    FITBIT_MEASUREMENTS,
-    FITBIT_RESOURCES_LIST,
-)
+_CONFIGURING = {}
+_LOGGER = logging.getLogger(__name__)
 
-_LOGGER: Final = logging.getLogger(__name__)
+ATTR_ACCESS_TOKEN = "access_token"
+ATTR_REFRESH_TOKEN = "refresh_token"
+ATTR_LAST_SAVED_AT = "last_saved_at"
 
-_CONFIGURING: dict[str, str] = {}
+CONF_MONITORED_RESOURCES = "monitored_resources"
+CONF_CLOCK_FORMAT = "clock_format"
+ATTRIBUTION = "Data provided by Fitbit.com"
 
-SCAN_INTERVAL: Final = datetime.timedelta(minutes=30)
+FITBIT_AUTH_CALLBACK_PATH = "/api/fitbit/callback"
+FITBIT_AUTH_START = "/api/fitbit"
+FITBIT_CONFIG_FILE = "fitbit.conf"
+FITBIT_DEFAULT_RESOURCES = ["activities/steps"]
 
-PLATFORM_SCHEMA: Final = PARENT_PLATFORM_SCHEMA.extend(
+SCAN_INTERVAL = datetime.timedelta(minutes=30)
+
+DEFAULT_CONFIG = {
+    CONF_CLIENT_ID: "CLIENT_ID_HERE",
+    CONF_CLIENT_SECRET: "CLIENT_SECRET_HERE",
+}
+
+FITBIT_RESOURCES_LIST = {
+    "activities/activityCalories": ["Activity Calories", "cal", "fire"],
+    "activities/calories": ["Calories", "cal", "fire"],
+    "activities/caloriesBMR": ["Calories BMR", "cal", "fire"],
+    "activities/distance": ["Distance", "", "map-marker"],
+    "activities/elevation": ["Elevation", "", "walk"],
+    "activities/floors": ["Floors", "floors", "walk"],
+    "activities/heart": ["Resting Heart Rate", "bpm", "heart-pulse"],
+    "activities/minutesFairlyActive": ["Minutes Fairly Active", TIME_MINUTES, "walk"],
+    "activities/minutesLightlyActive": ["Minutes Lightly Active", TIME_MINUTES, "walk"],
+    "activities/minutesSedentary": [
+        "Minutes Sedentary",
+        TIME_MINUTES,
+        "seat-recline-normal",
+    ],
+    "activities/minutesVeryActive": ["Minutes Very Active", TIME_MINUTES, "run"],
+    "activities/steps": ["Steps", "steps", "walk"],
+    "activities/tracker/activityCalories": ["Tracker Activity Calories", "cal", "fire"],
+    "activities/tracker/calories": ["Tracker Calories", "cal", "fire"],
+    "activities/tracker/distance": ["Tracker Distance", "", "map-marker"],
+    "activities/tracker/elevation": ["Tracker Elevation", "", "walk"],
+    "activities/tracker/floors": ["Tracker Floors", "floors", "walk"],
+    "activities/tracker/minutesFairlyActive": [
+        "Tracker Minutes Fairly Active",
+        TIME_MINUTES,
+        "walk",
+    ],
+    "activities/tracker/minutesLightlyActive": [
+        "Tracker Minutes Lightly Active",
+        TIME_MINUTES,
+        "walk",
+    ],
+    "activities/tracker/minutesSedentary": [
+        "Tracker Minutes Sedentary",
+        TIME_MINUTES,
+        "seat-recline-normal",
+    ],
+    "activities/tracker/minutesVeryActive": [
+        "Tracker Minutes Very Active",
+        TIME_MINUTES,
+        "run",
+    ],
+    "activities/tracker/steps": ["Tracker Steps", "steps", "walk"],
+    "body/bmi": ["BMI", "BMI", "human"],
+    "body/fat": ["Body Fat", PERCENTAGE, "human"],
+    "body/weight": ["Weight", "", "human"],
+    "devices/battery": ["Battery", None, None],
+    "sleep/awakeningsCount": ["Awakenings Count", "times awaken", "sleep"],
+    "sleep/efficiency": ["Sleep Efficiency", PERCENTAGE, "sleep"],
+    "sleep/minutesAfterWakeup": ["Minutes After Wakeup", TIME_MINUTES, "sleep"],
+    "sleep/minutesAsleep": ["Sleep Minutes Asleep", TIME_MINUTES, "sleep"],
+    "sleep/minutesAwake": ["Sleep Minutes Awake", TIME_MINUTES, "sleep"],
+    "sleep/minutesToFallAsleep": [
+        "Sleep Minutes to Fall Asleep",
+        TIME_MINUTES,
+        "sleep",
+    ],
+    "sleep/startTime": ["Sleep Start Time", None, "clock"],
+    "sleep/timeInBed": ["Sleep Time in Bed", TIME_MINUTES, "hotel"],
+}
+
+FITBIT_MEASUREMENTS = {
+    "en_US": {
+        "duration": TIME_MILLISECONDS,
+        "distance": "mi",
+        "elevation": LENGTH_FEET,
+        "height": "in",
+        "weight": "lbs",
+        "body": "in",
+        "liquids": "fl. oz.",
+        "blood glucose": f"{MASS_MILLIGRAMS}/dL",
+        "battery": "",
+    },
+    "en_GB": {
+        "duration": TIME_MILLISECONDS,
+        "distance": "kilometers",
+        "elevation": "meters",
+        "height": "centimeters",
+        "weight": "stone",
+        "body": "centimeters",
+        "liquids": "milliliters",
+        "blood glucose": "mmol/L",
+        "battery": "",
+    },
+    "metric": {
+        "duration": TIME_MILLISECONDS,
+        "distance": "kilometers",
+        "elevation": "meters",
+        "height": "centimeters",
+        "weight": MASS_KILOGRAMS,
+        "body": "centimeters",
+        "liquids": "milliliters",
+        "blood glucose": "mmol/L",
+        "battery": "",
+    },
+}
+
+BATTERY_LEVELS = {"High": 100, "Medium": 50, "Low": 20, "Empty": 0}
+
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Optional(
             CONF_MONITORED_RESOURCES, default=FITBIT_DEFAULT_RESOURCES
         ): vol.All(cv.ensure_list, [vol.In(FITBIT_RESOURCES_LIST)]),
-        vol.Optional(CONF_CLOCK_FORMAT, default=DEFAULT_CLOCK_FORMAT): vol.In(
-            ["12H", "24H"]
-        ),
+        vol.Optional(CONF_CLOCK_FORMAT, default="24H"): vol.In(["12H", "24H"]),
         vol.Optional(CONF_UNIT_SYSTEM, default="default"): vol.In(
             ["en_GB", "en_US", "metric", "default"]
         ),
@@ -72,17 +164,11 @@ PLATFORM_SCHEMA: Final = PARENT_PLATFORM_SCHEMA.extend(
 )
 
 
-def request_app_setup(
-    hass: HomeAssistant,
-    config: ConfigType,
-    add_entities: AddEntitiesCallback,
-    config_path: str,
-    discovery_info: DiscoveryInfoType | None = None,
-) -> None:
+def request_app_setup(hass, config, add_entities, config_path, discovery_info=None):
     """Assist user with configuring the Fitbit dev application."""
     configurator = hass.components.configurator
 
-    def fitbit_configuration_callback(fields: list[dict[str, str]]) -> None:
+    def fitbit_configuration_callback(callback_data):
         """Handle configuration updates."""
         config_path = hass.config.path(FITBIT_CONFIG_FILE)
         if os.path.isfile(config_path):
@@ -120,7 +206,7 @@ def request_app_setup(
     )
 
 
-def request_oauth_completion(hass: HomeAssistant) -> None:
+def request_oauth_completion(hass):
     """Request user complete Fitbit OAuth2 flow."""
     configurator = hass.components.configurator
     if "fitbit" in _CONFIGURING:
@@ -130,7 +216,7 @@ def request_oauth_completion(hass: HomeAssistant) -> None:
 
         return
 
-    def fitbit_configuration_callback(fields: list[dict[str, str]]) -> None:
+    def fitbit_configuration_callback(callback_data):
         """Handle configuration updates."""
 
     start_url = f"{get_url(hass)}{FITBIT_AUTH_START}"
@@ -145,37 +231,28 @@ def request_oauth_completion(hass: HomeAssistant) -> None:
     )
 
 
-def setup_platform(
-    hass: HomeAssistant,
-    config: ConfigType,
-    add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
-) -> None:
+def setup_platform(hass, config, add_entities, discovery_info=None):
     """Set up the Fitbit sensor."""
     config_path = hass.config.path(FITBIT_CONFIG_FILE)
     if os.path.isfile(config_path):
-        config_file: ConfigType = cast(ConfigType, load_json(config_path))
+        config_file = load_json(config_path)
         if config_file == DEFAULT_CONFIG:
             request_app_setup(
                 hass, config, add_entities, config_path, discovery_info=None
             )
-            return
+            return False
     else:
         save_json(config_path, DEFAULT_CONFIG)
         request_app_setup(hass, config, add_entities, config_path, discovery_info=None)
-        return
+        return False
 
     if "fitbit" in _CONFIGURING:
         hass.components.configurator.request_done(_CONFIGURING.pop("fitbit"))
 
-    access_token: str | None = config_file.get(ATTR_ACCESS_TOKEN)
-    refresh_token: str | None = config_file.get(ATTR_REFRESH_TOKEN)
-    expires_at: int | None = config_file.get(ATTR_LAST_SAVED_AT)
-    if (
-        access_token is not None
-        and refresh_token is not None
-        and expires_at is not None
-    ):
+    access_token = config_file.get(ATTR_ACCESS_TOKEN)
+    refresh_token = config_file.get(ATTR_REFRESH_TOKEN)
+    expires_at = config_file.get(ATTR_LAST_SAVED_AT)
+    if None not in (access_token, refresh_token):
         authd_client = Fitbit(
             config_file.get(CONF_CLIENT_ID),
             config_file.get(CONF_CLIENT_SECRET),
@@ -201,8 +278,8 @@ def setup_platform(
 
         dev = []
         registered_devs = authd_client.get_devices()
-        clock_format = config.get(CONF_CLOCK_FORMAT, DEFAULT_CLOCK_FORMAT)
-        for resource in config.get(CONF_MONITORED_RESOURCES, FITBIT_DEFAULT_RESOURCES):
+        clock_format = config.get(CONF_CLOCK_FORMAT)
+        for resource in config.get(CONF_MONITORED_RESOURCES):
 
             # monitor battery for all linked FitBit devices
             if resource == "devices/battery":
@@ -262,21 +339,16 @@ class FitbitAuthCallbackView(HomeAssistantView):
     url = FITBIT_AUTH_CALLBACK_PATH
     name = "api:fitbit:callback"
 
-    def __init__(
-        self,
-        config: ConfigType,
-        add_entities: AddEntitiesCallback,
-        oauth: FitbitOauth2Client,
-    ) -> None:
+    def __init__(self, config, add_entities, oauth):
         """Initialize the OAuth callback view."""
         self.config = config
         self.add_entities = add_entities
         self.oauth = oauth
 
     @callback
-    async def get(self, request: Request) -> str:
+    async def get(self, request):
         """Finish OAuth callback request."""
-        hass: HomeAssistant = request.app["hass"]
+        hass = request.app["hass"]
         data = request.query
 
         response_message = """Fitbit has been successfully authorized!
@@ -336,14 +408,8 @@ class FitbitSensor(SensorEntity):
     """Implementation of a Fitbit sensor."""
 
     def __init__(
-        self,
-        client: Fitbit,
-        config_path: str,
-        resource_type: str,
-        is_metric: bool,
-        clock_format: str,
-        extra: dict[str, str] | None = None,
-    ) -> None:
+        self, client, config_path, resource_type, is_metric, clock_format, extra=None
+    ):
         """Initialize the Fitbit sensor."""
         self.client = client
         self.config_path = config_path
@@ -352,7 +418,7 @@ class FitbitSensor(SensorEntity):
         self.clock_format = clock_format
         self.extra = extra
         self._name = FITBIT_RESOURCES_LIST[self.resource_type][0]
-        if self.extra is not None:
+        if self.extra:
             self._name = f"{self.extra.get('deviceVersion')} Battery"
         unit_type = FITBIT_RESOURCES_LIST[self.resource_type][1]
         if unit_type == "":
@@ -366,53 +432,48 @@ class FitbitSensor(SensorEntity):
                     measurement_system = FITBIT_MEASUREMENTS["en_US"]
             unit_type = measurement_system[split_resource[-1]]
         self._unit_of_measurement = unit_type
-        self._state: str | None = None
+        self._state = 0
 
     @property
-    def name(self) -> str:
+    def name(self):
         """Return the name of the sensor."""
         return self._name
 
     @property
-    def state(self) -> str | None:
+    def state(self):
         """Return the state of the sensor."""
         return self._state
 
     @property
-    def unit_of_measurement(self) -> str | None:
+    def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
         return self._unit_of_measurement
 
     @property
-    def icon(self) -> str:
+    def icon(self):
         """Icon to use in the frontend, if any."""
-        if self.resource_type == "devices/battery" and self.extra is not None:
-            extra_battery = self.extra.get("battery")
-            if extra_battery is not None:
-                battery_level = BATTERY_LEVELS.get(extra_battery)
-                if battery_level is not None:
-                    return icon_for_battery_level(battery_level=battery_level)
-        fitbit_ressource = FITBIT_RESOURCES_LIST[self.resource_type]
-        return f"mdi:{fitbit_ressource[2]}"
+        if self.resource_type == "devices/battery" and self.extra:
+            battery_level = BATTERY_LEVELS[self.extra.get("battery")]
+            return icon_for_battery_level(battery_level=battery_level, charging=None)
+        return f"mdi:{FITBIT_RESOURCES_LIST[self.resource_type][2]}"
 
     @property
-    def extra_state_attributes(self) -> dict[str, str | None]:
+    def extra_state_attributes(self):
         """Return the state attributes."""
-        attrs: dict[str, str | None] = {}
+        attrs = {}
 
         attrs[ATTR_ATTRIBUTION] = ATTRIBUTION
 
-        if self.extra is not None:
+        if self.extra:
             attrs["model"] = self.extra.get("deviceVersion")
-            extra_type = self.extra.get("type")
-            attrs["type"] = extra_type.lower() if extra_type is not None else None
+            attrs["type"] = self.extra.get("type").lower()
 
         return attrs
 
-    def update(self) -> None:
+    def update(self):
         """Get the latest data from the Fitbit API and update the states."""
-        if self.resource_type == "devices/battery" and self.extra is not None:
-            registered_devs: list[dict[str, Any]] = self.client.get_devices()
+        if self.resource_type == "devices/battery" and self.extra:
+            registered_devs = self.client.get_devices()
             device_id = self.extra.get("id")
             self.extra = list(
                 filter(lambda device: device.get("id") == device_id, registered_devs)

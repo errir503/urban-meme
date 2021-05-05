@@ -8,7 +8,7 @@
         "error": {
             "cannot_connect": "Kan geen verbinding maken"
         },
-        "flow_title": "{name}",
+        "flow_title": "Roku: {name}",
         "step": {
             "discovery_confirm": {
                 "data": {

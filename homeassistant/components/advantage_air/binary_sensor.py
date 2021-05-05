@@ -33,8 +33,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 class AdvantageAirZoneFilter(AdvantageAirEntity, BinarySensorEntity):
     """Advantage Air Filter."""
 
-    _attr_device_class = DEVICE_CLASS_PROBLEM
-
     @property
     def name(self):
         """Return the name."""
@@ -46,6 +44,11 @@ class AdvantageAirZoneFilter(AdvantageAirEntity, BinarySensorEntity):
         return f'{self.coordinator.data["system"]["rid"]}-{self.ac_key}-filter'
 
     @property
+    def device_class(self):
+        """Return the device class of the vent."""
+        return DEVICE_CLASS_PROBLEM
+
+    @property
     def is_on(self):
         """Return if filter needs cleaning."""
         return self._ac["filterCleanStatus"]
@@ -53,8 +56,6 @@ class AdvantageAirZoneFilter(AdvantageAirEntity, BinarySensorEntity):
 
 class AdvantageAirZoneMotion(AdvantageAirEntity, BinarySensorEntity):
     """Advantage Air Zone Motion."""
-
-    _attr_device_class = DEVICE_CLASS_MOTION
 
     @property
     def name(self):
@@ -67,6 +68,11 @@ class AdvantageAirZoneMotion(AdvantageAirEntity, BinarySensorEntity):
         return f'{self.coordinator.data["system"]["rid"]}-{self.ac_key}-{self.zone_key}-motion'
 
     @property
+    def device_class(self):
+        """Return the device class of the vent."""
+        return DEVICE_CLASS_MOTION
+
+    @property
     def is_on(self):
         """Return if motion is detect."""
         return self._zone["motion"]
@@ -74,8 +80,6 @@ class AdvantageAirZoneMotion(AdvantageAirEntity, BinarySensorEntity):
 
 class AdvantageAirZoneMyZone(AdvantageAirEntity, BinarySensorEntity):
     """Advantage Air Zone MyZone."""
-
-    _attr_entity_registry_enabled_default = False
 
     @property
     def name(self):
@@ -91,3 +95,8 @@ class AdvantageAirZoneMyZone(AdvantageAirEntity, BinarySensorEntity):
     def is_on(self):
         """Return if this zone is the myZone."""
         return self._zone["number"] == self._ac["myZone"]
+
+    @property
+    def entity_registry_enabled_default(self):
+        """Return false to disable this entity by default."""
+        return False

@@ -2,6 +2,7 @@
 from datetime import datetime
 
 import pytest
+import pytz
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
@@ -143,11 +144,11 @@ async def test_process_timestamp():
     """Test processing time stamp to UTC."""
     datetime_with_tzinfo = datetime(2016, 7, 9, 11, 0, 0, tzinfo=dt.UTC)
     datetime_without_tzinfo = datetime(2016, 7, 9, 11, 0, 0)
-    est = dt_util.get_time_zone("US/Eastern")
+    est = pytz.timezone("US/Eastern")
     datetime_est_timezone = datetime(2016, 7, 9, 11, 0, 0, tzinfo=est)
-    nst = dt_util.get_time_zone("Canada/Newfoundland")
+    nst = pytz.timezone("Canada/Newfoundland")
     datetime_nst_timezone = datetime(2016, 7, 9, 11, 0, 0, tzinfo=nst)
-    hst = dt_util.get_time_zone("US/Hawaii")
+    hst = pytz.timezone("US/Hawaii")
     datetime_hst_timezone = datetime(2016, 7, 9, 11, 0, 0, tzinfo=hst)
 
     assert process_timestamp(datetime_with_tzinfo) == datetime(
@@ -157,13 +158,13 @@ async def test_process_timestamp():
         2016, 7, 9, 11, 0, 0, tzinfo=dt.UTC
     )
     assert process_timestamp(datetime_est_timezone) == datetime(
-        2016, 7, 9, 15, 0, tzinfo=dt.UTC
+        2016, 7, 9, 15, 56, tzinfo=dt.UTC
     )
     assert process_timestamp(datetime_nst_timezone) == datetime(
-        2016, 7, 9, 13, 30, tzinfo=dt.UTC
+        2016, 7, 9, 14, 31, tzinfo=dt.UTC
     )
     assert process_timestamp(datetime_hst_timezone) == datetime(
-        2016, 7, 9, 21, 0, tzinfo=dt.UTC
+        2016, 7, 9, 21, 31, tzinfo=dt.UTC
     )
     assert process_timestamp(None) is None
 
@@ -172,13 +173,13 @@ async def test_process_timestamp_to_utc_isoformat():
     """Test processing time stamp to UTC isoformat."""
     datetime_with_tzinfo = datetime(2016, 7, 9, 11, 0, 0, tzinfo=dt.UTC)
     datetime_without_tzinfo = datetime(2016, 7, 9, 11, 0, 0)
-    est = dt_util.get_time_zone("US/Eastern")
+    est = pytz.timezone("US/Eastern")
     datetime_est_timezone = datetime(2016, 7, 9, 11, 0, 0, tzinfo=est)
-    est = dt_util.get_time_zone("US/Eastern")
+    est = pytz.timezone("US/Eastern")
     datetime_est_timezone = datetime(2016, 7, 9, 11, 0, 0, tzinfo=est)
-    nst = dt_util.get_time_zone("Canada/Newfoundland")
+    nst = pytz.timezone("Canada/Newfoundland")
     datetime_nst_timezone = datetime(2016, 7, 9, 11, 0, 0, tzinfo=nst)
-    hst = dt_util.get_time_zone("US/Hawaii")
+    hst = pytz.timezone("US/Hawaii")
     datetime_hst_timezone = datetime(2016, 7, 9, 11, 0, 0, tzinfo=hst)
 
     assert (
@@ -191,15 +192,15 @@ async def test_process_timestamp_to_utc_isoformat():
     )
     assert (
         process_timestamp_to_utc_isoformat(datetime_est_timezone)
-        == "2016-07-09T15:00:00+00:00"
+        == "2016-07-09T15:56:00+00:00"
     )
     assert (
         process_timestamp_to_utc_isoformat(datetime_nst_timezone)
-        == "2016-07-09T13:30:00+00:00"
+        == "2016-07-09T14:31:00+00:00"
     )
     assert (
         process_timestamp_to_utc_isoformat(datetime_hst_timezone)
-        == "2016-07-09T21:00:00+00:00"
+        == "2016-07-09T21:31:00+00:00"
     )
     assert process_timestamp_to_utc_isoformat(None) is None
 

@@ -1,9 +1,8 @@
-"""Base classes for SmartTub entities."""
+"""SmartTub integration."""
 import logging
 
 import smarttub
 
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -37,7 +36,7 @@ class SmartTubEntity(CoordinatorEntity):
         return f"{self.spa.id}-{self._entity_name}"
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> str:
         """Return device info."""
         return {
             "identifiers": {(DOMAIN, self.spa.id)},

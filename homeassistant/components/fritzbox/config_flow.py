@@ -1,22 +1,17 @@
-"""Config flow for AVM FRITZ!SmartHome."""
-from __future__ import annotations
-
-from typing import Any
+"""Config flow for AVM Fritz!Box."""
 from urllib.parse import urlparse
 
 from pyfritzhome import Fritzhome, LoginError
 from requests.exceptions import HTTPError
 import voluptuous as vol
 
+from homeassistant import config_entries
 from homeassistant.components.ssdp import (
     ATTR_SSDP_LOCATION,
     ATTR_UPNP_FRIENDLY_NAME,
     ATTR_UPNP_UDN,
 )
-from homeassistant.config_entries import ConfigEntry, ConfigFlow
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
-from homeassistant.data_entry_flow import FlowResult
-from homeassistant.helpers.typing import DiscoveryInfoType
 
 from .const import DEFAULT_HOST, DEFAULT_USERNAME, DOMAIN
 
@@ -41,22 +36,23 @@ RESULT_NOT_SUPPORTED = "not_supported"
 RESULT_SUCCESS = "success"
 
 
-class FritzboxConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Handle a AVM FRITZ!SmartHome config flow."""
+class FritzboxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Handle a AVM Fritz!Box config flow."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
-    def __init__(self) -> None:
+    def __init__(self):
         """Initialize flow."""
-        self._entry: ConfigEntry | None = None
-        self._host: str | None = None
-        self._name: str | None = None
-        self._password: str | None = None
-        self._username: str | None = None
+        self._entry = None
+        self._host = None
+        self._name = None
+        self._password = None
+        self._username = None
 
-    def _get_entry(self, name: str) -> FlowResult:
+    def _get_entry(self):
         return self.async_create_entry(
-            title=name,
+            title=self._name,
             data={
                 CONF_HOST: self._host,
                 CONF_PASSWORD: self._password,
@@ -64,8 +60,7 @@ class FritzboxConfigFlow(ConfigFlow, domain=DOMAIN):
             },
         )
 
-    async def _update_entry(self) -> None:
-        assert self._entry is not None
+    async def _update_entry(self):
         self.hass.config_entries.async_update_entry(
             self._entry,
             data={
@@ -76,7 +71,7 @@ class FritzboxConfigFlow(ConfigFlow, domain=DOMAIN):
         )
         await self.hass.config_entries.async_reload(self._entry.entry_id)
 
-    def _try_connect(self) -> str:
+    def _try_connect(self):
         """Try to connect and check auth."""
         fritzbox = Fritzhome(
             host=self._host, user=self._username, password=self._password
@@ -93,24 +88,25 @@ class FritzboxConfigFlow(ConfigFlow, domain=DOMAIN):
         except OSError:
             return RESULT_NO_DEVICES_FOUND
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_user(self, user_input=None):
         """Handle a flow initialized by the user."""
         errors = {}
 
         if user_input is not None:
-            self._async_abort_entries_match({CONF_HOST: user_input[CONF_HOST]})
+
+            for entry in self.hass.config_entries.async_entries(DOMAIN):
+                if entry.data[CONF_HOST] == user_input[CONF_HOST]:
+                    return self.async_abort(reason="already_configured")
 
             self._host = user_input[CONF_HOST]
-            self._name = str(user_input[CONF_HOST])
+            self._name = user_input[CONF_HOST]
             self._password = user_input[CONF_PASSWORD]
             self._username = user_input[CONF_USERNAME]
 
             result = await self.hass.async_add_executor_job(self._try_connect)
 
             if result == RESULT_SUCCESS:
-                return self._get_entry(self._name)
+                return self._get_entry()
             if result != RESULT_INVALID_AUTH:
                 return self.async_abort(reason=result)
             errors["base"] = result
@@ -119,10 +115,9 @@ class FritzboxConfigFlow(ConfigFlow, domain=DOMAIN):
             step_id="user", data_schema=DATA_SCHEMA_USER, errors=errors
         )
 
-    async def async_step_ssdp(self, discovery_info: DiscoveryInfoType) -> FlowResult:
+    async def async_step_ssdp(self, discovery_info):
         """Handle a flow initialized by discovery."""
         host = urlparse(discovery_info[ATTR_SSDP_LOCATION]).hostname
-        assert isinstance(host, str)
         self.context[CONF_HOST] = host
 
         uuid = discovery_info.get(ATTR_UPNP_UDN)
@@ -137,21 +132,19 @@ class FritzboxConfigFlow(ConfigFlow, domain=DOMAIN):
                 return self.async_abort(reason="already_in_progress")
 
         # update old and user-configured config entries
-        for entry in self._async_current_entries():
+        for entry in self.hass.config_entries.async_entries(DOMAIN):
             if entry.data[CONF_HOST] == host:
                 if uuid and not entry.unique_id:
                     self.hass.config_entries.async_update_entry(entry, unique_id=uuid)
                 return self.async_abort(reason="already_configured")
 
         self._host = host
-        self._name = str(discovery_info.get(ATTR_UPNP_FRIENDLY_NAME) or host)
+        self._name = discovery_info.get(ATTR_UPNP_FRIENDLY_NAME) or host
 
         self.context["title_placeholders"] = {"name": self._name}
         return await self.async_step_confirm()
 
-    async def async_step_confirm(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_confirm(self, user_input=None):
         """Handle user-confirmation of discovered node."""
         errors = {}
 
@@ -161,8 +154,7 @@ class FritzboxConfigFlow(ConfigFlow, domain=DOMAIN):
             result = await self.hass.async_add_executor_job(self._try_connect)
 
             if result == RESULT_SUCCESS:
-                assert self._name is not None
-                return self._get_entry(self._name)
+                return self._get_entry()
             if result != RESULT_INVALID_AUTH:
                 return self.async_abort(reason=result)
             errors["base"] = result
@@ -174,20 +166,16 @@ class FritzboxConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    async def async_step_reauth(self, data: dict[str, str]) -> FlowResult:
+    async def async_step_reauth(self, data):
         """Trigger a reauthentication flow."""
-        entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
-        assert entry is not None
-        self._entry = entry
+        self._entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
         self._host = data[CONF_HOST]
-        self._name = str(data[CONF_HOST])
+        self._name = data[CONF_HOST]
         self._username = data[CONF_USERNAME]
 
         return await self.async_step_reauth_confirm()
 
-    async def async_step_reauth_confirm(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_reauth_confirm(self, user_input=None):
         """Handle reauthorization flow."""
         errors = {}
 

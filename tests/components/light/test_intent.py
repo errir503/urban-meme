@@ -1,11 +1,7 @@
 """Tests for the light intents."""
 from homeassistant.components import light
-from homeassistant.components.light import (
-    ATTR_SUPPORTED_COLOR_MODES,
-    COLOR_MODE_HS,
-    intent,
-)
-from homeassistant.const import ATTR_ENTITY_ID, SERVICE_TURN_ON
+from homeassistant.components.light import intent
+from homeassistant.const import ATTR_ENTITY_ID, ATTR_SUPPORTED_FEATURES, SERVICE_TURN_ON
 from homeassistant.helpers.intent import IntentHandleError
 
 from tests.common import async_mock_service
@@ -14,7 +10,7 @@ from tests.common import async_mock_service
 async def test_intent_set_color(hass):
     """Test the set color intent."""
     hass.states.async_set(
-        "light.hello_2", "off", {ATTR_SUPPORTED_COLOR_MODES: [COLOR_MODE_HS]}
+        "light.hello_2", "off", {ATTR_SUPPORTED_FEATURES: light.SUPPORT_COLOR}
     )
     hass.states.async_set("switch.hello", "off")
     calls = async_mock_service(hass, light.DOMAIN, light.SERVICE_TURN_ON)
@@ -59,7 +55,9 @@ async def test_intent_set_color_tests_feature(hass):
 async def test_intent_set_color_and_brightness(hass):
     """Test the set color intent."""
     hass.states.async_set(
-        "light.hello_2", "off", {ATTR_SUPPORTED_COLOR_MODES: [COLOR_MODE_HS]}
+        "light.hello_2",
+        "off",
+        {ATTR_SUPPORTED_FEATURES: (light.SUPPORT_COLOR | light.SUPPORT_BRIGHTNESS)},
     )
     hass.states.async_set("switch.hello", "off")
     calls = async_mock_service(hass, light.DOMAIN, light.SERVICE_TURN_ON)

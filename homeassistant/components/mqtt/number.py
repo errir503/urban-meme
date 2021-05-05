@@ -5,12 +5,7 @@ import logging
 import voluptuous as vol
 
 from homeassistant.components import number
-from homeassistant.components.number import (
-    DEFAULT_MAX_VALUE,
-    DEFAULT_MIN_VALUE,
-    DEFAULT_STEP,
-    NumberEntity,
-)
+from homeassistant.components.number import NumberEntity
 from homeassistant.const import CONF_NAME, CONF_OPTIMISTIC
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
@@ -33,36 +28,15 @@ from .mixins import MQTT_ENTITY_COMMON_SCHEMA, MqttEntity, async_setup_entry_hel
 
 _LOGGER = logging.getLogger(__name__)
 
-CONF_MIN = "min"
-CONF_MAX = "max"
-CONF_STEP = "step"
-
 DEFAULT_NAME = "MQTT Number"
 DEFAULT_OPTIMISTIC = False
 
-
-def validate_config(config):
-    """Validate that the configuration is valid, throws if it isn't."""
-    if config.get(CONF_MIN) >= config.get(CONF_MAX):
-        raise vol.Invalid(f"'{CONF_MAX}'' must be > '{CONF_MIN}'")
-
-    return config
-
-
-PLATFORM_SCHEMA = vol.All(
-    mqtt.MQTT_RW_PLATFORM_SCHEMA.extend(
-        {
-            vol.Optional(CONF_MAX, default=DEFAULT_MAX_VALUE): vol.Coerce(float),
-            vol.Optional(CONF_MIN, default=DEFAULT_MIN_VALUE): vol.Coerce(float),
-            vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-            vol.Optional(CONF_OPTIMISTIC, default=DEFAULT_OPTIMISTIC): cv.boolean,
-            vol.Optional(CONF_STEP, default=DEFAULT_STEP): vol.All(
-                vol.Coerce(float), vol.Range(min=1e-3)
-            ),
-        },
-    ).extend(MQTT_ENTITY_COMMON_SCHEMA.schema),
-    validate_config,
-)
+PLATFORM_SCHEMA = mqtt.MQTT_RW_PLATFORM_SCHEMA.extend(
+    {
+        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
+        vol.Optional(CONF_OPTIMISTIC, default=DEFAULT_OPTIMISTIC): cv.boolean,
+    }
+).extend(MQTT_ENTITY_COMMON_SCHEMA.schema)
 
 
 async def async_setup_platform(
@@ -93,7 +67,6 @@ class MqttNumber(MqttEntity, NumberEntity, RestoreEntity):
 
     def __init__(self, config, config_entry, discovery_data):
         """Initialize the MQTT Number."""
-        self._config = config
         self._sub_state = None
 
         self._current_number = None
@@ -116,28 +89,12 @@ class MqttNumber(MqttEntity, NumberEntity, RestoreEntity):
             """Handle new MQTT messages."""
             try:
                 if msg.payload.decode("utf-8").isnumeric():
-                    num_value = int(msg.payload)
+                    self._current_number = int(msg.payload)
                 else:
-                    num_value = float(msg.payload)
+                    self._current_number = float(msg.payload)
+                self.async_write_ha_state()
             except ValueError:
-                _LOGGER.warning(
-                    "Payload '%s' is not a Number",
-                    msg.payload.decode("utf-8", errors="ignore"),
-                )
-                return
-
-            if num_value < self.min_value or num_value > self.max_value:
-                _LOGGER.error(
-                    "Invalid value for %s: %s (range %s - %s)",
-                    self.entity_id,
-                    num_value,
-                    self.min_value,
-                    self.max_value,
-                )
-                return
-
-            self._current_number = num_value
-            self.async_write_ha_state()
+                _LOGGER.warning("We received <%s> which is not a Number", msg.payload)
 
         if self._config.get(CONF_STATE_TOPIC) is None:
             # Force into optimistic mode.
@@ -160,21 +117,6 @@ class MqttNumber(MqttEntity, NumberEntity, RestoreEntity):
             last_state = await self.async_get_last_state()
             if last_state:
                 self._current_number = last_state.state
-
-    @property
-    def min_value(self) -> float:
-        """Return the minimum value."""
-        return self._config[CONF_MIN]
-
-    @property
-    def max_value(self) -> float:
-        """Return the maximum value."""
-        return self._config[CONF_MAX]
-
-    @property
-    def step(self) -> float:
-        """Return the increment/decrement step."""
-        return self._config[CONF_STEP]
 
     @property
     def value(self):

@@ -12,7 +12,7 @@ from .const import DOMAIN
 PLATFORMS = ["switch", "binary_sensor"]
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up ProgettiHWSW Automation from a config entry."""
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = ProgettiHWSWAPI(

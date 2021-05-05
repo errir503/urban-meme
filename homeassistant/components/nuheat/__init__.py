@@ -30,7 +30,7 @@ def _get_thermostat(api, serial_number):
     return api.get_thermostat(serial_number)
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up NuHeat from a config entry."""
 
     conf = entry.data

@@ -28,7 +28,7 @@ PLATFORMS = ["sensor"]
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up Huisbaasje from a config entry."""
     # Create the Huisbaasje client
     huisbaasje = Huisbaasje(

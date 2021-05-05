@@ -11,10 +11,9 @@
         "step": {
             "locations": {
                 "data": {
-                    "location": "Locatie",
-                    "usercode": "Gebruikerscode"
+                    "location": "Locatie"
                 },
-                "description": "Voer de gebruikerscode voor deze gebruiker in op locatie {location_id}",
+                "description": "Voer de gebruikerscode voor deze gebruiker op deze locatie in",
                 "title": "Locatie gebruikerscodes"
             },
             "reauth_confirm": {

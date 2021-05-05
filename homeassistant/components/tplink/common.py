@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Callable
 
 from pyHS100 import (
     Discover,
@@ -33,22 +32,22 @@ class SmartDevices:
 
     def __init__(
         self, lights: list[SmartDevice] = None, switches: list[SmartDevice] = None
-    ) -> None:
+    ):
         """Initialize device holder."""
         self._lights = lights or []
         self._switches = switches or []
 
     @property
-    def lights(self) -> list[SmartDevice]:
+    def lights(self):
         """Get the lights."""
         return self._lights
 
     @property
-    def switches(self) -> list[SmartDevice]:
+    def switches(self):
         """Get the switches."""
         return self._switches
 
-    def has_device_with_host(self, host: str) -> bool:
+    def has_device_with_host(self, host):
         """Check if a devices exists with a specific host."""
         for device in self.lights + self.switches:
             if device.host == host:
@@ -57,11 +56,12 @@ class SmartDevices:
         return False
 
 
-async def async_get_discoverable_devices(hass: HomeAssistant) -> dict[str, SmartDevice]:
+async def async_get_discoverable_devices(hass):
     """Return if there are devices that can be discovered."""
 
-    def discover() -> dict[str, SmartDevice]:
-        return Discover.discover()
+    def discover():
+        devs = Discover.discover()
+        return devs
 
     return await hass.async_add_executor_job(discover)
 
@@ -77,7 +77,7 @@ async def async_discover_devices(
     lights = []
     switches = []
 
-    def process_devices() -> None:
+    def process_devices():
         for dev in devices.values():
             # If this device already exists, ignore dynamic setup.
             if existing_devices.has_device_with_host(dev.host):
@@ -132,9 +132,7 @@ def get_static_devices(config_data) -> SmartDevices:
     return SmartDevices(lights, switches)
 
 
-def add_available_devices(
-    hass: HomeAssistant, device_type: str, device_class: Callable
-) -> list:
+def add_available_devices(hass, device_type, device_class):
     """Get sysinfo for all devices."""
 
     devices = hass.data[TPLINK_DOMAIN][device_type]

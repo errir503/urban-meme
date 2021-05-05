@@ -150,9 +150,7 @@ class EnturProxy:
 class EnturPublicTransportSensor(SensorEntity):
     """Implementation of a Entur public transport sensor."""
 
-    def __init__(
-        self, api: EnturProxy, name: str, stop: str, show_on_map: bool
-    ) -> None:
+    def __init__(self, api: EnturProxy, name: str, stop: str, show_on_map: bool):
         """Initialize the sensor."""
         self.api = api
         self._stop = stop

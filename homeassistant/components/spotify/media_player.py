@@ -5,6 +5,7 @@ from asyncio import run_coroutine_threadsafe
 import datetime as dt
 from datetime import timedelta
 import logging
+from typing import Any, Callable
 
 import requests
 from spotipy import Spotify, SpotifyException
@@ -53,8 +54,7 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.config_entry_oauth2_flow import OAuth2Session
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import Entity
 from homeassistant.util.dt import utc_from_timestamp
 
 from .const import (
@@ -66,6 +66,8 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+ICON = "mdi:spotify"
 
 SCAN_INTERVAL = timedelta(seconds=30)
 
@@ -186,7 +188,7 @@ class UnknownMediaType(BrowseError):
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[list[Entity], bool], None],
 ) -> None:
     """Set up Spotify based on a config entry."""
     spotify = SpotifyMediaPlayer(
@@ -209,12 +211,12 @@ def spotify_exception_handler(func):
     def wrapper(self, *args, **kwargs):
         try:
             result = func(self, *args, **kwargs)
-            self._attr_available = True
+            self.player_available = True
             return result
         except requests.RequestException:
-            self._attr_available = False
+            self.player_available = False
         except SpotifyException as exc:
-            self._attr_available = False
+            self.player_available = False
             if exc.reason == "NO_ACTIVE_DEVICE":
                 raise HomeAssistantError("No active playback device found") from None
 
@@ -224,10 +226,6 @@ def spotify_exception_handler(func):
 class SpotifyMediaPlayer(MediaPlayerEntity):
     """Representation of a Spotify controller."""
 
-    _attr_icon = "mdi:spotify"
-    _attr_media_content_type = MEDIA_TYPE_MUSIC
-    _attr_media_image_remotely_accessible = False
-
     def __init__(
         self,
         session: OAuth2Session,
@@ -235,7 +233,7 @@ class SpotifyMediaPlayer(MediaPlayerEntity):
         me: dict,
         user_id: str,
         name: str,
-    ) -> None:
+    ):
         """Initialize."""
         self._id = user_id
         self._me = me
@@ -249,22 +247,40 @@ class SpotifyMediaPlayer(MediaPlayerEntity):
         self._currently_playing: dict | None = {}
         self._devices: list[dict] | None = []
         self._playlist: dict | None = None
+        self._spotify: Spotify = None
 
-        self._attr_name = self._name
-        self._attr_unique_id = user_id
+        self.player_available = False
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def name(self) -> str:
+        """Return the name."""
+        return self._name
+
+    @property
+    def icon(self) -> str:
+        """Return the icon."""
+        return ICON
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        return self.player_available
+
+    @property
+    def unique_id(self) -> str:
+        """Return the unique ID."""
+        return self._id
+
+    @property
+    def device_info(self) -> dict[str, Any]:
         """Return device information about this entity."""
-        model = "Spotify Free"
         if self._me is not None:
-            product = self._me["product"]
-            model = f"Spotify {product}"
+            model = self._me["product"]
 
         return {
             "identifiers": {(DOMAIN, self._id)},
             "manufacturer": "Spotify AB",
-            "model": model,
+            "model": f"Spotify {model}".rstrip(),
             "name": self._name,
         }
 
@@ -287,6 +303,11 @@ class SpotifyMediaPlayer(MediaPlayerEntity):
         """Return the media URL."""
         item = self._currently_playing.get("item") or {}
         return item.get("uri")
+
+    @property
+    def media_content_type(self) -> str | None:
+        """Return the media type."""
+        return MEDIA_TYPE_MUSIC
 
     @property
     def media_duration(self) -> int | None:
@@ -320,6 +341,11 @@ class SpotifyMediaPlayer(MediaPlayerEntity):
         return fetch_image_url(self._currently_playing["item"]["album"])
 
     @property
+    def media_image_remotely_accessible(self) -> bool:
+        """If the image url is remotely accessible."""
+        return False
+
+    @property
     def media_title(self) -> str | None:
         """Return the media title."""
         item = self._currently_playing.get("item") or {}
@@ -331,7 +357,7 @@ class SpotifyMediaPlayer(MediaPlayerEntity):
         if self._currently_playing.get("item") is None:
             return None
         return ", ".join(
-            artist["name"] for artist in self._currently_playing["item"]["artists"]
+            [artist["name"] for artist in self._currently_playing["item"]["artists"]]
         )
 
     @property

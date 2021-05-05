@@ -5,7 +5,7 @@ from homeassistant.core import HomeAssistant
 PLATFORMS = ["binary_sensor"]
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up Raspberry Pi Power Supply Checker from a config entry."""
     hass.config_entries.async_setup_platforms(entry, PLATFORMS)
     return True

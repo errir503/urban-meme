@@ -13,7 +13,8 @@
                     "network_key": "Kunci Jaringan (biarkan kosong untuk dibuat secara otomatis)",
                     "usb_path": "Jalur Perangkat USB"
                 },
-                "description": "Integrasi ini tidak lagi dipertahankan. Untuk instalasi baru, gunakan Z-Wave JS sebagai gantinya.\n\nBaca https://www.home-assistant.io/docs/z-wave/installation/ untuk informasi tentang variabel konfigurasi"
+                "description": "Integrasi ini tidak lagi dipertahankan. Untuk instalasi baru, gunakan Z-Wave JS sebagai gantinya.\n\nBaca https://www.home-assistant.io/docs/z-wave/installation/ untuk informasi tentang variabel konfigurasi",
+                "title": "Siapkan Z-Wave"
             }
         }
     },

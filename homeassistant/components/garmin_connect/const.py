@@ -1,6 +1,4 @@
 """Constants for the Garmin Connect integration."""
-from datetime import timedelta
-
 from homeassistant.const import (
     DEVICE_CLASS_TIMESTAMP,
     LENGTH_METERS,
@@ -10,8 +8,7 @@ from homeassistant.const import (
 )
 
 DOMAIN = "garmin_connect"
-ATTRIBUTION = "connect.garmin.com"
-DEFAULT_UPDATE_INTERVAL = timedelta(minutes=10)
+ATTRIBUTION = "Data provided by garmin.com"
 
 GARMIN_ENTITY_LIST = {
     "totalSteps": ["Total Steps", "steps", "mdi:walk", None, True],

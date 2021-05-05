@@ -5,6 +5,9 @@
         },
         "step": {
             "user": {
+                "data": {
+                    "name": "Nombre del sensor"
+                },
                 "title": "Direcci\u00f3n IP local"
             }
         }

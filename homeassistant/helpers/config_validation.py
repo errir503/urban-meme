@@ -770,25 +770,25 @@ def deprecated(
 
 
 def key_value_schemas(
-    key: str, value_schemas: dict[Hashable, vol.Schema]
-) -> Callable[[Any], dict[Hashable, Any]]:
+    key: str, value_schemas: dict[str, vol.Schema]
+) -> Callable[[Any], dict[str, Any]]:
     """Create a validator that validates based on a value for specific key.
 
     This gives better error messages.
     """
 
-    def key_value_validator(value: Any) -> dict[Hashable, Any]:
+    def key_value_validator(value: Any) -> dict[str, Any]:
         if not isinstance(value, dict):
             raise vol.Invalid("Expected a dictionary")
 
         key_value = value.get(key)
 
-        if isinstance(key_value, Hashable) and key_value in value_schemas:
-            return cast(Dict[Hashable, Any], value_schemas[key_value](value))
+        if key_value not in value_schemas:
+            raise vol.Invalid(
+                f"Unexpected value for {key}: '{key_value}'. Expected {', '.join(value_schemas)}"
+            )
 
-        raise vol.Invalid(
-            f"Unexpected value for {key}: '{key_value}'. Expected {', '.join(str(key) for key in value_schemas)}"
-        )
+        return cast(Dict[str, Any], value_schemas[key_value](value))
 
     return key_value_validator
 
@@ -862,19 +862,17 @@ ENTITY_SERVICE_FIELDS = {
 
 def make_entity_service_schema(
     schema: dict, *, extra: int = vol.PREVENT_EXTRA
-) -> vol.Schema:
+) -> vol.All:
     """Create an entity service schema."""
-    return vol.Schema(
-        vol.All(
-            vol.Schema(
-                {
-                    **schema,
-                    **ENTITY_SERVICE_FIELDS,
-                },
-                extra=extra,
-            ),
-            has_at_least_one_key(*ENTITY_SERVICE_FIELDS),
-        )
+    return vol.All(
+        vol.Schema(
+            {
+                **schema,
+                **ENTITY_SERVICE_FIELDS,
+            },
+            extra=extra,
+        ),
+        has_at_least_one_key(*ENTITY_SERVICE_FIELDS),
     )
 
 
@@ -926,7 +924,7 @@ SERVICE_SCHEMA = vol.All(
 )
 
 NUMERIC_STATE_THRESHOLD_SCHEMA = vol.Any(
-    vol.Coerce(float), vol.All(str, entity_domain(["input_number", "number", "sensor"]))
+    vol.Coerce(float), vol.All(str, entity_domain("input_number"))
 )
 
 CONDITION_BASE_SCHEMA = {vol.Optional(CONF_ALIAS): string}

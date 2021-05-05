@@ -1,13 +1,10 @@
 """The tests for hls streams."""
-from __future__ import annotations
-
 import asyncio
-from collections import deque
 from datetime import timedelta
-from io import BytesIO
 import logging
 import os
 import threading
+from typing import Deque
 from unittest.mock import patch
 
 import async_timeout
@@ -15,9 +12,7 @@ import av
 import pytest
 
 from homeassistant.components.stream import create_stream
-from homeassistant.components.stream.const import HLS_PROVIDER, RECORDER_PROVIDER
 from homeassistant.components.stream.core import Segment
-from homeassistant.components.stream.fmp4utils import get_init_and_moof_data
 from homeassistant.components.stream.recorder import recorder_save_worker
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.setup import async_setup_component
@@ -42,9 +37,8 @@ class SaveRecordWorkerSync:
         """Initialize SaveRecordWorkerSync."""
         self.reset()
         self._segments = None
-        self._save_thread = None
 
-    def recorder_save_worker(self, file_out: str, segments: deque[Segment]):
+    def recorder_save_worker(self, file_out: str, segments: Deque[Segment]):
         """Mock method for patch."""
         logging.debug("recorder_save_worker thread started")
         assert self._save_thread is None
@@ -120,7 +114,7 @@ async def test_record_lookback(
     stream = create_stream(hass, source)
 
     # Start an HLS feed to enable lookback
-    stream.add_provider(HLS_PROVIDER)
+    stream.add_provider("hls")
     stream.start()
 
     with patch.object(hass.config, "is_allowed_path", return_value=True):
@@ -149,7 +143,7 @@ async def test_recorder_timeout(hass, hass_client, stream_worker_sync):
         stream = create_stream(hass, source)
         with patch.object(hass.config, "is_allowed_path", return_value=True):
             await stream.async_record("/example/path")
-        recorder = stream.add_provider(RECORDER_PROVIDER)
+        recorder = stream.add_provider("recorder")
 
         await recorder.recv()
 
@@ -186,9 +180,7 @@ async def test_recorder_save(tmpdir):
     filename = f"{tmpdir}/test.mp4"
 
     # Run
-    recorder_save_worker(
-        filename, [Segment(1, *get_init_and_moof_data(source.getbuffer()), 4)]
-    )
+    recorder_save_worker(filename, [Segment(1, source, 4)])
 
     # Assert
     assert os.path.exists(filename)
@@ -201,20 +193,13 @@ async def test_recorder_discontinuity(tmpdir):
     filename = f"{tmpdir}/test.mp4"
 
     # Run
-    init, moof_data = get_init_and_moof_data(source.getbuffer())
-    recorder_save_worker(
-        filename,
-        [
-            Segment(1, init, moof_data, 4, 0),
-            Segment(2, init, moof_data, 4, 1),
-        ],
-    )
+    recorder_save_worker(filename, [Segment(1, source, 4, 0), Segment(2, source, 4, 1)])
 
     # Assert
     assert os.path.exists(filename)
 
 
-async def test_recorder_no_segments(tmpdir):
+async def test_recorder_no_segements(tmpdir):
     """Test recorder behavior with a stream failure which causes no segments."""
     # Setup
     filename = f"{tmpdir}/test.mp4"
@@ -253,18 +238,16 @@ async def test_record_stream_audio(
         stream = create_stream(hass, source)
         with patch.object(hass.config, "is_allowed_path", return_value=True):
             await stream.async_record("/example/path")
-        recorder = stream.add_provider(RECORDER_PROVIDER)
+        recorder = stream.add_provider("recorder")
 
         while True:
-            await recorder.recv()
-            if not (segment := recorder.last_segment):
+            segment = await recorder.recv()
+            if not segment:
                 break
             last_segment = segment
             stream_worker_sync.resume()
 
-        result = av.open(
-            BytesIO(last_segment.init + last_segment.moof_data), "r", format="mp4"
-        )
+        result = av.open(last_segment.segment, "r", format="mp4")
 
         assert len(result.streams.audio) == expected_audio_streams
         result.close()

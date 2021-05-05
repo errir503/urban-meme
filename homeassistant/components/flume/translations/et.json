@@ -1,8 +1,7 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Konto on juba seadistatud",
-            "reauth_successful": "Taastuvastamine \u00f5nnestus"
+            "already_configured": "Konto on juba seadistatud"
         },
         "error": {
             "cannot_connect": "\u00dchendamine nurjus",
@@ -10,13 +9,6 @@
             "unknown": "Tundmatu viga"
         },
         "step": {
-            "reauth_confirm": {
-                "data": {
-                    "password": "Salas\u00f5na"
-                },
-                "description": "Kasutaja {username} salas\u00f5na ei kehti enam.",
-                "title": "Taastuvasta oma Flume konto"
-            },
             "user": {
                 "data": {
                     "client_id": "Kliendi ID",

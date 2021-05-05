@@ -2,7 +2,6 @@
 from abc import ABC, abstractmethod
 import logging
 
-from pynuki import MODE_OPENER_CONTINUOUS
 import voluptuous as vol
 
 from homeassistant.components.lock import PLATFORM_SCHEMA, SUPPORT_OPEN, LockEntity
@@ -51,7 +50,9 @@ async def async_setup_entry(hass, entry, async_add_entities):
     )
     async_add_entities(entities)
 
-    platform = entity_platform.async_get_current_platform()
+    platform = entity_platform.current_platform.get()
+    assert platform is not None
+
     platform.async_register_entity_service(
         "lock_n_go",
         {
@@ -145,11 +146,8 @@ class NukiOpenerEntity(NukiDeviceEntity):
 
     @property
     def is_locked(self):
-        """Return true if either ring-to-open or continuous mode is enabled."""
-        return not (
-            self._nuki_device.is_rto_activated
-            or self._nuki_device.mode == MODE_OPENER_CONTINUOUS
-        )
+        """Return true if ring-to-open is enabled."""
+        return not self._nuki_device.is_rto_activated
 
     def lock(self, **kwargs):
         """Disable ring-to-open."""

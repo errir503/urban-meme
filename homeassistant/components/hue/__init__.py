@@ -66,6 +66,7 @@ async def async_setup_entry(
 
     _register_services(hass)
 
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = bridge
     config = bridge.api.config
 
     # For backwards compat
@@ -132,11 +133,11 @@ async def async_setup_entry(
 
 async def async_unload_entry(hass, entry):
     """Unload a config entry."""
-    unload_success = await hass.data[DOMAIN][entry.entry_id].async_reset()
+    bridge = hass.data[DOMAIN].pop(entry.entry_id)
     if len(hass.data[DOMAIN]) == 0:
         hass.data.pop(DOMAIN)
         hass.services.async_remove(DOMAIN, SERVICE_HUE_SCENE)
-    return unload_success
+    return await bridge.async_reset()
 
 
 @core.callback
@@ -171,7 +172,7 @@ def _register_services(hass):
                 group_name,
             )
 
-    if not hass.services.has_service(DOMAIN, SERVICE_HUE_SCENE):
+    if DOMAIN not in hass.data:
         # Register a local handler for scene activation
         hass.services.async_register(
             DOMAIN,

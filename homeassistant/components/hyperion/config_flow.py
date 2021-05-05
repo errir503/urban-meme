@@ -12,6 +12,7 @@ import voluptuous as vol
 
 from homeassistant.components.ssdp import ATTR_SSDP_LOCATION, ATTR_UPNP_SERIAL
 from homeassistant.config_entries import (
+    CONN_CLASS_LOCAL_PUSH,
     SOURCE_REAUTH,
     ConfigEntry,
     ConfigFlow,
@@ -109,6 +110,7 @@ class HyperionConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a Hyperion config flow."""
 
     VERSION = 1
+    CONNECTION_CLASS = CONN_CLASS_LOCAL_PUSH
 
     def __init__(self) -> None:
         """Instantiate config flow."""
@@ -432,7 +434,7 @@ class HyperionConfigFlow(ConfigFlow, domain=DOMAIN):
 class HyperionOptionsFlow(OptionsFlow):
     """Hyperion options flow."""
 
-    def __init__(self, config_entry: ConfigEntry) -> None:
+    def __init__(self, config_entry: ConfigEntry):
         """Initialize a Hyperion options flow."""
         self._config_entry = config_entry
 

@@ -9,7 +9,7 @@
             "one": "Leeg",
             "other": "Leeg"
         },
-        "flow_title": "{host}",
+        "flow_title": "Arcam FMJ op {host}",
         "step": {
             "confirm": {
                 "description": "Wil je Arcam FMJ op `{host}` toevoegen aan Home Assistant?"

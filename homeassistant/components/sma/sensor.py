@@ -1,8 +1,9 @@
 """SMA Solar Webconnect interface."""
 from __future__ import annotations
 
+from collections.abc import Coroutine
 import logging
-from typing import Any
+from typing import Any, Callable
 
 import pysma
 import voluptuous as vol
@@ -19,8 +20,6 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
@@ -46,8 +45,8 @@ _LOGGER = logging.getLogger(__name__)
 def _check_sensor_schema(conf: dict[str, Any]) -> dict[str, Any]:
     """Check sensors and attributes are valid."""
     try:
-        valid = [s.name for s in pysma.sensor.Sensors()]
-        valid += pysma.const.LEGACY_MAP.keys()
+        valid = [s.name for s in pysma.Sensors()]
+        valid += pysma.LEGACY_MAP.keys()
     except (ImportError, AttributeError):
         return conf
 
@@ -98,7 +97,7 @@ PLATFORM_SCHEMA = vol.All(
 async def async_setup_platform(
     hass: HomeAssistant,
     config: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[], Coroutine],
     discovery_info=None,
 ) -> None:
     """Import the platform into a config entry."""
@@ -117,7 +116,7 @@ async def async_setup_platform(
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[], Coroutine],
 ) -> None:
     """Set up SMA sensors."""
     sma_data = hass.data[DOMAIN][config_entry.entry_id]
@@ -147,7 +146,7 @@ class SMAsensor(CoordinatorEntity, SensorEntity):
         coordinator: DataUpdateCoordinator,
         config_entry_unique_id: str,
         device_info: dict[str, Any],
-        pysma_sensor: pysma.sensor.Sensor,
+        pysma_sensor: pysma.Sensor,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
@@ -183,7 +182,7 @@ class SMAsensor(CoordinatorEntity, SensorEntity):
         )
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> dict[str, Any]:
         """Return the device information."""
         return {
             "identifiers": {(DOMAIN, self._config_entry_unique_id)},

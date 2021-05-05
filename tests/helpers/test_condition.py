@@ -27,7 +27,7 @@ def calls(hass):
 @pytest.fixture(autouse=True)
 def setup_comp(hass):
     """Initialize components."""
-    hass.config.set_time_zone(hass.config.time_zone)
+    dt_util.set_default_time_zone(hass.config.time_zone)
     hass.loop.run_until_complete(
         async_setup_component(hass, sun.DOMAIN, {sun.DOMAIN: {sun.CONF_ELEVATION: 0}})
     )
@@ -791,34 +791,6 @@ async def test_time_using_input_datetime(hass):
             hass, after="input_datetime.pm", before="input_datetime.am"
         )
 
-    # Trigger on PM time
-    with patch(
-        "homeassistant.helpers.condition.dt_util.now",
-        return_value=dt_util.now().replace(hour=18, minute=0, second=0),
-    ):
-        assert condition.time(
-            hass, after="input_datetime.pm", before="input_datetime.am"
-        )
-        assert not condition.time(
-            hass, after="input_datetime.am", before="input_datetime.pm"
-        )
-        assert condition.time(hass, after="input_datetime.pm")
-        assert not condition.time(hass, before="input_datetime.pm")
-
-    # Trigger on AM time
-    with patch(
-        "homeassistant.helpers.condition.dt_util.now",
-        return_value=dt_util.now().replace(hour=6, minute=0, second=0),
-    ):
-        assert not condition.time(
-            hass, after="input_datetime.pm", before="input_datetime.am"
-        )
-        assert condition.time(
-            hass, after="input_datetime.am", before="input_datetime.pm"
-        )
-        assert condition.time(hass, after="input_datetime.am")
-        assert not condition.time(hass, before="input_datetime.am")
-
     with pytest.raises(ConditionError):
         condition.time(hass, after="input_datetime.not_existing")
 
@@ -1265,12 +1237,12 @@ async def test_numeric_state_attribute(hass):
 
 async def test_numeric_state_using_input_number(hass):
     """Test numeric_state conditions using input_number entities."""
-    hass.states.async_set("number.low", 10)
     await async_setup_component(
         hass,
         "input_number",
         {
             "input_number": {
+                "low": {"min": 0, "max": 255, "initial": 10},
                 "high": {"min": 0, "max": 255, "initial": 100},
             }
         },
@@ -1285,7 +1257,7 @@ async def test_numeric_state_using_input_number(hass):
                     "condition": "numeric_state",
                     "entity_id": "sensor.temperature",
                     "below": "input_number.high",
-                    "above": "number.low",
+                    "above": "input_number.low",
                 },
             ],
         },
@@ -1317,10 +1289,10 @@ async def test_numeric_state_using_input_number(hass):
     )
     assert test(hass)
 
-    hass.states.async_set("number.low", "unknown")
+    hass.states.async_set("input_number.low", "unknown")
     assert not test(hass)
 
-    hass.states.async_set("number.low", "unavailable")
+    hass.states.async_set("input_number.low", "unavailable")
     assert not test(hass)
 
     with pytest.raises(ConditionError):

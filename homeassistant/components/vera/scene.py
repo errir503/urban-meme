@@ -1,14 +1,14 @@
 """Support for Vera scenes."""
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Callable
 
 import pyvera as veraApi
 
 from homeassistant.components.scene import Scene
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import Entity
 from homeassistant.util import slugify
 
 from .common import ControllerData, get_controller_data
@@ -18,7 +18,7 @@ from .const import VERA_ID_FORMAT
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[list[Entity], bool], None],
 ) -> None:
     """Set up the sensor config entry."""
     controller_data = get_controller_data(hass, entry)
@@ -30,9 +30,7 @@ async def async_setup_entry(
 class VeraScene(Scene):
     """Representation of a Vera scene entity."""
 
-    def __init__(
-        self, vera_scene: veraApi.VeraScene, controller_data: ControllerData
-    ) -> None:
+    def __init__(self, vera_scene: veraApi.VeraScene, controller_data: ControllerData):
         """Initialize the scene."""
         self.vera_scene = vera_scene
         self.controller = controller_data.controller

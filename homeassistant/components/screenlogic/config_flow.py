@@ -71,6 +71,7 @@ class ScreenlogicConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow to setup screen logic devices."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
     def __init__(self):
         """Initialize ScreenLogic ConfigFlow."""
@@ -188,7 +189,7 @@ class ScreenlogicConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class ScreenLogicOptionsFlowHandler(config_entries.OptionsFlow):
     """Handles the options for the ScreenLogic integration."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+    def __init__(self, config_entry: config_entries.ConfigEntry):
         """Init the screen logic options flow."""
         self.config_entry = config_entry
 

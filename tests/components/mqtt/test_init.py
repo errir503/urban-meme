@@ -245,17 +245,12 @@ def test_entity_device_info_schema():
     MQTT_ENTITY_DEVICE_INFO_SCHEMA({"identifiers": ["abcd"]})
     MQTT_ENTITY_DEVICE_INFO_SCHEMA({"identifiers": "abcd"})
     # just connection
-    MQTT_ENTITY_DEVICE_INFO_SCHEMA(
-        {"connections": [[dr.CONNECTION_NETWORK_MAC, "02:5b:26:a8:dc:12"]]}
-    )
+    MQTT_ENTITY_DEVICE_INFO_SCHEMA({"connections": [["mac", "02:5b:26:a8:dc:12"]]})
     # full device info
     MQTT_ENTITY_DEVICE_INFO_SCHEMA(
         {
             "identifiers": ["helloworld", "hello"],
-            "connections": [
-                [dr.CONNECTION_NETWORK_MAC, "02:5b:26:a8:dc:12"],
-                [dr.CONNECTION_ZIGBEE, "zigbee_id"],
-            ],
+            "connections": [["mac", "02:5b:26:a8:dc:12"], ["zigbee", "zigbee_id"]],
             "manufacturer": "Whatever",
             "name": "Beer",
             "model": "Glass",
@@ -266,10 +261,7 @@ def test_entity_device_info_schema():
     MQTT_ENTITY_DEVICE_INFO_SCHEMA(
         {
             "identifiers": ["helloworld", "hello"],
-            "connections": [
-                [dr.CONNECTION_NETWORK_MAC, "02:5b:26:a8:dc:12"],
-                [dr.CONNECTION_ZIGBEE, "zigbee_id"],
-            ],
+            "connections": [["mac", "02:5b:26:a8:dc:12"], ["zigbee", "zigbee_id"]],
             "manufacturer": "Whatever",
             "name": "Beer",
             "model": "Glass",

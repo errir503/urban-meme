@@ -15,7 +15,28 @@ from homeassistant.util import dt as dt_util
 
 from .common import corrupt_db_file
 
-from tests.common import async_init_recorder_component
+from tests.common import (
+    async_init_recorder_component,
+    get_test_home_assistant,
+    init_recorder_component,
+)
+
+
+@pytest.fixture
+def hass_recorder():
+    """Home Assistant fixture with in-memory recorder."""
+    hass = get_test_home_assistant()
+
+    def setup_recorder(config=None):
+        """Set up with params."""
+        init_recorder_component(hass, config)
+        hass.start()
+        hass.block_till_done()
+        hass.data[DATA_INSTANCE].block_till_done()
+        return hass
+
+    yield setup_recorder
+    hass.stop()
 
 
 def test_session_scope_not_setup(hass_recorder):
@@ -131,7 +152,7 @@ def test_setup_connection_for_dialect_mysql():
 
     dbapi_connection = MagicMock(cursor=_make_cursor_mock)
 
-    util.setup_connection_for_dialect("mysql", dbapi_connection, True)
+    assert util.setup_connection_for_dialect("mysql", dbapi_connection) is False
 
     assert execute_mock.call_args[0][0] == "SET session wait_timeout=28800"
 
@@ -146,17 +167,9 @@ def test_setup_connection_for_dialect_sqlite():
 
     dbapi_connection = MagicMock(cursor=_make_cursor_mock)
 
-    util.setup_connection_for_dialect("sqlite", dbapi_connection, True)
+    assert util.setup_connection_for_dialect("sqlite", dbapi_connection) is True
 
-    assert len(execute_mock.call_args_list) == 2
-    assert execute_mock.call_args_list[0][0][0] == "PRAGMA journal_mode=WAL"
-    assert execute_mock.call_args_list[1][0][0] == "PRAGMA cache_size = -8192"
-
-    execute_mock.reset_mock()
-    util.setup_connection_for_dialect("sqlite", dbapi_connection, False)
-
-    assert len(execute_mock.call_args_list) == 1
-    assert execute_mock.call_args_list[0][0][0] == "PRAGMA cache_size = -8192"
+    assert execute_mock.call_args[0][0] == "PRAGMA journal_mode=WAL"
 
 
 def test_basic_sanity_check(hass_recorder):
@@ -248,11 +261,3 @@ def test_end_incomplete_runs(hass_recorder, caplog):
         assert run_info.end == now_without_tz
 
     assert "Ended unfinished session" in caplog.text
-
-
-def test_perodic_db_cleanups(hass_recorder):
-    """Test perodic db cleanups."""
-    hass = hass_recorder()
-    with patch.object(hass.data[DATA_INSTANCE].engine, "execute") as execute_mock:
-        util.perodic_db_cleanups(hass.data[DATA_INSTANCE])
-    assert execute_mock.call_args[0][0] == "PRAGMA wal_checkpoint(TRUNCATE);"

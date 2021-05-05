@@ -1,6 +1,7 @@
 """Provides functionality to interact with climate devices."""
 from __future__ import annotations
 
+from abc import abstractmethod
 from datetime import timedelta
 import functools as ft
 import logging
@@ -8,7 +9,6 @@ from typing import Any, final
 
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_TEMPERATURE,
     PRECISION_TENTHS,
@@ -157,7 +157,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+async def async_setup_entry(hass: HomeAssistant, entry):
     """Set up a config entry."""
     return await hass.data[DOMAIN].async_setup_entry(entry)
 
@@ -170,31 +170,6 @@ async def async_unload_entry(hass: HomeAssistant, entry):
 class ClimateEntity(Entity):
     """Base class for climate entities."""
 
-    _attr_current_humidity: int | None = None
-    _attr_current_temperature: float | None = None
-    _attr_fan_mode: str | None
-    _attr_fan_modes: list[str] | None
-    _attr_hvac_action: str | None = None
-    _attr_hvac_mode: str
-    _attr_hvac_modes: list[str]
-    _attr_is_aux_heat: bool | None
-    _attr_max_humidity: int = DEFAULT_MAX_HUMIDITY
-    _attr_max_temp: float
-    _attr_min_humidity: int = DEFAULT_MIN_HUMIDITY
-    _attr_min_temp: float
-    _attr_precision: float
-    _attr_preset_mode: str | None
-    _attr_preset_modes: list[str] | None
-    _attr_supported_features: int
-    _attr_swing_mode: str | None
-    _attr_swing_modes: list[str] | None
-    _attr_target_humidity: int | None = None
-    _attr_target_temperature_high: float | None
-    _attr_target_temperature_low: float | None
-    _attr_target_temperature_step: float | None = None
-    _attr_target_temperature: float | None = None
-    _attr_temperature_unit: str
-
     @property
     def state(self) -> str:
         """Return the current state."""
@@ -203,8 +178,6 @@ class ClimateEntity(Entity):
     @property
     def precision(self) -> float:
         """Return the precision of the system."""
-        if hasattr(self, "_attr_precision"):
-            return self._attr_precision
         if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
             return PRECISION_TENTHS
         return PRECISION_WHOLE
@@ -303,33 +276,33 @@ class ClimateEntity(Entity):
     @property
     def temperature_unit(self) -> str:
         """Return the unit of measurement used by the platform."""
-        return self._attr_temperature_unit
+        raise NotImplementedError()
 
     @property
     def current_humidity(self) -> int | None:
         """Return the current humidity."""
-        return self._attr_current_humidity
+        return None
 
     @property
     def target_humidity(self) -> int | None:
         """Return the humidity we try to reach."""
-        return self._attr_target_humidity
+        return None
 
     @property
+    @abstractmethod
     def hvac_mode(self) -> str:
         """Return hvac operation ie. heat, cool mode.
 
         Need to be one of HVAC_MODE_*.
         """
-        return self._attr_hvac_mode
 
     @property
+    @abstractmethod
     def hvac_modes(self) -> list[str]:
         """Return the list of available hvac operation modes.
 
         Need to be a subset of HVAC_MODES.
         """
-        return self._attr_hvac_modes
 
     @property
     def hvac_action(self) -> str | None:
@@ -337,22 +310,22 @@ class ClimateEntity(Entity):
 
         Need to be one of CURRENT_HVAC_*.
         """
-        return self._attr_hvac_action
+        return None
 
     @property
     def current_temperature(self) -> float | None:
         """Return the current temperature."""
-        return self._attr_current_temperature
+        return None
 
     @property
     def target_temperature(self) -> float | None:
         """Return the temperature we try to reach."""
-        return self._attr_target_temperature
+        return None
 
     @property
     def target_temperature_step(self) -> float | None:
         """Return the supported step of target temperature."""
-        return self._attr_target_temperature_step
+        return None
 
     @property
     def target_temperature_high(self) -> float | None:
@@ -360,7 +333,7 @@ class ClimateEntity(Entity):
 
         Requires SUPPORT_TARGET_TEMPERATURE_RANGE.
         """
-        return self._attr_target_temperature_high
+        raise NotImplementedError
 
     @property
     def target_temperature_low(self) -> float | None:
@@ -368,7 +341,7 @@ class ClimateEntity(Entity):
 
         Requires SUPPORT_TARGET_TEMPERATURE_RANGE.
         """
-        return self._attr_target_temperature_low
+        raise NotImplementedError
 
     @property
     def preset_mode(self) -> str | None:
@@ -376,7 +349,7 @@ class ClimateEntity(Entity):
 
         Requires SUPPORT_PRESET_MODE.
         """
-        return self._attr_preset_mode
+        raise NotImplementedError
 
     @property
     def preset_modes(self) -> list[str] | None:
@@ -384,7 +357,7 @@ class ClimateEntity(Entity):
 
         Requires SUPPORT_PRESET_MODE.
         """
-        return self._attr_preset_modes
+        raise NotImplementedError
 
     @property
     def is_aux_heat(self) -> bool | None:
@@ -392,7 +365,7 @@ class ClimateEntity(Entity):
 
         Requires SUPPORT_AUX_HEAT.
         """
-        return self._attr_is_aux_heat
+        raise NotImplementedError
 
     @property
     def fan_mode(self) -> str | None:
@@ -400,7 +373,7 @@ class ClimateEntity(Entity):
 
         Requires SUPPORT_FAN_MODE.
         """
-        return self._attr_fan_mode
+        raise NotImplementedError
 
     @property
     def fan_modes(self) -> list[str] | None:
@@ -408,7 +381,7 @@ class ClimateEntity(Entity):
 
         Requires SUPPORT_FAN_MODE.
         """
-        return self._attr_fan_modes
+        raise NotImplementedError
 
     @property
     def swing_mode(self) -> str | None:
@@ -416,7 +389,7 @@ class ClimateEntity(Entity):
 
         Requires SUPPORT_SWING_MODE.
         """
-        return self._attr_swing_mode
+        raise NotImplementedError
 
     @property
     def swing_modes(self) -> list[str] | None:
@@ -424,7 +397,7 @@ class ClimateEntity(Entity):
 
         Requires SUPPORT_SWING_MODE.
         """
-        return self._attr_swing_modes
+        raise NotImplementedError
 
     def set_temperature(self, **kwargs) -> None:
         """Set new target temperature."""
@@ -520,35 +493,31 @@ class ClimateEntity(Entity):
     @property
     def supported_features(self) -> int:
         """Return the list of supported features."""
-        return self._attr_supported_features
+        raise NotImplementedError()
 
     @property
     def min_temp(self) -> float:
         """Return the minimum temperature."""
-        if not hasattr(self, "_attr_min_temp"):
-            return convert_temperature(
-                DEFAULT_MIN_TEMP, TEMP_CELSIUS, self.temperature_unit
-            )
-        return self._attr_min_temp
+        return convert_temperature(
+            DEFAULT_MIN_TEMP, TEMP_CELSIUS, self.temperature_unit
+        )
 
     @property
     def max_temp(self) -> float:
         """Return the maximum temperature."""
-        if not hasattr(self, "_attr_max_temp"):
-            return convert_temperature(
-                DEFAULT_MAX_TEMP, TEMP_CELSIUS, self.temperature_unit
-            )
-        return self._attr_max_temp
+        return convert_temperature(
+            DEFAULT_MAX_TEMP, TEMP_CELSIUS, self.temperature_unit
+        )
 
     @property
     def min_humidity(self) -> int:
         """Return the minimum humidity."""
-        return self._attr_min_humidity
+        return DEFAULT_MIN_HUMIDITY
 
     @property
     def max_humidity(self) -> int:
         """Return the maximum humidity."""
-        return self._attr_max_humidity
+        return DEFAULT_MAX_HUMIDITY
 
 
 async def async_service_aux_heat(

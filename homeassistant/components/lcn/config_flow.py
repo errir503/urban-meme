@@ -57,10 +57,12 @@ async def validate_connection(host_name, data):
     return data
 
 
-class LcnFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+@config_entries.HANDLERS.register(DOMAIN)
+class LcnFlowHandler(config_entries.ConfigFlow):
     """Handle a LCN config flow."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
 
     async def async_step_import(self, data):
         """Import existing configuration from LCN."""
@@ -89,4 +91,7 @@ class LcnFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self.hass.config_entries.async_update_entry(entry, data=data)
             return self.async_abort(reason="existing_configuration_updated")
 
-        return self.async_create_entry(title=f"{host_name}", data=data)
+        return self.async_create_entry(
+            title=f"{host_name}",
+            data=data,
+        )

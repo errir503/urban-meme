@@ -111,7 +111,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 class VersionData:
     """Get the latest data and update the states."""
 
-    def __init__(self, api: HaVersion) -> None:
+    def __init__(self, api: HaVersion):
         """Initialize the data object."""
         self.api = api
 
@@ -131,7 +131,7 @@ class VersionData:
 class VersionSensor(SensorEntity):
     """Representation of a Home Assistant version sensor."""
 
-    def __init__(self, data: VersionData, name: str) -> None:
+    def __init__(self, data: VersionData, name: str):
         """Initialize the Version sensor."""
         self.data = data
         self._name = name

@@ -77,6 +77,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for DoorBird."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
 
     def __init__(self):
         """Initialize the DoorBird config flow."""
@@ -124,6 +125,18 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self.async_step_user()
 
+    async def async_step_import(self, user_input):
+        """Handle import."""
+        if user_input:
+            info, errors = await self._async_validate_or_error(user_input)
+            if not errors:
+                await self.async_set_unique_id(
+                    info["mac_addr"], raise_on_progress=False
+                )
+                self._abort_if_unique_id_configured()
+                return self.async_create_entry(title=info["title"], data=user_input)
+        return await self.async_step_user(user_input)
+
     async def _async_validate_or_error(self, user_input):
         """Validate doorbird or error."""
         errors = {}
@@ -149,7 +162,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handle a option flow for doorbird."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+    def __init__(self, config_entry: config_entries.ConfigEntry):
         """Initialize options flow."""
         self.config_entry = config_entry
 

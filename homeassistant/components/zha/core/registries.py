@@ -83,8 +83,7 @@ SINGLE_INPUT_CLUSTER_DEVICE_CLASS = {
 }
 
 SINGLE_OUTPUT_CLUSTER_DEVICE_CLASS = {
-    zcl.clusters.general.OnOff.cluster_id: BINARY_SENSOR,
-    zcl.clusters.security.IasAce.cluster_id: ALARM,
+    zcl.clusters.general.OnOff.cluster_id: BINARY_SENSOR
 }
 
 BINDABLE_CLUSTERS = SetRegistry()

@@ -57,17 +57,6 @@ async def test_polling_only_updates_entities_it_should_poll(hass):
     assert poll_ent.async_update.called
 
 
-async def test_polling_disabled_by_config_entry(hass):
-    """Test the polling of only updated entities."""
-    entity_platform = MockEntityPlatform(hass)
-    entity_platform.config_entry = MockConfigEntry(pref_disable_polling=True)
-
-    poll_ent = MockEntity(should_poll=True)
-
-    await entity_platform.async_add_entities([poll_ent])
-    assert entity_platform._async_unsub_polling is None
-
-
 async def test_polling_updates_entities_with_exception(hass):
     """Test the updated entities that not break with an exception."""
     component = EntityComponent(_LOGGER, DOMAIN, hass, timedelta(seconds=20))
@@ -832,7 +821,7 @@ async def test_device_info_called(hass):
                     unique_id="qwer",
                     device_info={
                         "identifiers": {("hue", "1234")},
-                        "connections": {(dr.CONNECTION_NETWORK_MAC, "abcd")},
+                        "connections": {("mac", "abcd")},
                         "manufacturer": "test-manuf",
                         "model": "test-model",
                         "name": "test-name",
@@ -860,7 +849,7 @@ async def test_device_info_called(hass):
     device = registry.async_get_device({("hue", "1234")})
     assert device is not None
     assert device.identifiers == {("hue", "1234")}
-    assert device.connections == {(dr.CONNECTION_NETWORK_MAC, "abcd")}
+    assert device.connections == {("mac", "abcd")}
     assert device.manufacturer == "test-manuf"
     assert device.model == "test-model"
     assert device.name == "test-name"
@@ -875,7 +864,7 @@ async def test_device_info_not_overrides(hass):
     registry = dr.async_get(hass)
     device = registry.async_get_or_create(
         config_entry_id="bla",
-        connections={(dr.CONNECTION_NETWORK_MAC, "abcd")},
+        connections={("mac", "abcd")},
         manufacturer="test-manufacturer",
         model="test-model",
     )
@@ -890,7 +879,7 @@ async def test_device_info_not_overrides(hass):
                 MockEntity(
                     unique_id="qwer",
                     device_info={
-                        "connections": {(dr.CONNECTION_NETWORK_MAC, "abcd")},
+                        "connections": {("mac", "abcd")},
                         "default_name": "default name 1",
                         "default_model": "default model 1",
                         "default_manufacturer": "default manufacturer 1",
@@ -909,7 +898,7 @@ async def test_device_info_not_overrides(hass):
     assert await entity_platform.async_setup_entry(config_entry)
     await hass.async_block_till_done()
 
-    device2 = registry.async_get_device(set(), {(dr.CONNECTION_NETWORK_MAC, "abcd")})
+    device2 = registry.async_get_device(set(), {("mac", "abcd")})
     assert device2 is not None
     assert device.id == device2.id
     assert device2.manufacturer == "test-manufacturer"
@@ -957,6 +946,7 @@ async def test_entity_info_added_to_entity_registry(hass):
     registry = er.async_get(hass)
 
     entry_default = registry.async_get_or_create(DOMAIN, DOMAIN, "default")
+    print(entry_default)
     assert entry_default.capabilities == {"max": 100}
     assert entry_default.supported_features == 5
     assert entry_default.device_class == "mock-device-class"

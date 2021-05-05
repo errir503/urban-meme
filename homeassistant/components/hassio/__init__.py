@@ -9,10 +9,7 @@ from typing import Any
 import voluptuous as vol
 
 from homeassistant.auth.const import GROUP_ID_ADMIN
-from homeassistant.components.homeassistant import (
-    SERVICE_CHECK_CONFIG,
-    SHUTDOWN_SERVICES,
-)
+from homeassistant.components.homeassistant import SERVICE_CHECK_CONFIG
 import homeassistant.config as conf_util
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -22,11 +19,10 @@ from homeassistant.const import (
     SERVICE_HOMEASSISTANT_RESTART,
     SERVICE_HOMEASSISTANT_STOP,
 )
-from homeassistant.core import DOMAIN as HASS_DOMAIN, HomeAssistant, callback
+from homeassistant.core import DOMAIN as HASS_DOMAIN, Config, HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import config_validation as cv, recorder
+import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.device_registry import DeviceRegistry, async_get_registry
-from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.loader import bind_hass
 from homeassistant.util.dt import utcnow
@@ -71,7 +67,6 @@ CONFIG_SCHEMA = vol.Schema(
 
 DATA_CORE_INFO = "hassio_core_info"
 DATA_HOST_INFO = "hassio_host_info"
-DATA_STORE = "hassio_store"
 DATA_INFO = "hassio_info"
 DATA_OS_INFO = "hassio_os_info"
 DATA_SUPERVISOR_INFO = "hassio_supervisor_info"
@@ -294,16 +289,6 @@ def get_host_info(hass):
 
 @callback
 @bind_hass
-def get_store(hass):
-    """Return store information.
-
-    Async friendly.
-    """
-    return hass.data.get(DATA_STORE)
-
-
-@callback
-@bind_hass
 def get_supervisor_info(hass):
     """Return Supervisor information.
 
@@ -350,7 +335,7 @@ def get_supervisor_ip():
     return os.environ["SUPERVISOR"].partition(":")[0]
 
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:  # noqa: C901
+async def async_setup(hass: HomeAssistant, config: Config) -> bool:  # noqa: C901
     """Set up the Hass.io component."""
     # Check local setup
     for env in ("HASSIO", "HASSIO_TOKEN"):
@@ -467,7 +452,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:  # noqa:
         try:
             hass.data[DATA_INFO] = await hassio.get_info()
             hass.data[DATA_HOST_INFO] = await hassio.get_host_info()
-            hass.data[DATA_STORE] = await hassio.get_store()
             hass.data[DATA_CORE_INFO] = await hassio.get_core_info()
             hass.data[DATA_SUPERVISOR_INFO] = await hassio.get_supervisor_info()
             hass.data[DATA_OS_INFO] = await hassio.get_os_info()
@@ -485,40 +469,23 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:  # noqa:
 
     async def async_handle_core_service(call):
         """Service handler for handling core services."""
-        if (
-            call.service in SHUTDOWN_SERVICES
-            and await recorder.async_migration_in_progress(hass)
-        ):
-            _LOGGER.error(
-                "The system cannot %s while a database upgrade is in progress",
-                call.service,
-            )
-            raise HomeAssistantError(
-                f"The system cannot {call.service} "
-                "while a database upgrade is in progress."
-            )
-
         if call.service == SERVICE_HOMEASSISTANT_STOP:
             await hassio.stop_homeassistant()
             return
 
-        errors = await conf_util.async_check_ha_config_file(hass)
+        try:
+            errors = await conf_util.async_check_ha_config_file(hass)
+        except HomeAssistantError:
+            return
 
         if errors:
-            _LOGGER.error(
-                "The system cannot %s because the configuration is not valid: %s",
-                call.service,
-                errors,
-            )
+            _LOGGER.error(errors)
             hass.components.persistent_notification.async_create(
                 "Config error. See [the logs](/config/logs) for details.",
                 "Config validating",
                 f"{HASS_DOMAIN}.check_config",
             )
-            raise HomeAssistantError(
-                f"The system cannot {call.service} "
-                f"because the configuration is not valid: {errors}"
-            )
+            return
 
         if call.service == SERVICE_HOMEASSISTANT_RESTART:
             await hassio.restart_homeassistant()
@@ -639,22 +606,10 @@ class HassioDataUpdateCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self) -> dict[str, Any]:
         """Update data via library."""
         new_data = {}
-        supervisor_info = get_supervisor_info(self.hass)
-        store_data = get_store(self.hass)
-
-        repositories = {
-            repo[ATTR_SLUG]: repo[ATTR_NAME]
-            for repo in store_data.get("repositories", [])
-        }
+        addon_data = get_supervisor_info(self.hass)
 
         new_data["addons"] = {
-            addon[ATTR_SLUG]: {
-                **addon,
-                ATTR_REPOSITORY: repositories.get(
-                    addon.get(ATTR_REPOSITORY), addon.get(ATTR_REPOSITORY, "")
-                ),
-            }
-            for addon in supervisor_info.get("addons", [])
+            addon[ATTR_SLUG]: addon for addon in addon_data.get("addons", [])
         }
         if self.is_hass_os:
             new_data["os"] = get_os_info(self.hass)

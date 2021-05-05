@@ -15,7 +15,7 @@ from .const import (
 class OndiloOauth2Implementation(LocalOAuth2Implementation):
     """Local implementation of OAuth2 specific to Ondilo to hard code client id and secret and return a proper name."""
 
-    def __init__(self, hass: HomeAssistant) -> None:
+    def __init__(self, hass: HomeAssistant):
         """Just init default class with default values."""
         super().__init__(
             hass,

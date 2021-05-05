@@ -51,6 +51,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Somfy MyLink."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_ASSUMED
 
     def __init__(self):
         """Initialize the somfy_mylink flow."""
@@ -60,7 +61,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_dhcp(self, discovery_info):
         """Handle dhcp discovery."""
-        self._async_abort_entries_match({CONF_HOST: discovery_info[IP_ADDRESS]})
+        if self._host_already_configured(discovery_info[IP_ADDRESS]):
+            return self.async_abort(reason="already_configured")
 
         formatted_mac = format_mac(discovery_info[MAC_ADDRESS])
         await self.async_set_unique_id(format_mac(formatted_mac))
@@ -78,7 +80,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
-            self._async_abort_entries_match({CONF_HOST: user_input[CONF_HOST]})
+            if self._host_already_configured(user_input[CONF_HOST]):
+                return self.async_abort(reason="already_configured")
 
             try:
                 info = await validate_input(self.hass, user_input)
@@ -106,8 +109,17 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_import(self, user_input):
         """Handle import."""
-        self._async_abort_entries_match({CONF_HOST: user_input[CONF_HOST]})
+        if self._host_already_configured(user_input[CONF_HOST]):
+            return self.async_abort(reason="already_configured")
+
         return await self.async_step_user(user_input)
+
+    def _host_already_configured(self, host):
+        """See if we already have an entry matching the host."""
+        for entry in self._async_current_entries():
+            if entry.data.get(CONF_HOST) == host:
+                return True
+        return False
 
     @staticmethod
     @callback
@@ -119,7 +131,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handle a option flow for somfy_mylink."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+    def __init__(self, config_entry: config_entries.ConfigEntry):
         """Initialize options flow."""
         self.config_entry = config_entry
         self.options = deepcopy(dict(config_entry.options))
@@ -144,7 +156,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_init(self, user_input=None):
         """Handle options flow."""
 
-        if self.config_entry.state is not config_entries.ConfigEntryState.LOADED:
+        if self.config_entry.state != config_entries.ENTRY_STATE_LOADED:
             _LOGGER.error("MyLink must be connected to manage device options")
             return self.async_abort(reason="cannot_connect")
 

@@ -7,13 +7,9 @@
         "error": {
             "cannot_connect": "Impossibile connettersi"
         },
-        "flow_title": "{name}",
+        "flow_title": "DirecTV: {name}",
         "step": {
             "ssdp_confirm": {
-                "data": {
-                    "one": "Pi\u00f9",
-                    "other": "Altri"
-                },
                 "description": "Vuoi impostare {name} ?"
             },
             "user": {

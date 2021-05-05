@@ -132,9 +132,7 @@ async def test_send_base_with_supervisor(hass, caplog, aioclient_mock):
 
     with patch(
         "homeassistant.components.hassio.get_supervisor_info",
-        side_effect=Mock(
-            return_value={"supported": True, "healthy": True, "arch": "amd64"}
-        ),
+        side_effect=Mock(return_value={"supported": True, "healthy": True}),
     ), patch(
         "homeassistant.components.hassio.get_os_info",
         side_effect=Mock(return_value={"board": "blue", "version": "123"}),
@@ -159,10 +157,7 @@ async def test_send_base_with_supervisor(hass, caplog, aioclient_mock):
 
     assert f"'uuid': '{MOCK_UUID}'" in caplog.text
     assert f"'version': '{MOCK_VERSION}'" in caplog.text
-    assert (
-        "'supervisor': {'healthy': True, 'supported': True, 'arch': 'amd64'}"
-        in caplog.text
-    )
+    assert "'supervisor': {'healthy': True, 'supported': True}" in caplog.text
     assert "'operating_system': {'board': 'blue', 'version': '123'}" in caplog.text
     assert "'installation_type':" in caplog.text
     assert "'integration_count':" not in caplog.text
@@ -202,7 +197,6 @@ async def test_send_usage_with_supervisor(hass, caplog, aioclient_mock):
             return_value={
                 "healthy": True,
                 "supported": True,
-                "arch": "amd64",
                 "addons": [{"slug": "test_addon"}],
             }
         ),
@@ -309,7 +303,6 @@ async def test_send_statistics_with_supervisor(hass, caplog, aioclient_mock):
             return_value={
                 "healthy": True,
                 "supported": True,
-                "arch": "amd64",
                 "addons": [{"slug": "test_addon"}],
             }
         ),
@@ -361,7 +354,7 @@ async def test_reusing_uuid(hass, aioclient_mock):
     assert analytics.uuid == "NOT_MOCK_UUID"
 
 
-async def test_custom_integrations(hass, aioclient_mock, enable_custom_integrations):
+async def test_custom_integrations(hass, aioclient_mock):
     """Test sending custom integrations."""
     aioclient_mock.post(ANALYTICS_ENDPOINT_URL, status=200)
     analytics = Analytics(hass)

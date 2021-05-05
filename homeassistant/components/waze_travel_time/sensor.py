@@ -4,6 +4,7 @@ from __future__ import annotations
 from datetime import timedelta
 import logging
 import re
+from typing import Any, Callable
 
 from WazeRouteCalculator import WazeRouteCalculator, WRCError
 import voluptuous as vol
@@ -22,8 +23,6 @@ from homeassistant.const import (
 )
 from homeassistant.core import Config, CoreState, HomeAssistant
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     ATTR_DESTINATION,
@@ -112,7 +111,7 @@ async def async_setup_platform(
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[list[SensorEntity], bool], None],
 ) -> None:
     """Set up a Waze travel time sensor entry."""
     defaults = {
@@ -158,7 +157,7 @@ async def async_setup_entry(
         config_entry,
     )
 
-    sensor = WazeTravelTime(config_entry.entry_id, name, origin, destination, data)
+    sensor = WazeTravelTime(config_entry.unique_id, name, origin, destination, data)
 
     async_add_entities([sensor], False)
 
@@ -264,7 +263,7 @@ class WazeTravelTime(SensorEntity):
         self._waze_data.update()
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> dict[str, Any] | None:
         """Return device specific attributes."""
         return {
             "name": "Waze",

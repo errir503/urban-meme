@@ -3,11 +3,10 @@ import pytest
 
 import homeassistant.components.automation as automation
 from homeassistant.components.light import (
-    ATTR_SUPPORTED_COLOR_MODES,
-    COLOR_MODE_BRIGHTNESS,
     DOMAIN,
     FLASH_LONG,
     FLASH_SHORT,
+    SUPPORT_BRIGHTNESS,
     SUPPORT_FLASH,
 )
 from homeassistant.const import CONF_PLATFORM, STATE_OFF, STATE_ON
@@ -56,8 +55,7 @@ async def test_get_actions(hass, device_reg, entity_reg):
         "test",
         "5678",
         device_id=device_entry.id,
-        supported_features=SUPPORT_FLASH,
-        capabilities={"supported_color_modes": ["brightness"]},
+        supported_features=SUPPORT_BRIGHTNESS | SUPPORT_FLASH,
     )
     expected_actions = [
         {
@@ -134,15 +132,13 @@ async def test_get_action_capabilities(hass, device_reg, entity_reg):
 
 
 @pytest.mark.parametrize(
-    "set_state,num_actions,supported_features_reg,supported_features_state,capabilities_reg,attributes_state,expected_capabilities",
+    "set_state,num_actions,supported_features_reg,supported_features_state,expected_capabilities",
     [
         (
             False,
             5,
+            SUPPORT_BRIGHTNESS,
             0,
-            0,
-            {ATTR_SUPPORTED_COLOR_MODES: [COLOR_MODE_BRIGHTNESS]},
-            {},
             {
                 "turn_on": [
                     {
@@ -159,9 +155,7 @@ async def test_get_action_capabilities(hass, device_reg, entity_reg):
             True,
             5,
             0,
-            0,
-            None,
-            {ATTR_SUPPORTED_COLOR_MODES: [COLOR_MODE_BRIGHTNESS]},
+            SUPPORT_BRIGHTNESS,
             {
                 "turn_on": [
                     {
@@ -179,8 +173,6 @@ async def test_get_action_capabilities(hass, device_reg, entity_reg):
             4,
             SUPPORT_FLASH,
             0,
-            None,
-            {},
             {
                 "turn_on": [
                     {
@@ -197,8 +189,6 @@ async def test_get_action_capabilities(hass, device_reg, entity_reg):
             4,
             0,
             SUPPORT_FLASH,
-            None,
-            {},
             {
                 "turn_on": [
                     {
@@ -220,8 +210,6 @@ async def test_get_action_capabilities_features(
     num_actions,
     supported_features_reg,
     supported_features_state,
-    capabilities_reg,
-    attributes_state,
     expected_capabilities,
 ):
     """Test we get the expected capabilities from a light action."""
@@ -237,13 +225,10 @@ async def test_get_action_capabilities_features(
         "5678",
         device_id=device_entry.id,
         supported_features=supported_features_reg,
-        capabilities=capabilities_reg,
     ).entity_id
     if set_state:
         hass.states.async_set(
-            entity_id,
-            None,
-            {"supported_features": supported_features_state, **attributes_state},
+            entity_id, None, {"supported_features": supported_features_state}
         )
 
     actions = await async_get_device_automations(hass, "action", device_entry.id)
@@ -256,7 +241,7 @@ async def test_get_action_capabilities_features(
         assert capabilities == expected
 
 
-async def test_action(hass, calls, enable_custom_integrations):
+async def test_action(hass, calls):
     """Test for turn_on and turn_off actions."""
     platform = getattr(hass.components, f"test.{DOMAIN}")
 

@@ -167,7 +167,6 @@ class WeatherUpdateCoordinator(DataUpdateCoordinator):
             ATTR_FORECAST_CONDITION: self._get_condition(
                 entry.weather_code, entry.reference_time("unix")
             ),
-            ATTR_API_CLOUDS: entry.clouds,
         }
 
         temperature_dict = entry.temperature("celsius")

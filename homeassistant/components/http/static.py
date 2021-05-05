@@ -1,25 +1,21 @@
 """Static file handling for HTTP component."""
-from __future__ import annotations
-
-from collections.abc import Mapping
 from pathlib import Path
-from typing import Final
 
 from aiohttp import hdrs
-from aiohttp.web import FileResponse, Request, StreamResponse
+from aiohttp.web import FileResponse
 from aiohttp.web_exceptions import HTTPForbidden, HTTPNotFound
 from aiohttp.web_urldispatcher import StaticResource
 
-CACHE_TIME: Final = 31 * 86400  # = 1 month
-CACHE_HEADERS: Final[Mapping[str, str]] = {
-    hdrs.CACHE_CONTROL: f"public, max-age={CACHE_TIME}"
-}
+# mypy: allow-untyped-defs
+
+CACHE_TIME = 31 * 86400  # = 1 month
+CACHE_HEADERS = {hdrs.CACHE_CONTROL: f"public, max-age={CACHE_TIME}"}
 
 
 class CachingStaticResource(StaticResource):
     """Static Resource handler that will add cache headers."""
 
-    async def _handle(self, request: Request) -> StreamResponse:
+    async def _handle(self, request):
         rel_url = request.match_info["filename"]
         try:
             filename = Path(rel_url)
@@ -46,6 +42,7 @@ class CachingStaticResource(StaticResource):
             return FileResponse(
                 filepath,
                 chunk_size=self._chunk_size,
-                headers=CACHE_HEADERS,
+                # type ignore: https://github.com/aio-libs/aiohttp/pull/3976
+                headers=CACHE_HEADERS,  # type: ignore
             )
         raise HTTPNotFound

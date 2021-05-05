@@ -10,7 +10,7 @@ timer.
 from __future__ import annotations
 
 from collections import OrderedDict
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable
 import logging
 from typing import TYPE_CHECKING, Any, Callable, cast
 
@@ -24,8 +24,6 @@ from homeassistant.const import (
     ATTR_SUPPORTED_FEATURES,
     ATTR_UNIT_OF_MEASUREMENT,
     EVENT_HOMEASSISTANT_START,
-    MAX_LENGTH_STATE_DOMAIN,
-    MAX_LENGTH_STATE_ENTITY_ID,
     STATE_UNAVAILABLE,
 )
 from homeassistant.core import (
@@ -35,7 +33,6 @@ from homeassistant.core import (
     split_entity_id,
     valid_entity_id,
 )
-from homeassistant.exceptions import MaxLengthExceeded
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import EVENT_DEVICE_REGISTRY_UPDATED
 from homeassistant.loader import bind_hass
@@ -99,7 +96,7 @@ class RegistryEntry:
             )
         ),
     )
-    capabilities: Mapping[str, Any] | None = attr.ib(default=None)
+    capabilities: dict[str, Any] | None = attr.ib(default=None)
     supported_features: int = attr.ib(default=0)
     device_class: str | None = attr.ib(default=None)
     unit_of_measurement: str | None = attr.ib(default=None)
@@ -149,7 +146,7 @@ class RegistryEntry:
 class EntityRegistry:
     """Class to hold a registry of entities."""
 
-    def __init__(self, hass: HomeAssistant) -> None:
+    def __init__(self, hass: HomeAssistant):
         """Initialize the registry."""
         self.hass = hass
         self.entities: dict[str, RegistryEntry]
@@ -204,10 +201,6 @@ class EntityRegistry:
         Conflicts checked against registered and currently existing entities.
         """
         preferred_string = f"{domain}.{slugify(suggested_object_id)}"
-
-        if len(domain) > MAX_LENGTH_STATE_DOMAIN:
-            raise MaxLengthExceeded(domain, "domain", MAX_LENGTH_STATE_DOMAIN)
-
         test_string = preferred_string
         if not known_object_ids:
             known_object_ids = {}
@@ -220,11 +213,6 @@ class EntityRegistry:
         ):
             tries += 1
             test_string = f"{preferred_string}_{tries}"
-
-        if len(test_string) > MAX_LENGTH_STATE_ENTITY_ID:
-            raise MaxLengthExceeded(
-                test_string, "generated_entity_id", MAX_LENGTH_STATE_ENTITY_ID
-            )
 
         return test_string
 
@@ -244,7 +232,7 @@ class EntityRegistry:
         config_entry: ConfigEntry | None = None,
         device_id: str | None = None,
         area_id: str | None = None,
-        capabilities: Mapping[str, Any] | None = None,
+        capabilities: dict[str, Any] | None = None,
         supported_features: int | None = None,
         device_class: str | None = None,
         unit_of_measurement: str | None = None,
@@ -286,7 +274,7 @@ class EntityRegistry:
         if (
             disabled_by is None
             and config_entry
-            and config_entry.pref_disable_new_entities
+            and config_entry.system_options.disable_new_entities
         ):
             disabled_by = DISABLED_INTEGRATION
 
@@ -404,7 +392,7 @@ class EntityRegistry:
         area_id: str | None | UndefinedType = UNDEFINED,
         new_unique_id: str | UndefinedType = UNDEFINED,
         disabled_by: str | None | UndefinedType = UNDEFINED,
-        capabilities: Mapping[str, Any] | None | UndefinedType = UNDEFINED,
+        capabilities: dict[str, Any] | None | UndefinedType = UNDEFINED,
         supported_features: int | UndefinedType = UNDEFINED,
         device_class: str | None | UndefinedType = UNDEFINED,
         unit_of_measurement: str | None | UndefinedType = UNDEFINED,

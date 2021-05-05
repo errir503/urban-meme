@@ -1,22 +1,23 @@
 """The tests for the Netatmo sensor platform."""
+from datetime import timedelta
 from unittest.mock import patch
 
 import pytest
 
 from homeassistant.components.netatmo import sensor
 from homeassistant.components.netatmo.sensor import MODULE_TYPE_WIND
+from homeassistant.config_entries import RELOAD_AFTER_UPDATE_DELAY
 from homeassistant.helpers import entity_registry as er
+from homeassistant.util import dt
 
-from .common import TEST_TIME, selected_platforms
+from .common import TEST_TIME
+from .conftest import selected_platforms
+
+from tests.common import async_fire_time_changed
 
 
-async def test_weather_sensor(hass, config_entry, netatmo_auth):
+async def test_weather_sensor(hass, sensor_entry):
     """Test weather sensor setup."""
-    with patch("time.time", return_value=TEST_TIME), selected_platforms(["sensor"]):
-        await hass.config_entries.async_setup(config_entry.entry_id)
-
-        await hass.async_block_till_done()
-
     prefix = "sensor.netatmo_mystation_"
 
     assert hass.states.get(f"{prefix}temperature").state == "24.6"
@@ -25,15 +26,8 @@ async def test_weather_sensor(hass, config_entry, netatmo_auth):
     assert hass.states.get(f"{prefix}pressure").state == "1017.3"
 
 
-async def test_public_weather_sensor(hass, config_entry, netatmo_auth):
+async def test_public_weather_sensor(hass, sensor_entry):
     """Test public weather sensor setup."""
-    with patch("time.time", return_value=TEST_TIME), selected_platforms(["sensor"]):
-        await hass.config_entries.async_setup(config_entry.entry_id)
-
-        await hass.async_block_till_done()
-
-    assert len(hass.states.async_all()) > 0
-
     prefix = "sensor.netatmo_home_max_"
 
     assert hass.states.get(f"{prefix}temperature").state == "27.4"
@@ -46,6 +40,7 @@ async def test_public_weather_sensor(hass, config_entry, netatmo_auth):
     assert hass.states.get(f"{prefix}humidity").state == "63.2"
     assert hass.states.get(f"{prefix}pressure").state == "1010.3"
 
+    assert len(hass.states.async_all()) > 0
     entities_before_change = len(hass.states.async_all())
 
     valid_option = {
@@ -58,7 +53,7 @@ async def test_public_weather_sensor(hass, config_entry, netatmo_auth):
         "mode": "max",
     }
 
-    result = await hass.config_entries.options.async_init(config_entry.entry_id)
+    result = await hass.config_entries.options.async_init(sensor_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], user_input={"new_area": "Home avg"}
     )
@@ -68,11 +63,18 @@ async def test_public_weather_sensor(hass, config_entry, netatmo_auth):
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], user_input={}
     )
-
+    await hass.async_block_till_done()
+    async_fire_time_changed(
+        hass,
+        dt.utcnow() + timedelta(seconds=RELOAD_AFTER_UPDATE_DELAY + 1),
+    )
     await hass.async_block_till_done()
 
-    assert len(hass.states.async_all()) == entities_before_change
     assert hass.states.get(f"{prefix}temperature").state == "27.4"
+    assert hass.states.get(f"{prefix}humidity").state == "76"
+    assert hass.states.get(f"{prefix}pressure").state == "1014.4"
+
+    assert len(hass.states.async_all()) == entities_before_change
 
 
 @pytest.mark.parametrize(
@@ -211,9 +213,7 @@ async def test_fix_angle(angle, expected):
         ),
     ],
 )
-async def test_weather_sensor_enabling(
-    hass, config_entry, uid, name, expected, netatmo_auth
-):
+async def test_weather_sensor_enabling(hass, config_entry, uid, name, expected):
     """Test enabling of by default disabled sensors."""
     with patch("time.time", return_value=TEST_TIME), selected_platforms(["sensor"]):
         states_before = len(hass.states.async_all())

@@ -10,7 +10,7 @@
         "error": {
             "discovery_error": "Kan geen Denon AVR netwerkontvanger vinden"
         },
-        "flow_title": "{name}",
+        "flow_title": "Denon AVR Network Receiver: {name}",
         "step": {
             "confirm": {
                 "description": "Bevestig het toevoegen van de ontvanger",

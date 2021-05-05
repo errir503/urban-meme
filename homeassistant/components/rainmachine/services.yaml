@@ -1,169 +1,97 @@
 # Describes the format for available RainMachine services
 disable_program:
-  name: Disable program
   description: Disable a program.
-  target:
-    entity:
-      integration: rainmachine
-      domain: switch
   fields:
+    entity_id:
+      description: An entity from the desired RainMachine controller
+      example: switch.zone_1
     program_id:
-      name: Program ID
       description: The program to disable.
-      required: true
-      selector:
-        number:
-          min: 1
-          max: 255
+      example: 3
 disable_zone:
-  name: Disable zone
   description: Disable a zone.
-  target:
-    entity:
-      integration: rainmachine
-      domain: switch
   fields:
+    entity_id:
+      description: An entity from the desired RainMachine controller
+      example: switch.zone_1
     zone_id:
-      name: Zone ID
       description: The zone to disable.
-      required: true
-      selector:
-        number:
-          min: 1
-          max: 255
+      example: 3
 enable_program:
-  name: Enable program
   description: Enable a program.
-  target:
-    entity:
-      integration: rainmachine
-      domain: switch
   fields:
+    entity_id:
+      description: An entity from the desired RainMachine controller
+      example: switch.zone_1
     program_id:
-      name: Program ID
       description: The program to enable.
-      required: true
-      selector:
-        number:
-          min: 1
-          max: 255
+      example: 3
 enable_zone:
-  name: Enable zone
   description: Enable a zone.
-  target:
-    entity:
-      integration: rainmachine
-      domain: switch
   fields:
+    entity_id:
+      description: An entity from the desired RainMachine controller
+      example: switch.zone_1
     zone_id:
-      name: Zone ID
       description: The zone to enable.
-      required: true
-      selector:
-        number:
-          min: 1
-          max: 255
+      example: 3
 pause_watering:
-  name: Pause watering
   description: Pause all watering for a number of seconds.
-  target:
-    entity:
-      integration: rainmachine
-      domain: switch
   fields:
+    entity_id:
+      description: An entity from the desired RainMachine controller
+      example: switch.zone_1
     seconds:
-      name: Seconds
-      description: The time to pause.
-      required: true
-      selector:
-        number:
-          min: 1
-          max: 86400
-          unit_of_measurement: seconds
+      description: The number of seconds to pause.
+      example: 30
 start_program:
-  name: Start program
   description: Start a program.
-  target:
-    entity:
-      integration: rainmachine
-      domain: switch
   fields:
+    entity_id:
+      description: An entity from the desired RainMachine controller
+      example: switch.zone_1
     program_id:
-      name: Program ID
       description: The program to start.
-      required: true
-      selector:
-        number:
-          min: 1
-          max: 255
+      example: 3
 start_zone:
-  name: Start zone
   description: Start a zone for a set number of seconds.
-  target:
-    entity:
-      integration: rainmachine
-      domain: switch
   fields:
+    entity_id:
+      description: An entity from the desired RainMachine controller
+      example: switch.zone_1
     zone_id:
-      name: Zone ID
       description: The zone to start.
-      required: true
-      selector:
-        number:
-          min: 1
-          max: 255
+      example: 3
     zone_run_time:
-      name: Zone run time
       description: The number of seconds to run the zone.
-      default: 600
-      selector:
-        number:
-          min: 1
-          max: 86400
-          mode: box
+      example: 120
 stop_all:
-  name: Stop all
   description: Stop all watering activities.
-  target:
-    entity:
-      integration: rainmachine
-      domain: switch
+  fields:
+    entity_id:
+      description: An entity from the desired RainMachine controller
+      example: switch.zone_1
 stop_program:
-  name: Stop program
   description: Stop a program.
-  target:
-    entity:
-      integration: rainmachine
-      domain: switch
   fields:
+    entity_id:
+      description: An entity from the desired RainMachine controller
+      example: switch.zone_1
     program_id:
-      name: Program ID
       description: The program to stop.
-      required: true
-      selector:
-        number:
-          min: 1
-          max: 255
+      example: 3
 stop_zone:
-  name: Stop zone
   description: Stop a zone.
-  target:
-    entity:
-      integration: rainmachine
-      domain: switch
   fields:
+    entity_id:
+      description: An entity from the desired RainMachine controller
+      example: switch.zone_1
     zone_id:
-      name: Zone ID
       description: The zone to stop.
-      required: true
-      selector:
-        number:
-          min: 1
-          max: 255
+      example: 3
 unpause_watering:
-  name: Unpause watering
   description: Unpause all watering.
-  target:
-    entity:
-      integration: rainmachine
-      domain: switch
+  fields:
+    entity_id:
+      description: An entity from the desired RainMachine controller
+      example: switch.zone_1

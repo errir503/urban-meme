@@ -29,17 +29,14 @@ PLATFORMS = ["climate", "sensor", "water_heater"]
 
 CONF_LANGUAGE = "language"
 CONFIG_SCHEMA = vol.Schema(
-    vol.All(
-        cv.deprecated(DOMAIN),
-        {
-            DOMAIN: vol.Schema(
-                {
-                    vol.Required(CONF_USERNAME): cv.string,
-                    vol.Required(CONF_TOKEN): cv.string,
-                }
-            )
-        },
-    ),
+    {
+        DOMAIN: vol.Schema(
+            {
+                vol.Required(CONF_USERNAME): cv.string,
+                vol.Required(CONF_TOKEN): cv.string,
+            }
+        )
+    },
     extra=vol.ALLOW_EXTRA,
 )
 
@@ -61,7 +58,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigEntry):
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Establish connection with MELClooud."""
     conf = entry.data
     mel_devices = await mel_devices_setup(hass, conf[CONF_TOKEN])
@@ -84,7 +81,7 @@ async def async_unload_entry(hass, config_entry):
 class MelCloudDevice:
     """MELCloud Device instance."""
 
-    def __init__(self, device: Device) -> None:
+    def __init__(self, device: Device):
         """Construct a device wrapper."""
         self.device = device
         self.name = device.name

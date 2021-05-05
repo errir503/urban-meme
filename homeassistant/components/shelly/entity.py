@@ -9,7 +9,6 @@ from typing import Any, Callable
 import aioshelly
 import async_timeout
 
-from homeassistant.components.sensor import ATTR_STATE_CLASS
 from homeassistant.core import callback
 from homeassistant.helpers import (
     device_registry,
@@ -152,7 +151,6 @@ class BlockAttributeDescription:
     unit: None | str | Callable[[dict], str] = None
     value: Callable[[Any], Any] = lambda val: val
     device_class: str | None = None
-    state_class: str | None = None
     default_enabled: bool = True
     available: Callable[[aioshelly.Block], bool] | None = None
     # Callable (settings, block), return true if entity should be removed
@@ -169,7 +167,6 @@ class RestAttributeDescription:
     unit: str | None = None
     value: Callable[[dict, Any], Any] | None = None
     device_class: str | None = None
-    state_class: str | None = None
     default_enabled: bool = True
     extra_state_attributes: Callable[[dict], dict | None] | None = None
 
@@ -181,7 +178,7 @@ class ShellyBlockEntity(entity.Entity):
         """Initialize Shelly entity."""
         self.wrapper = wrapper
         self.block = block
-        self._name: str | None = get_entity_name(wrapper.device, block)
+        self._name = get_entity_name(wrapper.device, block)
 
     @property
     def name(self):
@@ -431,7 +428,6 @@ class ShellySleepingBlockAttributeEntity(ShellyBlockAttributeEntity, RestoreEnti
 
         if last_state is not None:
             self.last_state = last_state.state
-            self.description.state_class = last_state.attributes.get(ATTR_STATE_CLASS)
 
     @callback
     def _update_callback(self):

@@ -37,7 +37,7 @@ PIN_FORMAT = re.compile(r"^(\d{3})-{0,1}(\d{2})-{0,1}(\d{3})$")
 _LOGGER = logging.getLogger(__name__)
 
 
-INSECURE_CODES = {
+DISALLOWED_CODES = {
     "00000000",
     "11111111",
     "22222222",
@@ -66,7 +66,7 @@ def find_existing_host(hass, serial):
             return entry
 
 
-def ensure_pin_format(pin, allow_insecure_setup_codes=None):
+def ensure_pin_format(pin):
     """
     Ensure a pin code is correctly formatted.
 
@@ -78,15 +78,17 @@ def ensure_pin_format(pin, allow_insecure_setup_codes=None):
     if not match:
         raise aiohomekit.exceptions.MalformedPinError(f"Invalid PIN code f{pin}")
     pin_without_dashes = "".join(match.groups())
-    if not allow_insecure_setup_codes and pin_without_dashes in INSECURE_CODES:
-        raise InsecureSetupCode(f"Invalid PIN code f{pin}")
+    if pin_without_dashes in DISALLOWED_CODES:
+        raise aiohomekit.exceptions.MalformedPinError(f"Invalid PIN code f{pin}")
     return "-".join(match.groups())
 
 
-class HomekitControllerFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+@config_entries.HANDLERS.register(DOMAIN)
+class HomekitControllerFlowHandler(config_entries.ConfigFlow):
     """Handle a HomeKit config flow."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
 
     def __init__(self):
         """Initialize the homekit_controller flow."""
@@ -238,11 +240,6 @@ class HomekitControllerFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         # (config_num) for changes. If it changes, we check for new entities
         if paired and hkid in self.hass.data.get(KNOWN_DEVICES, {}):
             conn = self.hass.data[KNOWN_DEVICES][hkid]
-            # When we rediscover the device, let aiohomekit know
-            # that the device is available and we should not wait
-            # to retry connecting any longer. reconnect_soon
-            # will do nothing if the device is already connected
-            await conn.pairing.connection.reconnect_soon()
             if conn.config_num != config_num:
                 _LOGGER.debug(
                     "HomeKit info %s: c# incremented, refreshing entities", hkid
@@ -315,12 +312,7 @@ class HomekitControllerFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if pair_info and self.finish_pairing:
             code = pair_info["pairing_code"]
             try:
-                code = ensure_pin_format(
-                    code,
-                    allow_insecure_setup_codes=pair_info.get(
-                        "allow_insecure_setup_codes"
-                    ),
-                )
+                code = ensure_pin_format(code)
                 pairing = await self.finish_pairing(code)
                 return await self._entry_from_accessory(pairing)
             except aiohomekit.exceptions.MalformedPinError:
@@ -346,8 +338,6 @@ class HomekitControllerFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             except aiohomekit.AccessoryNotFoundError:
                 # Can no longer find the device on the network
                 return self.async_abort(reason="accessory_not_found_error")
-            except InsecureSetupCode:
-                errors["pairing_code"] = "insecure_setup_code"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Pairing attempt failed with an unhandled exception")
                 self.finish_pairing = None
@@ -411,15 +401,13 @@ class HomekitControllerFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         placeholders = {"name": self.name}
         self.context["title_placeholders"] = {"name": self.name}
 
-        schema = {vol.Required("pairing_code"): vol.All(str, vol.Strip)}
-        if errors and errors.get("pairing_code") == "insecure_setup_code":
-            schema[vol.Optional("allow_insecure_setup_codes")] = bool
-
         return self.async_show_form(
             step_id="pair",
             errors=errors or {},
             description_placeholders=placeholders,
-            data_schema=vol.Schema(schema),
+            data_schema=vol.Schema(
+                {vol.Required("pairing_code"): vol.All(str, vol.Strip)}
+            ),
         )
 
     async def _entry_from_accessory(self, pairing):
@@ -442,7 +430,3 @@ class HomekitControllerFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         name = get_accessory_name(bridge_info)
 
         return self.async_create_entry(title=name, data=pairing_data)
-
-
-class InsecureSetupCode(Exception):
-    """An exception for insecure trivial setup codes."""

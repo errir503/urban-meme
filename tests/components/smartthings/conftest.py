@@ -37,7 +37,7 @@ from homeassistant.components.smartthings.const import (
     STORAGE_VERSION,
 )
 from homeassistant.config import async_process_ha_core_config
-from homeassistant.config_entries import SOURCE_USER, ConfigEntry
+from homeassistant.config_entries import CONN_CLASS_CLOUD_PUSH, SOURCE_USER, ConfigEntry
 from homeassistant.const import (
     CONF_ACCESS_TOKEN,
     CONF_CLIENT_ID,
@@ -61,6 +61,8 @@ async def setup_platform(hass, platform: str, *, devices=None, scenes=None):
         "Test",
         {CONF_INSTALLED_APP_ID: str(uuid4())},
         SOURCE_USER,
+        CONN_CLASS_CLOUD_PUSH,
+        system_options={},
     )
     broker = DeviceBroker(
         hass, config_entry, Mock(), Mock(), devices or [], scenes or []
@@ -229,6 +231,7 @@ def config_entry_fixture(hass, installed_app, location):
         title=location.name,
         version=2,
         source=SOURCE_USER,
+        connection_class=CONN_CLASS_CLOUD_PUSH,
     )
 
 

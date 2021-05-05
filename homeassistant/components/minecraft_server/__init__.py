@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 import logging
+from typing import Any
 
 from mcstatus.server import MinecraftServer as MCStatus
 
@@ -13,7 +14,7 @@ from homeassistant.helpers.dispatcher import (
     async_dispatcher_connect,
     async_dispatcher_send,
 )
-from homeassistant.helpers.entity import DeviceInfo, Entity
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.typing import ConfigType
 
@@ -25,24 +26,24 @@ PLATFORMS = ["binary_sensor", "sensor"]
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up Minecraft Server from a config entry."""
     domain_data = hass.data.setdefault(DOMAIN, {})
 
     # Create and store server instance.
-    unique_id = entry.unique_id
+    unique_id = config_entry.unique_id
     _LOGGER.debug(
         "Creating server instance for '%s' (%s)",
-        entry.data[CONF_NAME],
-        entry.data[CONF_HOST],
+        config_entry.data[CONF_NAME],
+        config_entry.data[CONF_HOST],
     )
-    server = MinecraftServer(hass, unique_id, entry.data)
+    server = MinecraftServer(hass, unique_id, config_entry.data)
     domain_data[unique_id] = server
     await server.async_update()
     server.start_periodic_update()
 
     # Set up platforms.
-    hass.config_entries.async_setup_platforms(entry, PLATFORMS)
+    hass.config_entries.async_setup_platforms(config_entry, PLATFORMS)
 
     return True
 
@@ -246,7 +247,7 @@ class MinecraftServerEntity(Entity):
         return self._unique_id
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> dict[str, Any]:
         """Return device information."""
         return self._device_info
 

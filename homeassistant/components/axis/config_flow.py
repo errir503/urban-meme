@@ -39,6 +39,7 @@ class AxisFlowHandler(config_entries.ConfigFlow, domain=AXIS_DOMAIN):
     """Handle a Axis config flow."""
 
     VERSION = 3
+    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
 
     @staticmethod
     @callback
@@ -156,7 +157,7 @@ class AxisFlowHandler(config_entries.ConfigFlow, domain=AXIS_DOMAIN):
         return await self._process_discovered_device(
             {
                 CONF_HOST: discovery_info[IP_ADDRESS],
-                CONF_MAC: format_mac(discovery_info.get(MAC_ADDRESS, "")),
+                CONF_MAC: format_mac(discovery_info.get(MAC_ADDRESS)),
                 CONF_NAME: discovery_info.get(HOSTNAME),
                 CONF_PORT: DEFAULT_PORT,
             }
@@ -243,7 +244,8 @@ class AxisOptionsFlowHandler(config_entries.OptionsFlow):
 
         # Stream profiles
 
-        if vapix.stream_profiles or vapix.params.stream_profiles_max_groups > 0:
+        if vapix.params.stream_profiles_max_groups > 0:
+
             stream_profiles = [DEFAULT_STREAM_PROFILE]
             for profile in vapix.streaming_profiles:
                 stream_profiles.append(profile.name)

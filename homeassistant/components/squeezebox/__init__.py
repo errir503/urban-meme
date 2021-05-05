@@ -13,7 +13,7 @@ _LOGGER = logging.getLogger(__name__)
 PLATFORMS = [MP_DOMAIN]
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up Logitech Squeezebox from a config entry."""
     hass.config_entries.async_setup_platforms(entry, PLATFORMS)
     return True

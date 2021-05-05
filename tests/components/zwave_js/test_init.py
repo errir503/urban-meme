@@ -9,7 +9,13 @@ from zwave_js_server.model.node import Node
 from homeassistant.components.hassio.handler import HassioAPIError
 from homeassistant.components.zwave_js.const import DOMAIN
 from homeassistant.components.zwave_js.helpers import get_device_id
-from homeassistant.config_entries import DISABLED_USER, ConfigEntryState
+from homeassistant.config_entries import (
+    CONN_CLASS_LOCAL_PUSH,
+    DISABLED_USER,
+    ENTRY_STATE_LOADED,
+    ENTRY_STATE_NOT_LOADED,
+    ENTRY_STATE_SETUP_RETRY,
+)
 from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 
@@ -34,12 +40,12 @@ async def test_entry_setup_unload(hass, client, integration):
     entry = integration
 
     assert client.connect.call_count == 1
-    assert entry.state is ConfigEntryState.LOADED
+    assert entry.state == ENTRY_STATE_LOADED
 
     await hass.config_entries.async_unload(entry.entry_id)
 
     assert client.disconnect.call_count == 1
-    assert entry.state is ConfigEntryState.NOT_LOADED
+    assert entry.state == ENTRY_STATE_NOT_LOADED
 
 
 async def test_home_assistant_stop(hass, client, integration):
@@ -57,7 +63,7 @@ async def test_initialized_timeout(hass, client, connect_timeout):
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert entry.state is ConfigEntryState.SETUP_RETRY
+    assert entry.state == ENTRY_STATE_SETUP_RETRY
 
 
 async def test_enabled_statistics(hass, client):
@@ -125,12 +131,13 @@ async def test_listen_failure(hass, client, error):
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert entry.state is ConfigEntryState.SETUP_RETRY
+    assert entry.state == ENTRY_STATE_SETUP_RETRY
 
 
-async def test_on_node_added_ready(hass, multisensor_6_state, client, integration):
+async def test_on_node_added_ready(
+    hass, multisensor_6_state, client, integration, device_registry
+):
     """Test we handle a ready node added event."""
-    dev_reg = dr.async_get(hass)
     node = Node(client, multisensor_6_state)
     event = {"node": node}
     air_temperature_device_id = f"{client.driver.controller.home_id}-{node.node_id}"
@@ -138,7 +145,7 @@ async def test_on_node_added_ready(hass, multisensor_6_state, client, integratio
     state = hass.states.get(AIR_TEMPERATURE_SENSOR)
 
     assert not state  # entity and device not yet added
-    assert not dev_reg.async_get_device(
+    assert not device_registry.async_get_device(
         identifiers={(DOMAIN, air_temperature_device_id)}
     )
 
@@ -149,7 +156,9 @@ async def test_on_node_added_ready(hass, multisensor_6_state, client, integratio
 
     assert state  # entity and device added
     assert state.state != STATE_UNAVAILABLE
-    assert dev_reg.async_get_device(identifiers={(DOMAIN, air_temperature_device_id)})
+    assert device_registry.async_get_device(
+        identifiers={(DOMAIN, air_temperature_device_id)}
+    )
 
 
 async def test_unique_id_migration_dupes(
@@ -470,9 +479,10 @@ async def test_old_entity_migration_notification_binary_sensor(
         )
 
 
-async def test_on_node_added_not_ready(hass, multisensor_6_state, client, integration):
+async def test_on_node_added_not_ready(
+    hass, multisensor_6_state, client, integration, device_registry
+):
     """Test we handle a non ready node added event."""
-    dev_reg = dr.async_get(hass)
     node_data = deepcopy(multisensor_6_state)  # Copy to allow modification in tests.
     node = Node(client, node_data)
     node.data["ready"] = False
@@ -482,7 +492,7 @@ async def test_on_node_added_not_ready(hass, multisensor_6_state, client, integr
     state = hass.states.get(AIR_TEMPERATURE_SENSOR)
 
     assert not state  # entity and device not yet added
-    assert not dev_reg.async_get_device(
+    assert not device_registry.async_get_device(
         identifiers={(DOMAIN, air_temperature_device_id)}
     )
 
@@ -492,7 +502,9 @@ async def test_on_node_added_not_ready(hass, multisensor_6_state, client, integr
     state = hass.states.get(AIR_TEMPERATURE_SENSOR)
 
     assert not state  # entity not yet added but device added in registry
-    assert dev_reg.async_get_device(identifiers={(DOMAIN, air_temperature_device_id)})
+    assert device_registry.async_get_device(
+        identifiers={(DOMAIN, air_temperature_device_id)}
+    )
 
     node.data["ready"] = True
     node.emit("ready", event)
@@ -504,9 +516,10 @@ async def test_on_node_added_not_ready(hass, multisensor_6_state, client, integr
     assert state.state != STATE_UNAVAILABLE
 
 
-async def test_existing_node_ready(hass, client, multisensor_6, integration):
+async def test_existing_node_ready(
+    hass, client, multisensor_6, integration, device_registry
+):
     """Test we handle a ready node that exists during integration setup."""
-    dev_reg = dr.async_get(hass)
     node = multisensor_6
     air_temperature_device_id = f"{client.driver.controller.home_id}-{node.node_id}"
 
@@ -514,7 +527,9 @@ async def test_existing_node_ready(hass, client, multisensor_6, integration):
 
     assert state  # entity and device added
     assert state.state != STATE_UNAVAILABLE
-    assert dev_reg.async_get_device(identifiers={(DOMAIN, air_temperature_device_id)})
+    assert device_registry.async_get_device(
+        identifiers={(DOMAIN, air_temperature_device_id)}
+    )
 
 
 async def test_null_name(hass, client, null_name_check, integration):
@@ -523,9 +538,8 @@ async def test_null_name(hass, client, null_name_check, integration):
     assert hass.states.get(f"switch.node_{node.node_id}")
 
 
-async def test_existing_node_not_ready(hass, client, multisensor_6):
+async def test_existing_node_not_ready(hass, client, multisensor_6, device_registry):
     """Test we handle a non ready node that exists during integration setup."""
-    dev_reg = dr.async_get(hass)
     node = multisensor_6
     node.data = deepcopy(node.data)  # Copy to allow modification in tests.
     node.data["ready"] = False
@@ -540,7 +554,7 @@ async def test_existing_node_not_ready(hass, client, multisensor_6):
     state = hass.states.get(AIR_TEMPERATURE_SENSOR)
 
     assert not state  # entity not yet added
-    assert dev_reg.async_get_device(  # device should be added
+    assert device_registry.async_get_device(  # device should be added
         identifiers={(DOMAIN, air_temperature_device_id)}
     )
 
@@ -552,7 +566,9 @@ async def test_existing_node_not_ready(hass, client, multisensor_6):
 
     assert state  # entity and device added
     assert state.state != STATE_UNAVAILABLE
-    assert dev_reg.async_get_device(identifiers={(DOMAIN, air_temperature_device_id)})
+    assert device_registry.async_get_device(
+        identifiers={(DOMAIN, air_temperature_device_id)}
+    )
 
 
 async def test_start_addon(
@@ -568,6 +584,7 @@ async def test_start_addon(
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="Z-Wave JS",
+        connection_class=CONN_CLASS_LOCAL_PUSH,
         data={"use_addon": True, "usb_path": device, "network_key": network_key},
     )
     entry.add_to_hass(hass)
@@ -575,7 +592,7 @@ async def test_start_addon(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert entry.state is ConfigEntryState.SETUP_RETRY
+    assert entry.state == ENTRY_STATE_SETUP_RETRY
     assert install_addon.call_count == 0
     assert set_addon_options.call_count == 1
     assert set_addon_options.call_args == call(
@@ -599,6 +616,7 @@ async def test_install_addon(
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="Z-Wave JS",
+        connection_class=CONN_CLASS_LOCAL_PUSH,
         data={"use_addon": True, "usb_path": device, "network_key": network_key},
     )
     entry.add_to_hass(hass)
@@ -606,7 +624,7 @@ async def test_install_addon(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert entry.state is ConfigEntryState.SETUP_RETRY
+    assert entry.state == ENTRY_STATE_SETUP_RETRY
     assert install_addon.call_count == 1
     assert install_addon.call_args == call(hass, "core_zwave_js")
     assert set_addon_options.call_count == 1
@@ -632,6 +650,7 @@ async def test_addon_info_failure(
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="Z-Wave JS",
+        connection_class=CONN_CLASS_LOCAL_PUSH,
         data={"use_addon": True, "usb_path": device, "network_key": network_key},
     )
     entry.add_to_hass(hass)
@@ -639,49 +658,7 @@ async def test_addon_info_failure(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert entry.state is ConfigEntryState.SETUP_RETRY
-    assert install_addon.call_count == 0
-    assert start_addon.call_count == 0
-
-
-@pytest.mark.parametrize(
-    "old_device, new_device, old_network_key, new_network_key",
-    [("/old_test", "/new_test", "old123", "new123")],
-)
-async def test_addon_options_changed(
-    hass,
-    client,
-    addon_installed,
-    addon_running,
-    install_addon,
-    addon_options,
-    start_addon,
-    old_device,
-    new_device,
-    old_network_key,
-    new_network_key,
-):
-    """Test update config entry data on entry setup if add-on options changed."""
-    addon_options["device"] = new_device
-    addon_options["network_key"] = new_network_key
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        title="Z-Wave JS",
-        data={
-            "url": "ws://host1:3001",
-            "use_addon": True,
-            "usb_path": old_device,
-            "network_key": old_network_key,
-        },
-    )
-    entry.add_to_hass(hass)
-
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-
-    assert entry.state == ConfigEntryState.LOADED
-    assert entry.data["usb_path"] == new_device
-    assert entry.data["network_key"] == new_network_key
+    assert entry.state == ENTRY_STATE_SETUP_RETRY
     assert install_addon.call_count == 0
     assert start_addon.call_count == 0
 
@@ -713,18 +690,17 @@ async def test_update_addon(
     create_shapshot_side_effect,
 ):
     """Test update the Z-Wave JS add-on during entry setup."""
-    device = "/test"
-    network_key = "abc123"
-    addon_options["device"] = device
-    addon_options["network_key"] = network_key
     addon_info.return_value["version"] = addon_version
     addon_info.return_value["update_available"] = update_available
     create_shapshot.side_effect = create_shapshot_side_effect
     update_addon.side_effect = update_addon_side_effect
     client.connect.side_effect = InvalidServerVersion("Invalid version")
+    device = "/test"
+    network_key = "abc123"
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="Z-Wave JS",
+        connection_class=CONN_CLASS_LOCAL_PUSH,
         data={
             "url": "ws://host1:3001",
             "use_addon": True,
@@ -737,7 +713,7 @@ async def test_update_addon(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert entry.state is ConfigEntryState.SETUP_RETRY
+    assert entry.state == ENTRY_STATE_SETUP_RETRY
     assert create_shapshot.call_count == snapshot_calls
     assert update_addon.call_count == update_calls
 
@@ -745,8 +721,8 @@ async def test_update_addon(
 @pytest.mark.parametrize(
     "stop_addon_side_effect, entry_state",
     [
-        (None, ConfigEntryState.NOT_LOADED),
-        (HassioAPIError("Boom"), ConfigEntryState.LOADED),
+        (None, ENTRY_STATE_NOT_LOADED),
+        (HassioAPIError("Boom"), ENTRY_STATE_LOADED),
     ],
 )
 async def test_stop_addon(
@@ -763,11 +739,10 @@ async def test_stop_addon(
     stop_addon.side_effect = stop_addon_side_effect
     device = "/test"
     network_key = "abc123"
-    addon_options["device"] = device
-    addon_options["network_key"] = network_key
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="Z-Wave JS",
+        connection_class=CONN_CLASS_LOCAL_PUSH,
         data={
             "url": "ws://host1:3001",
             "use_addon": True,
@@ -780,7 +755,7 @@ async def test_stop_addon(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert entry.state is ConfigEntryState.LOADED
+    assert entry.state == ENTRY_STATE_LOADED
 
     await hass.config_entries.async_set_disabled_by(entry.entry_id, DISABLED_USER)
     await hass.async_block_till_done()
@@ -798,21 +773,23 @@ async def test_remove_entry(
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="Z-Wave JS",
+        connection_class=CONN_CLASS_LOCAL_PUSH,
         data={"integration_created_addon": False},
     )
     entry.add_to_hass(hass)
-    assert entry.state is ConfigEntryState.NOT_LOADED
+    assert entry.state == ENTRY_STATE_NOT_LOADED
     assert len(hass.config_entries.async_entries(DOMAIN)) == 1
 
     await hass.config_entries.async_remove(entry.entry_id)
 
-    assert entry.state is ConfigEntryState.NOT_LOADED
+    assert entry.state == ENTRY_STATE_NOT_LOADED
     assert len(hass.config_entries.async_entries(DOMAIN)) == 0
 
     # test successful remove with created add-on
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="Z-Wave JS",
+        connection_class=CONN_CLASS_LOCAL_PUSH,
         data={"integration_created_addon": True},
     )
     entry.add_to_hass(hass)
@@ -830,7 +807,7 @@ async def test_remove_entry(
     )
     assert uninstall_addon.call_count == 1
     assert uninstall_addon.call_args == call(hass, "core_zwave_js")
-    assert entry.state is ConfigEntryState.NOT_LOADED
+    assert entry.state == ENTRY_STATE_NOT_LOADED
     assert len(hass.config_entries.async_entries(DOMAIN)) == 0
     stop_addon.reset_mock()
     create_shapshot.reset_mock()
@@ -847,7 +824,7 @@ async def test_remove_entry(
     assert stop_addon.call_args == call(hass, "core_zwave_js")
     assert create_shapshot.call_count == 0
     assert uninstall_addon.call_count == 0
-    assert entry.state is ConfigEntryState.NOT_LOADED
+    assert entry.state == ENTRY_STATE_NOT_LOADED
     assert len(hass.config_entries.async_entries(DOMAIN)) == 0
     assert "Failed to stop the Z-Wave JS add-on" in caplog.text
     stop_addon.side_effect = None
@@ -871,7 +848,7 @@ async def test_remove_entry(
         partial=True,
     )
     assert uninstall_addon.call_count == 0
-    assert entry.state is ConfigEntryState.NOT_LOADED
+    assert entry.state == ENTRY_STATE_NOT_LOADED
     assert len(hass.config_entries.async_entries(DOMAIN)) == 0
     assert "Failed to create a snapshot of the Z-Wave JS add-on" in caplog.text
     create_shapshot.side_effect = None
@@ -896,7 +873,7 @@ async def test_remove_entry(
     )
     assert uninstall_addon.call_count == 1
     assert uninstall_addon.call_args == call(hass, "core_zwave_js")
-    assert entry.state is ConfigEntryState.NOT_LOADED
+    assert entry.state == ENTRY_STATE_NOT_LOADED
     assert len(hass.config_entries.async_entries(DOMAIN)) == 0
     assert "Failed to uninstall the Z-Wave JS add-on" in caplog.text
 
@@ -916,7 +893,7 @@ async def test_removed_device(hass, client, multiple_devices, integration):
     # Check how many entities there are
     ent_reg = er.async_get(hass)
     entity_entries = er.async_entries_for_config_entry(ent_reg, integration.entry_id)
-    assert len(entity_entries) == 26
+    assert len(entity_entries) == 24
 
     # Remove a node and reload the entry
     old_node = nodes.pop(13)
@@ -928,7 +905,7 @@ async def test_removed_device(hass, client, multiple_devices, integration):
     device_entries = dr.async_entries_for_config_entry(dev_reg, integration.entry_id)
     assert len(device_entries) == 1
     entity_entries = er.async_entries_for_config_entry(ent_reg, integration.entry_id)
-    assert len(entity_entries) == 16
+    assert len(entity_entries) == 15
     assert dev_reg.async_get_device({get_device_id(client, old_node)}) is None
 
 

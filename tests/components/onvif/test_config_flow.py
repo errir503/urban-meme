@@ -41,7 +41,6 @@ def setup_mock_onvif_camera(
     with_h264=True,
     two_profiles=False,
     with_interfaces=True,
-    with_interfaces_not_implemented=False,
     with_serial=True,
 ):
     """Prepare mock onvif.ONVIFCamera."""
@@ -55,14 +54,9 @@ def setup_mock_onvif_camera(
     interface.Enabled = True
     interface.Info.HwAddress = MAC
 
-    if with_interfaces_not_implemented:
-        devicemgmt.GetNetworkInterfaces = AsyncMock(
-            side_effect=Fault("not implemented")
-        )
-    else:
-        devicemgmt.GetNetworkInterfaces = AsyncMock(
-            return_value=[interface] if with_interfaces else []
-        )
+    devicemgmt.GetNetworkInterfaces = AsyncMock(
+        return_value=[interface] if with_interfaces else []
+    )
 
     media_service = MagicMock()
 
@@ -159,6 +153,7 @@ async def setup_onvif_integration(
         domain=config_flow.DOMAIN,
         source=source,
         data={**config},
+        connection_class=config_entries.CONN_CLASS_LOCAL_PUSH,
         options=options or {},
         entry_id=entry_id,
         unique_id=unique_id,
@@ -410,47 +405,6 @@ async def test_flow_manual_entry(hass):
 
         assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
         assert result["title"] == f"{NAME} - {MAC}"
-        assert result["data"] == {
-            config_flow.CONF_NAME: NAME,
-            config_flow.CONF_HOST: HOST,
-            config_flow.CONF_PORT: PORT,
-            config_flow.CONF_USERNAME: USERNAME,
-            config_flow.CONF_PASSWORD: PASSWORD,
-        }
-
-
-async def test_flow_import_not_implemented(hass):
-    """Test that config flow uses Serial Number when no MAC available."""
-    with patch(
-        "homeassistant.components.onvif.config_flow.get_device"
-    ) as mock_onvif_camera, patch(
-        "homeassistant.components.onvif.ONVIFDevice"
-    ) as mock_device, patch(
-        "homeassistant.components.onvif.async_setup", return_value=True
-    ) as mock_setup, patch(
-        "homeassistant.components.onvif.async_setup_entry", return_value=True
-    ) as mock_setup_entry:
-        setup_mock_onvif_camera(mock_onvif_camera, with_interfaces_not_implemented=True)
-        setup_mock_device(mock_device)
-
-        result = await hass.config_entries.flow.async_init(
-            config_flow.DOMAIN,
-            context={"source": config_entries.SOURCE_IMPORT},
-            data={
-                config_flow.CONF_NAME: NAME,
-                config_flow.CONF_HOST: HOST,
-                config_flow.CONF_PORT: PORT,
-                config_flow.CONF_USERNAME: USERNAME,
-                config_flow.CONF_PASSWORD: PASSWORD,
-            },
-        )
-
-        await hass.async_block_till_done()
-        assert len(mock_setup.mock_calls) == 1
-        assert len(mock_setup_entry.mock_calls) == 1
-
-        assert result["type"] == data_entry_flow.RESULT_TYPE_CREATE_ENTRY
-        assert result["title"] == f"{NAME} - {SERIAL_NUMBER}"
         assert result["data"] == {
             config_flow.CONF_NAME: NAME,
             config_flow.CONF_HOST: HOST,

@@ -7,8 +7,7 @@ from unittest.mock import patch
 
 from homeassistant.components import script
 from homeassistant.components.blueprint.models import Blueprint, DomainBlueprints
-from homeassistant.core import Context, HomeAssistant, callback
-from homeassistant.helpers import template
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.setup import async_setup_component
 from homeassistant.util import yaml
 
@@ -71,47 +70,43 @@ async def test_confirmable_notification(hass: HomeAssistant) -> None:
         )
 
     turn_on_calls = async_mock_service(hass, "homeassistant", "turn_on")
-    context = Context()
 
     with patch(
         "homeassistant.components.mobile_app.device_action.async_call_action_from_config"
     ) as mock_call_action:
 
         # Trigger script
-        await hass.services.async_call(script.DOMAIN, "confirm", context=context)
+        await hass.services.async_call(script.DOMAIN, "confirm")
 
         # Give script the time to attach the trigger.
         await asyncio.sleep(0.1)
 
-    hass.bus.async_fire("mobile_app_notification_action", {"action": "ANYTHING_ELSE"})
-    hass.bus.async_fire(
-        "mobile_app_notification_action", {"action": "CONFIRM_" + Context().id}
-    )
-    hass.bus.async_fire(
-        "mobile_app_notification_action", {"action": "CONFIRM_" + context.id}
-    )
+    hass.bus.async_fire("mobile_app_notification_action", {"action": "CONFIRM"})
     await hass.async_block_till_done()
 
     assert len(mock_call_action.mock_calls) == 1
     _hass, config, variables, _context = mock_call_action.mock_calls[0][1]
 
-    template.attach(hass, config)
-    rendered_config = template.render_complex(config, variables)
+    title_tpl = config.pop("title")
+    message_tpl = config.pop("message")
+    title_tpl.hass = hass
+    message_tpl.hass = hass
 
-    assert rendered_config == {
-        "title": "Lord of the things",
-        "message": "Throw ring in mountain?",
+    assert config == {
         "alias": "Send notification",
         "domain": "mobile_app",
         "type": "notify",
         "device_id": "frodo",
         "data": {
             "actions": [
-                {"action": "CONFIRM_" + _context.id, "title": "Confirm"},
-                {"action": "DISMISS_" + _context.id, "title": "Dismiss"},
+                {"action": "CONFIRM", "title": "Confirm"},
+                {"action": "DISMISS", "title": "Dismiss"},
             ]
         },
     }
+
+    assert title_tpl.async_render(variables) == "Lord of the things"
+    assert message_tpl.async_render(variables) == "Throw ring in mountain?"
 
     assert len(turn_on_calls) == 1
     assert turn_on_calls[0].data == {

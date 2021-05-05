@@ -117,24 +117,10 @@ class BroadlinkRMUpdateManager(BroadlinkUpdateManager):
         device = self.device
 
         if hasattr(device.api, "check_sensors"):
-            data = await device.async_request(device.api.check_sensors)
-            return self.normalize(data, self.coordinator.data)
+            return await device.async_request(device.api.check_sensors)
 
         await device.async_request(device.api.update)
         return {}
-
-    @staticmethod
-    def normalize(data, previous_data):
-        """Fix firmware issue.
-
-        See https://github.com/home-assistant/core/issues/42100.
-        """
-        if data["temperature"] == -7:
-            if previous_data is None or previous_data["temperature"] is None:
-                data["temperature"] = None
-            elif abs(previous_data["temperature"] - data["temperature"]) > 3:
-                data["temperature"] = previous_data["temperature"]
-        return data
 
 
 class BroadlinkSP1UpdateManager(BroadlinkUpdateManager):

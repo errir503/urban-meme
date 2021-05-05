@@ -32,9 +32,7 @@
             "not_konn_panel": "Non \u00e8 un dispositivo Konnected.io riconosciuto"
         },
         "error": {
-            "bad_host": "URL host API di sostituzione non valido",
-            "one": "Pi\u00f9",
-            "other": "Altri"
+            "bad_host": "URL host API di sostituzione non valido"
         },
         "step": {
             "options_binary": {

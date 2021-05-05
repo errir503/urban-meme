@@ -8,21 +8,13 @@
         "error": {
             "cannot_connect": "Impossibile connettersi"
         },
-        "flow_title": "{name}",
+        "flow_title": "Roku: {name}",
         "step": {
             "discovery_confirm": {
-                "data": {
-                    "one": "Pi\u00f9",
-                    "other": "Altri"
-                },
                 "description": "Vuoi configurare {name}?",
                 "title": "Roku"
             },
             "ssdp_confirm": {
-                "data": {
-                    "one": "Pi\u00f9",
-                    "other": "Altri"
-                },
                 "description": "Vuoi impostare {name}?",
                 "title": "Roku"
             },

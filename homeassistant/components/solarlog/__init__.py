@@ -5,7 +5,7 @@ from homeassistant.core import HomeAssistant
 PLATFORMS = ["sensor"]
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up a config entry for solarlog."""
     hass.config_entries.async_setup_platforms(entry, PLATFORMS)
     return True

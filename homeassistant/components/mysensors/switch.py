@@ -1,4 +1,6 @@
 """Support for MySensors switches."""
+from typing import Callable
+
 import voluptuous as vol
 
 from homeassistant.components import mysensors
@@ -6,12 +8,11 @@ from homeassistant.components.switch import DOMAIN, SwitchEntity
 from homeassistant.const import ATTR_ENTITY_ID, STATE_OFF, STATE_ON
 from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from . import on_unload
 from ...config_entries import ConfigEntry
 from ...helpers.dispatcher import async_dispatcher_connect
 from .const import DOMAIN as MYSENSORS_DOMAIN, MYSENSORS_DISCOVERY, SERVICE_SEND_IR_CODE
-from .helpers import on_unload
 
 ATTR_IR_CODE = "V_IR_SEND"
 
@@ -21,9 +22,7 @@ SEND_IR_CODE_SERVICE_SCHEMA = vol.Schema(
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities: Callable
 ):
     """Set up this platform for a specific ConfigEntry(==Gateway)."""
     device_class_map = {
@@ -83,9 +82,9 @@ async def async_setup_entry(
         schema=SEND_IR_CODE_SERVICE_SCHEMA,
     )
 
-    on_unload(
+    await on_unload(
         hass,
-        config_entry.entry_id,
+        config_entry,
         async_dispatcher_connect(
             hass,
             MYSENSORS_DISCOVERY.format(config_entry.entry_id, DOMAIN),

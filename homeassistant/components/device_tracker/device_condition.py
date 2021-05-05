@@ -43,14 +43,24 @@ async def async_get_conditions(
             continue
 
         # Add conditions for each entity that belongs to this integration
-        base_condition = {
-            CONF_CONDITION: "device",
-            CONF_DEVICE_ID: device_id,
-            CONF_DOMAIN: DOMAIN,
-            CONF_ENTITY_ID: entry.entity_id,
-        }
-
-        conditions += [{**base_condition, CONF_TYPE: cond} for cond in CONDITION_TYPES]
+        conditions.append(
+            {
+                CONF_CONDITION: "device",
+                CONF_DEVICE_ID: device_id,
+                CONF_DOMAIN: DOMAIN,
+                CONF_ENTITY_ID: entry.entity_id,
+                CONF_TYPE: "is_home",
+            }
+        )
+        conditions.append(
+            {
+                CONF_CONDITION: "device",
+                CONF_DEVICE_ID: device_id,
+                CONF_DOMAIN: DOMAIN,
+                CONF_ENTITY_ID: entry.entity_id,
+                CONF_TYPE: "is_not_home",
+            }
+        )
 
     return conditions
 

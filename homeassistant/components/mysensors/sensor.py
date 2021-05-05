@@ -1,7 +1,10 @@
 """Support for MySensors sensors."""
+from typing import Callable
+
 from awesomeversion import AwesomeVersion
 
 from homeassistant.components import mysensors
+from homeassistant.components.mysensors import on_unload
 from homeassistant.components.mysensors.const import MYSENSORS_DISCOVERY
 from homeassistant.components.sensor import DOMAIN, SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -24,9 +27,6 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
-from .helpers import on_unload
 
 SENSORS = {
     "V_TEMP": [None, "mdi:thermometer"],
@@ -64,9 +64,7 @@ SENSORS = {
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities: Callable
 ):
     """Set up this platform for a specific ConfigEntry(==Gateway)."""
 
@@ -80,9 +78,9 @@ async def async_setup_entry(
             async_add_entities=async_add_entities,
         )
 
-    on_unload(
+    await on_unload(
         hass,
-        config_entry.entry_id,
+        config_entry,
         async_dispatcher_connect(
             hass,
             MYSENSORS_DISCOVERY.format(config_entry.entry_id, DOMAIN),

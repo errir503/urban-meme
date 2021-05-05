@@ -3,7 +3,6 @@ import asyncio
 from datetime import timedelta
 
 import voluptuous as vol
-from wakeonlan import send_magic_packet
 
 from homeassistant.components.media_player import DEVICE_CLASS_TV, MediaPlayerEntity
 from homeassistant.components.media_player.const import (
@@ -20,12 +19,22 @@ from homeassistant.components.media_player.const import (
     SUPPORT_VOLUME_STEP,
 )
 from homeassistant.config_entries import SOURCE_REAUTH
-from homeassistant.const import CONF_HOST, CONF_MAC, CONF_NAME, STATE_OFF, STATE_ON
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_ID,
+    CONF_IP_ADDRESS,
+    CONF_METHOD,
+    CONF_NAME,
+    CONF_PORT,
+    CONF_TOKEN,
+    STATE_OFF,
+    STATE_ON,
+)
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.script import Script
 from homeassistant.util import dt as dt_util
 
+from .bridge import SamsungTVBridge
 from .const import (
     CONF_MANUFACTURER,
     CONF_MODEL,
@@ -51,19 +60,41 @@ SUPPORT_SAMSUNGTV = (
 )
 
 
-async def async_setup_entry(hass, entry, async_add_entities):
+async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the Samsung TV from a config entry."""
-    bridge = hass.data[DOMAIN][entry.entry_id]
-
-    host = entry.data[CONF_HOST]
+    ip_address = config_entry.data[CONF_IP_ADDRESS]
     on_script = None
-    data = hass.data[DOMAIN]
-    if turn_on_action := data.get(host, {}).get(CONF_ON_ACTION):
+    if (
+        DOMAIN in hass.data
+        and ip_address in hass.data[DOMAIN]
+        and CONF_ON_ACTION in hass.data[DOMAIN][ip_address]
+        and hass.data[DOMAIN][ip_address][CONF_ON_ACTION]
+    ):
+        turn_on_action = hass.data[DOMAIN][ip_address][CONF_ON_ACTION]
         on_script = Script(
-            hass, turn_on_action, entry.data.get(CONF_NAME, DEFAULT_NAME), DOMAIN
+            hass, turn_on_action, config_entry.data.get(CONF_NAME, DEFAULT_NAME), DOMAIN
         )
 
-    async_add_entities([SamsungTVDevice(bridge, entry, on_script)], True)
+    # Initialize bridge
+    data = config_entry.data.copy()
+    bridge = SamsungTVBridge.get_bridge(
+        data[CONF_METHOD],
+        data[CONF_HOST],
+        data[CONF_PORT],
+        data.get(CONF_TOKEN),
+    )
+    if bridge.port is None and bridge.default_port is not None:
+        # For backward compat, set default port for websocket tv
+        data[CONF_PORT] = bridge.default_port
+        hass.config_entries.async_update_entry(config_entry, data=data)
+        bridge = SamsungTVBridge.get_bridge(
+            data[CONF_METHOD],
+            data[CONF_HOST],
+            data[CONF_PORT],
+            data.get(CONF_TOKEN),
+        )
+
+    async_add_entities([SamsungTVDevice(bridge, config_entry, on_script)])
 
 
 class SamsungTVDevice(MediaPlayerEntity):
@@ -72,13 +103,11 @@ class SamsungTVDevice(MediaPlayerEntity):
     def __init__(self, bridge, config_entry, on_script):
         """Initialize the Samsung device."""
         self._config_entry = config_entry
-        self._host = config_entry.data[CONF_HOST]
-        self._mac = config_entry.data.get(CONF_MAC)
         self._manufacturer = config_entry.data.get(CONF_MANUFACTURER)
         self._model = config_entry.data.get(CONF_MODEL)
         self._name = config_entry.data.get(CONF_NAME)
         self._on_script = on_script
-        self._uuid = config_entry.unique_id
+        self._uuid = config_entry.data.get(CONF_ID)
         # Assume that the TV is not muted
         self._muted = False
         # Assume that the TV is in Play mode
@@ -88,28 +117,21 @@ class SamsungTVDevice(MediaPlayerEntity):
         # sending the next command to avoid turning the TV back ON).
         self._end_of_power_off = None
         self._bridge = bridge
-        self._auth_failed = False
         self._bridge.register_reauth_callback(self.access_denied)
 
     def access_denied(self):
         """Access denied callback."""
         LOGGER.debug("Access denied in getting remote object")
-        self._auth_failed = True
         self.hass.add_job(
             self.hass.config_entries.flow.async_init(
                 DOMAIN,
-                context={
-                    "source": SOURCE_REAUTH,
-                    "entry_id": self._config_entry.entry_id,
-                },
+                context={"source": SOURCE_REAUTH},
                 data=self._config_entry.data,
             )
         )
 
     def update(self):
         """Update state of device."""
-        if self._auth_failed:
-            return
         if self._power_off_in_progress():
             self._state = STATE_OFF
         else:
@@ -144,24 +166,14 @@ class SamsungTVDevice(MediaPlayerEntity):
         return self._state
 
     @property
-    def available(self):
-        """Return the availability of the device."""
-        if self._auth_failed:
-            return False
-        return self._state == STATE_ON or self._on_script or self._mac
-
-    @property
     def device_info(self):
         """Return device specific attributes."""
-        info = {
+        return {
             "name": self.name,
             "identifiers": {(DOMAIN, self.unique_id)},
             "manufacturer": self._manufacturer,
             "model": self._model,
         }
-        if self._mac:
-            info["connections"] = {(CONNECTION_NETWORK_MAC, self._mac)}
-        return info
 
     @property
     def is_volume_muted(self):
@@ -176,7 +188,7 @@ class SamsungTVDevice(MediaPlayerEntity):
     @property
     def supported_features(self):
         """Flag media player features that are supported."""
-        if self._on_script or self._mac:
+        if self._on_script:
             return SUPPORT_SAMSUNGTV | SUPPORT_TURN_ON
         return SUPPORT_SAMSUNGTV
 
@@ -248,19 +260,10 @@ class SamsungTVDevice(MediaPlayerEntity):
             await asyncio.sleep(KEY_PRESS_TIMEOUT, self.hass.loop)
         await self.hass.async_add_executor_job(self.send_key, "KEY_ENTER")
 
-    def _wake_on_lan(self):
-        """Wake the device via wake on lan."""
-        send_magic_packet(self._mac, ip_address=self._host)
-        # If the ip address changed since we last saw the device
-        # broadcast a packet as well
-        send_magic_packet(self._mac)
-
     async def async_turn_on(self):
         """Turn the media player on."""
         if self._on_script:
             await self._on_script.async_run(context=self._context)
-        elif self._mac:
-            await self.hass.async_add_executor_job(self._wake_on_lan)
 
     def select_source(self, source):
         """Select input source."""

@@ -17,10 +17,12 @@ from .const import CONF_UUID, DOMAIN, KEY_MAC, TIMEOUT
 _LOGGER = logging.getLogger(__name__)
 
 
-class FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+@config_entries.HANDLERS.register(DOMAIN)
+class FlowHandler(config_entries.ConfigFlow):
     """Handle a config flow."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
     def __init__(self):
         """Initialize the Daikin config flow."""
@@ -114,6 +116,13 @@ class FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             user_input.get(CONF_API_KEY),
             user_input.get(CONF_PASSWORD),
         )
+
+    async def async_step_import(self, user_input):
+        """Import a config entry."""
+        host = user_input.get(CONF_HOST)
+        if not host:
+            return await self.async_step_user()
+        return await self._create_device(host)
 
     async def async_step_zeroconf(self, discovery_info):
         """Prepare configuration for a discovered Daikin device."""

@@ -110,7 +110,6 @@ class DeconzThermostat(DeconzDevice, ClimateEntity):
     """Representation of a deCONZ thermostat."""
 
     TYPE = DOMAIN
-    _attr_temperature_unit = TEMP_CELSIUS
 
     def __init__(self, device, gateway):
         """Set up thermostat device."""
@@ -238,6 +237,11 @@ class DeconzThermostat(DeconzDevice, ClimateEntity):
             data = {"coolsetpoint": kwargs[ATTR_TEMPERATURE] * 100}
 
         await self._device.async_set_config(data)
+
+    @property
+    def temperature_unit(self):
+        """Return the unit of measurement."""
+        return TEMP_CELSIUS
 
     @property
     def extra_state_attributes(self):

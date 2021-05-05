@@ -74,7 +74,10 @@ class HMBinarySensor(HMDevice, BinarySensorEntity):
 class HMBatterySensor(HMDevice, BinarySensorEntity):
     """Representation of an HomeMatic low battery sensor."""
 
-    _attr_device_class = DEVICE_CLASS_BATTERY
+    @property
+    def device_class(self):
+        """Return battery as a device class."""
+        return DEVICE_CLASS_BATTERY
 
     @property
     def is_on(self):

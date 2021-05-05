@@ -5,7 +5,7 @@ import asyncio
 import base64
 import collections
 from contextlib import suppress
-import datetime as dt
+from datetime import timedelta
 import functools as ft
 import hashlib
 import logging
@@ -57,7 +57,6 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.config_validation import (  # noqa: F401
     PLATFORM_SCHEMA,
     PLATFORM_SCHEMA_BASE,
-    datetime,
 )
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_component import EntityComponent
@@ -138,7 +137,7 @@ CACHE_URL = "url"
 CACHE_CONTENT = "content"
 ENTITY_IMAGE_CACHE = {CACHE_IMAGES: collections.OrderedDict(), CACHE_MAXSIZE: 16}
 
-SCAN_INTERVAL = dt.timedelta(seconds=10)
+SCAN_INTERVAL = timedelta(seconds=10)
 
 DEVICE_CLASS_TV = "tv"
 DEVICE_CLASS_SPEAKER = "speaker"
@@ -372,43 +371,11 @@ class MediaPlayerEntity(Entity):
 
     _access_token: str | None = None
 
-    _attr_app_id: str | None = None
-    _attr_app_name: str | None = None
-    _attr_group_members: list[str] | None = None
-    _attr_is_volume_muted: bool | None = None
-    _attr_media_album_artist: str | None = None
-    _attr_media_album_name: str | None = None
-    _attr_media_artist: str | None = None
-    _attr_media_channel: str | None = None
-    _attr_media_content_id: str | None = None
-    _attr_media_content_type: str | None = None
-    _attr_media_duration: int | None = None
-    _attr_media_episode: str | None = None
-    _attr_media_image_hash: str | None
-    _attr_media_image_remotely_accessible: bool = False
-    _attr_media_image_url: str | None = None
-    _attr_media_playlist: str | None = None
-    _attr_media_position_updated_at: dt.datetime | None = None
-    _attr_media_position: int | None = None
-    _attr_media_season: str | None = None
-    _attr_media_series_title: str | None = None
-    _attr_media_title: str | None = None
-    _attr_media_track: int | None = None
-    _attr_repeat: str | None = None
-    _attr_shuffle: bool | None = None
-    _attr_sound_mode_list: list[str] | None = None
-    _attr_sound_mode: str | None = None
-    _attr_source_list: list[str] | None = None
-    _attr_source: str | None = None
-    _attr_state: str | None = None
-    _attr_supported_features: int = 0
-    _attr_volume_level: float | None = None
-
     # Implement these for your media player
     @property
-    def state(self) -> str | None:
+    def state(self):
         """State of the player."""
-        return self._attr_state
+        return None
 
     @property
     def access_token(self) -> str:
@@ -418,59 +385,56 @@ class MediaPlayerEntity(Entity):
         return self._access_token
 
     @property
-    def volume_level(self) -> float | None:
+    def volume_level(self):
         """Volume level of the media player (0..1)."""
-        return self._attr_volume_level
+        return None
 
     @property
-    def is_volume_muted(self) -> bool | None:
+    def is_volume_muted(self):
         """Boolean if volume is currently muted."""
-        return self._attr_is_volume_muted
+        return None
 
     @property
-    def media_content_id(self) -> str | None:
+    def media_content_id(self):
         """Content ID of current playing media."""
-        return self._attr_media_content_id
+        return None
 
     @property
-    def media_content_type(self) -> str | None:
+    def media_content_type(self):
         """Content type of current playing media."""
-        return self._attr_media_content_type
+        return None
 
     @property
-    def media_duration(self) -> int | None:
+    def media_duration(self):
         """Duration of current playing media in seconds."""
-        return self._attr_media_duration
+        return None
 
     @property
-    def media_position(self) -> int | None:
+    def media_position(self):
         """Position of current playing media in seconds."""
-        return self._attr_media_position
+        return None
 
     @property
-    def media_position_updated_at(self) -> dt.datetime | None:
+    def media_position_updated_at(self):
         """When was the position of the current playing media valid.
 
         Returns value from homeassistant.util.dt.utcnow().
         """
-        return self._attr_media_position_updated_at
+        return None
 
     @property
-    def media_image_url(self) -> str | None:
+    def media_image_url(self):
         """Image url of current playing media."""
-        return self._attr_media_image_url
+        return None
 
     @property
     def media_image_remotely_accessible(self) -> bool:
         """If the image url is remotely accessible."""
-        return self._attr_media_image_remotely_accessible
+        return False
 
     @property
-    def media_image_hash(self) -> str | None:
+    def media_image_hash(self):
         """Hash value for media image."""
-        if hasattr(self, "_attr_media_image_hash"):
-            return self._attr_media_image_hash
-
         url = self.media_image_url
         if url is not None:
             return hashlib.sha256(url.encode("utf-8")).hexdigest()[:16]
@@ -499,104 +463,104 @@ class MediaPlayerEntity(Entity):
         return None, None
 
     @property
-    def media_title(self) -> str | None:
+    def media_title(self):
         """Title of current playing media."""
-        return self._attr_media_title
+        return None
 
     @property
-    def media_artist(self) -> str | None:
+    def media_artist(self):
         """Artist of current playing media, music track only."""
-        return self._attr_media_artist
+        return None
 
     @property
-    def media_album_name(self) -> str | None:
+    def media_album_name(self):
         """Album name of current playing media, music track only."""
-        return self._attr_media_album_name
+        return None
 
     @property
-    def media_album_artist(self) -> str | None:
+    def media_album_artist(self):
         """Album artist of current playing media, music track only."""
-        return self._attr_media_album_artist
+        return None
 
     @property
-    def media_track(self) -> int | None:
+    def media_track(self):
         """Track number of current playing media, music track only."""
-        return self._attr_media_track
+        return None
 
     @property
-    def media_series_title(self) -> str | None:
+    def media_series_title(self):
         """Title of series of current playing media, TV show only."""
-        return self._attr_media_series_title
+        return None
 
     @property
-    def media_season(self) -> str | None:
+    def media_season(self):
         """Season of current playing media, TV show only."""
-        return self._attr_media_season
+        return None
 
     @property
-    def media_episode(self) -> str | None:
+    def media_episode(self):
         """Episode of current playing media, TV show only."""
-        return self._attr_media_episode
+        return None
 
     @property
-    def media_channel(self) -> str | None:
+    def media_channel(self):
         """Channel currently playing."""
-        return self._attr_media_channel
+        return None
 
     @property
-    def media_playlist(self) -> str | None:
+    def media_playlist(self):
         """Title of Playlist currently playing."""
-        return self._attr_media_playlist
+        return None
 
     @property
-    def app_id(self) -> str | None:
+    def app_id(self):
         """ID of the current running app."""
-        return self._attr_app_id
+        return None
 
     @property
-    def app_name(self) -> str | None:
+    def app_name(self):
         """Name of the current running app."""
-        return self._attr_app_name
+        return None
 
     @property
-    def source(self) -> str | None:
+    def source(self):
         """Name of the current input source."""
-        return self._attr_source
+        return None
 
     @property
-    def source_list(self) -> list[str] | None:
+    def source_list(self):
         """List of available input sources."""
-        return self._attr_source_list
+        return None
 
     @property
-    def sound_mode(self) -> str | None:
+    def sound_mode(self):
         """Name of the current sound mode."""
-        return self._attr_sound_mode
+        return None
 
     @property
-    def sound_mode_list(self) -> list[str] | None:
+    def sound_mode_list(self):
         """List of available sound modes."""
-        return self._attr_sound_mode_list
+        return None
 
     @property
-    def shuffle(self) -> bool | None:
+    def shuffle(self):
         """Boolean if shuffle is enabled."""
-        return self._attr_shuffle
+        return None
 
     @property
-    def repeat(self) -> str | None:
+    def repeat(self):
         """Return current repeat mode."""
-        return self._attr_repeat
+        return None
 
     @property
-    def group_members(self) -> list[str] | None:
+    def group_members(self):
         """List of members which are currently grouped together."""
-        return self._attr_group_members
+        return None
 
     @property
-    def supported_features(self) -> int:
+    def supported_features(self):
         """Flag media player features that are supported."""
-        return self._attr_supported_features
+        return 0
 
     def turn_on(self):
         """Turn the media player on."""
@@ -1197,7 +1161,7 @@ class BrowseMedia:
         children: list[BrowseMedia] | None = None,
         children_media_class: str | None = None,
         thumbnail: str | None = None,
-    ) -> None:
+    ):
         """Initialize browse media item."""
         self.media_class = media_class
         self.media_content_id = media_content_id

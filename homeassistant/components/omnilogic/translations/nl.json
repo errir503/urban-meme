@@ -21,7 +21,6 @@
         "step": {
             "init": {
                 "data": {
-                    "ph_offset": "pH afwijking (positief of negatief)",
                     "polling_interval": "Polling-interval (in seconden)"
                 }
             }

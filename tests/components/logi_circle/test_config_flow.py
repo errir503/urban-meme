@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from homeassistant import config_entries, data_entry_flow
+from homeassistant import data_entry_flow
 from homeassistant.components.logi_circle import config_flow
 from homeassistant.components.logi_circle.config_flow import (
     DOMAIN,
@@ -13,7 +13,7 @@ from homeassistant.components.logi_circle.config_flow import (
 )
 from homeassistant.setup import async_setup_component
 
-from tests.common import MockConfigEntry, mock_coro
+from tests.common import mock_coro
 
 
 class MockRequest:
@@ -121,26 +121,24 @@ async def test_abort_if_no_implementation_registered(hass):
 async def test_abort_if_already_setup(hass):
     """Test we abort if Logi Circle is already setup."""
     flow = init_config_flow(hass)
-    MockConfigEntry(domain=config_flow.DOMAIN).add_to_hass(hass)
 
-    result = await hass.config_entries.flow.async_init(
-        config_flow.DOMAIN,
-        context={"source": config_entries.SOURCE_USER},
-    )
+    with patch.object(hass.config_entries, "async_entries", return_value=[{}]):
+        result = await flow.async_step_user()
     assert result["type"] == data_entry_flow.RESULT_TYPE_ABORT
     assert result["reason"] == "already_configured"
 
-    result = await hass.config_entries.flow.async_init(
-        config_flow.DOMAIN,
-        context={"source": config_entries.SOURCE_IMPORT},
-    )
+    with patch.object(hass.config_entries, "async_entries", return_value=[{}]):
+        result = await flow.async_step_import()
     assert result["type"] == data_entry_flow.RESULT_TYPE_ABORT
     assert result["reason"] == "already_configured"
 
-    with pytest.raises(data_entry_flow.AbortFlow):
+    with patch.object(hass.config_entries, "async_entries", return_value=[{}]):
         result = await flow.async_step_code()
+    assert result["type"] == data_entry_flow.RESULT_TYPE_ABORT
+    assert result["reason"] == "already_configured"
 
-    result = await flow.async_step_auth()
+    with patch.object(hass.config_entries, "async_entries", return_value=[{}]):
+        result = await flow.async_step_auth()
     assert result["type"] == data_entry_flow.RESULT_TYPE_ABORT
     assert result["reason"] == "external_setup"
 

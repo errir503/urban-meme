@@ -1,14 +1,9 @@
 lock_n_go:
-  name: Lock 'n' go
   description: "Nuki Lock 'n' Go"
-  target:
-    entity:
-      integration: nuki
-      domain: lock
   fields:
+    entity_id:
+      description: Entity id of the Nuki lock.
+      example: "lock.front_door"
     unlatch:
-      name: Unlatch
       description: Whether to unlatch the lock.
-      default: false
-      selector:
-        boolean:
+      example: false

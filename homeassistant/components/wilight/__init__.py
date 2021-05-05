@@ -13,7 +13,7 @@ DOMAIN = "wilight"
 PLATFORMS = ["cover", "fan", "light"]
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up a wilight config entry."""
 
     parent = WiLightParent(hass, entry)

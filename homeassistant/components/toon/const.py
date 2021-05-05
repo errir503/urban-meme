@@ -1,17 +1,14 @@
 """Constants for the Toon integration."""
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from homeassistant.components.binary_sensor import (
     DEVICE_CLASS_CONNECTIVITY,
     DEVICE_CLASS_PROBLEM,
 )
 from homeassistant.components.sensor import (
-    ATTR_LAST_RESET,
-    ATTR_STATE_CLASS,
     DEVICE_CLASS_ENERGY,
     DEVICE_CLASS_POWER,
     DEVICE_CLASS_TEMPERATURE,
-    STATE_CLASS_MEASUREMENT,
 )
 from homeassistant.const import (
     ATTR_DEVICE_CLASS,
@@ -130,8 +127,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_TEMPERATURE,
         ATTR_ICON: None,
         ATTR_DEFAULT_ENABLED: False,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
-        ATTR_LAST_RESET: None,
     },
     "gas_average": {
         ATTR_NAME: "Average Gas Usage",
@@ -141,8 +136,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: None,
         ATTR_ICON: "mdi:gas-cylinder",
         ATTR_DEFAULT_ENABLED: True,
-        ATTR_STATE_CLASS: None,
-        ATTR_LAST_RESET: None,
     },
     "gas_average_daily": {
         ATTR_NAME: "Average Daily Gas Usage",
@@ -152,8 +145,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: None,
         ATTR_ICON: "mdi:gas-cylinder",
         ATTR_DEFAULT_ENABLED: False,
-        ATTR_STATE_CLASS: None,
-        ATTR_LAST_RESET: None,
     },
     "gas_daily_usage": {
         ATTR_NAME: "Gas Usage Today",
@@ -163,8 +154,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: None,
         ATTR_ICON: "mdi:gas-cylinder",
         ATTR_DEFAULT_ENABLED: True,
-        ATTR_STATE_CLASS: None,
-        ATTR_LAST_RESET: None,
     },
     "gas_daily_cost": {
         ATTR_NAME: "Gas Cost Today",
@@ -174,8 +163,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: None,
         ATTR_ICON: "mdi:gas-cylinder",
         ATTR_DEFAULT_ENABLED: True,
-        ATTR_STATE_CLASS: None,
-        ATTR_LAST_RESET: None,
     },
     "gas_meter_reading": {
         ATTR_NAME: "Gas Meter",
@@ -185,8 +172,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: None,
         ATTR_ICON: "mdi:gas-cylinder",
         ATTR_DEFAULT_ENABLED: False,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
-        ATTR_LAST_RESET: datetime.fromtimestamp(0),
     },
     "gas_value": {
         ATTR_NAME: "Current Gas Usage",
@@ -196,8 +181,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: None,
         ATTR_ICON: "mdi:gas-cylinder",
         ATTR_DEFAULT_ENABLED: True,
-        ATTR_STATE_CLASS: None,
-        ATTR_LAST_RESET: None,
     },
     "power_average": {
         ATTR_NAME: "Average Power Usage",
@@ -207,8 +190,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_POWER,
         ATTR_ICON: None,
         ATTR_DEFAULT_ENABLED: False,
-        ATTR_STATE_CLASS: None,
-        ATTR_LAST_RESET: None,
     },
     "power_average_daily": {
         ATTR_NAME: "Average Daily Energy Usage",
@@ -218,8 +199,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_ENERGY,
         ATTR_ICON: None,
         ATTR_DEFAULT_ENABLED: False,
-        ATTR_STATE_CLASS: None,
-        ATTR_LAST_RESET: None,
     },
     "power_daily_cost": {
         ATTR_NAME: "Energy Cost Today",
@@ -229,8 +208,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: None,
         ATTR_ICON: "mdi:power-plug",
         ATTR_DEFAULT_ENABLED: True,
-        ATTR_STATE_CLASS: None,
-        ATTR_LAST_RESET: None,
     },
     "power_daily_value": {
         ATTR_NAME: "Energy Usage Today",
@@ -240,8 +217,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_ENERGY,
         ATTR_ICON: None,
         ATTR_DEFAULT_ENABLED: True,
-        ATTR_STATE_CLASS: None,
-        ATTR_LAST_RESET: None,
     },
     "power_meter_reading": {
         ATTR_NAME: "Electricity Meter Feed IN Tariff 1",
@@ -251,8 +226,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_ENERGY,
         ATTR_ICON: None,
         ATTR_DEFAULT_ENABLED: False,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
-        ATTR_LAST_RESET: datetime.fromtimestamp(0),
     },
     "power_meter_reading_low": {
         ATTR_NAME: "Electricity Meter Feed IN Tariff 2",
@@ -262,8 +235,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_ENERGY,
         ATTR_ICON: None,
         ATTR_DEFAULT_ENABLED: False,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
-        ATTR_LAST_RESET: datetime.fromtimestamp(0),
     },
     "power_value": {
         ATTR_NAME: "Current Power Usage",
@@ -273,8 +244,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_POWER,
         ATTR_ICON: None,
         ATTR_DEFAULT_ENABLED: True,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
-        ATTR_LAST_RESET: None,
     },
     "solar_meter_reading_produced": {
         ATTR_NAME: "Electricity Meter Feed OUT Tariff 1",
@@ -284,8 +253,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_ENERGY,
         ATTR_ICON: None,
         ATTR_DEFAULT_ENABLED: False,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
-        ATTR_LAST_RESET: datetime.fromtimestamp(0),
     },
     "solar_meter_reading_low_produced": {
         ATTR_NAME: "Electricity Meter Feed OUT Tariff 2",
@@ -295,8 +262,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_ENERGY,
         ATTR_ICON: None,
         ATTR_DEFAULT_ENABLED: False,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
-        ATTR_LAST_RESET: datetime.fromtimestamp(0),
     },
     "solar_value": {
         ATTR_NAME: "Current Solar Power Production",
@@ -306,8 +271,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_POWER,
         ATTR_ICON: None,
         ATTR_DEFAULT_ENABLED: True,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
-        ATTR_LAST_RESET: None,
     },
     "solar_maximum": {
         ATTR_NAME: "Max Solar Power Production Today",
@@ -317,8 +280,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_POWER,
         ATTR_ICON: None,
         ATTR_DEFAULT_ENABLED: True,
-        ATTR_STATE_CLASS: None,
-        ATTR_LAST_RESET: None,
     },
     "solar_produced": {
         ATTR_NAME: "Solar Power Production to Grid",
@@ -328,8 +289,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_POWER,
         ATTR_ICON: None,
         ATTR_DEFAULT_ENABLED: True,
-        ATTR_STATE_CLASS: ATTR_MEASUREMENT,
-        ATTR_LAST_RESET: None,
     },
     "power_usage_day_produced_solar": {
         ATTR_NAME: "Solar Energy Produced Today",
@@ -339,8 +298,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_ENERGY,
         ATTR_ICON: None,
         ATTR_DEFAULT_ENABLED: True,
-        ATTR_STATE_CLASS: None,
-        ATTR_LAST_RESET: None,
     },
     "power_usage_day_to_grid_usage": {
         ATTR_NAME: "Energy Produced To Grid Today",
@@ -350,8 +307,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_ENERGY,
         ATTR_ICON: None,
         ATTR_DEFAULT_ENABLED: False,
-        ATTR_STATE_CLASS: None,
-        ATTR_LAST_RESET: None,
     },
     "power_usage_day_from_grid_usage": {
         ATTR_NAME: "Energy Usage From Grid Today",
@@ -361,8 +316,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_ENERGY,
         ATTR_ICON: None,
         ATTR_DEFAULT_ENABLED: False,
-        ATTR_STATE_CLASS: None,
-        ATTR_LAST_RESET: None,
     },
     "solar_average_produced": {
         ATTR_NAME: "Average Solar Power Production to Grid",
@@ -372,8 +325,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_POWER,
         ATTR_ICON: None,
         ATTR_DEFAULT_ENABLED: False,
-        ATTR_STATE_CLASS: None,
-        ATTR_LAST_RESET: None,
     },
     "thermostat_info_current_modulation_level": {
         ATTR_NAME: "Boiler Modulation Level",
@@ -383,8 +334,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: None,
         ATTR_ICON: "mdi:percent",
         ATTR_DEFAULT_ENABLED: False,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
-        ATTR_LAST_RESET: None,
     },
     "power_usage_current_covered_by_solar": {
         ATTR_NAME: "Current Power Usage Covered By Solar",
@@ -394,8 +343,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: None,
         ATTR_ICON: "mdi:solar-power",
         ATTR_DEFAULT_ENABLED: True,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
-        ATTR_LAST_RESET: None,
     },
     "water_average": {
         ATTR_NAME: "Average Water Usage",
@@ -405,8 +352,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: None,
         ATTR_ICON: "mdi:water",
         ATTR_DEFAULT_ENABLED: False,
-        ATTR_STATE_CLASS: None,
-        ATTR_LAST_RESET: None,
     },
     "water_average_daily": {
         ATTR_NAME: "Average Daily Water Usage",
@@ -416,8 +361,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: None,
         ATTR_ICON: "mdi:water",
         ATTR_DEFAULT_ENABLED: False,
-        ATTR_STATE_CLASS: None,
-        ATTR_LAST_RESET: None,
     },
     "water_daily_usage": {
         ATTR_NAME: "Water Usage Today",
@@ -427,8 +370,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: None,
         ATTR_ICON: "mdi:water",
         ATTR_DEFAULT_ENABLED: False,
-        ATTR_STATE_CLASS: None,
-        ATTR_LAST_RESET: None,
     },
     "water_meter_reading": {
         ATTR_NAME: "Water Meter",
@@ -438,8 +379,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: None,
         ATTR_ICON: "mdi:water",
         ATTR_DEFAULT_ENABLED: False,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
-        ATTR_LAST_RESET: datetime.fromtimestamp(0),
     },
     "water_value": {
         ATTR_NAME: "Current Water Usage",
@@ -449,8 +388,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: None,
         ATTR_ICON: "mdi:water-pump",
         ATTR_DEFAULT_ENABLED: False,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
-        ATTR_LAST_RESET: None,
     },
     "water_daily_cost": {
         ATTR_NAME: "Water Cost Today",
@@ -460,8 +397,6 @@ SENSOR_ENTITIES = {
         ATTR_DEVICE_CLASS: None,
         ATTR_ICON: "mdi:water-pump",
         ATTR_DEFAULT_ENABLED: False,
-        ATTR_STATE_CLASS: None,
-        ATTR_LAST_RESET: None,
     },
 }
 

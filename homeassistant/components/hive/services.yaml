@@ -1,36 +1,35 @@
 boost_heating:
   name: Boost Heating (To be deprecated)
   description: To be deprecated please use boost_heating_on.
-  target:
-    entity:
-      integration: hive
-      domain: climate
   fields:
+    entity_id:
+      name: Entity ID
+      description: Select entity_id to boost.
+      required: true
+      example: climate.heating
     time_period:
       name: Time Period
       description: Set the time period for the boost.
       required: true
       example: 01:30:00
-      selector:
-        time:
     temperature:
       name: Temperature
       description: Set the target temperature for the boost period.
-      default: 25.0
-      selector:
-        number:
-          min: 7
-          max: 35
-          step: 0.5
-          unit_of_measurement: °
+      required: true
+      example: 20.5
 boost_heating_on:
   name: Boost Heating On
   description: Set the boost mode ON defining the period of time and the desired target temperature for the boost.
-  target:
-    entity:
-      integration: hive
-      domain: climate
   fields:
+    entity_id:
+      name: Entity ID
+      description: Select entity_id to boost.
+      required: true
+      example: climate.heating
+      selector:
+        entity:
+          integration: hive
+          domain: climate
     time_period:
       name: Time Period
       description: Set the time period for the boost.
@@ -41,13 +40,15 @@ boost_heating_on:
     temperature:
       name: Temperature
       description: Set the target temperature for the boost period.
-      default: 25.0
+      required: true
+      example: 20.5
       selector:
         number:
           min: 7
           max: 35
           step: 0.5
-          unit_of_measurement: °
+          unit_of_measurement: degrees
+          mode: slider
 boost_heating_off:
   name: Boost Heating Off
   description: Set the boost mode OFF.
@@ -56,6 +57,7 @@ boost_heating_off:
       name: Entity ID
       description: Select entity_id to turn boost off.
       required: true
+      example: climate.heating
       selector:
         entity:
           integration: hive
@@ -68,6 +70,7 @@ boost_hot_water:
       name: Entity ID
       description: Select entity_id to boost.
       required: true
+      example: water_heater.hot_water
       selector:
         entity:
           integration: hive
@@ -83,6 +86,7 @@ boost_hot_water:
       name: Mode
       description: Set the boost function on or off.
       required: true
+      example: "on"
       selector:
         select:
           options:

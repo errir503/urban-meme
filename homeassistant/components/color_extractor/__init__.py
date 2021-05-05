@@ -9,6 +9,12 @@ import async_timeout
 from colorthief import ColorThief
 import voluptuous as vol
 
+from homeassistant.components.color_extractor.const import (
+    ATTR_PATH,
+    ATTR_URL,
+    DOMAIN,
+    SERVICE_TURN_ON,
+)
 from homeassistant.components.light import (
     ATTR_RGB_COLOR,
     DOMAIN as LIGHT_DOMAIN,
@@ -17,8 +23,6 @@ from homeassistant.components.light import (
 )
 from homeassistant.helpers import aiohttp_client
 import homeassistant.helpers.config_validation as cv
-
-from .const import ATTR_PATH, ATTR_URL, DOMAIN, SERVICE_TURN_ON
 
 _LOGGER = logging.getLogger(__name__)
 

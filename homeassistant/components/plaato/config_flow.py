@@ -31,6 +31,7 @@ class PlaatoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handles a Plaato config flow."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
     def __init__(self):
         """Initialize."""
@@ -171,7 +172,7 @@ class PlaatoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class PlaatoOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle Plaato options."""
 
-    def __init__(self, config_entry: ConfigEntry) -> None:
+    def __init__(self, config_entry: ConfigEntry):
         """Initialize domain options flow."""
         super().__init__()
 

@@ -55,11 +55,6 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     )
 
 
-def clamp(value):
-    """Clamp value to the range 0..255."""
-    return min(max(value, 0), 255)
-
-
 class TasmotaLight(
     TasmotaAvailability,
     TasmotaDiscoveryUpdate,
@@ -141,7 +136,17 @@ class TasmotaLight(
                 percent_bright = brightness / TASMOTA_BRIGHTNESS_MAX
                 self._brightness = percent_bright * 255
             if "color" in attributes:
-                self._rgb = attributes["color"][0:3]
+
+                def clamp(value):
+                    """Clamp value to the range 0..255."""
+                    return min(max(value, 0), 255)
+
+                rgb = attributes["color"]
+                # Tasmota's RGB color is adjusted for brightness, compensate
+                red_compensated = clamp(round(rgb[0] / self._brightness * 255))
+                green_compensated = clamp(round(rgb[1] / self._brightness * 255))
+                blue_compensated = clamp(round(rgb[2] / self._brightness * 255))
+                self._rgb = [red_compensated, green_compensated, blue_compensated]
             if "color_temp" in attributes:
                 self._color_temp = attributes["color_temp"]
             if "effect" in attributes:
@@ -197,45 +202,14 @@ class TasmotaLight(
     @property
     def rgb_color(self):
         """Return the rgb color value."""
-        if self._rgb is None:
-            return None
-        rgb = self._rgb
-        # Tasmota's RGB color is adjusted for brightness, compensate
-        if self._brightness > 0:
-            red_compensated = clamp(round(rgb[0] / self._brightness * 255))
-            green_compensated = clamp(round(rgb[1] / self._brightness * 255))
-            blue_compensated = clamp(round(rgb[2] / self._brightness * 255))
-        else:
-            red_compensated = 0
-            green_compensated = 0
-            blue_compensated = 0
-        return [red_compensated, green_compensated, blue_compensated]
+        return self._rgb
 
     @property
     def rgbw_color(self):
         """Return the rgbw color value."""
         if self._rgb is None or self._white_value is None:
             return None
-        rgb = self._rgb
-        # Tasmota's color is adjusted for brightness, compensate
-        if self._brightness > 0:
-            red_compensated = clamp(round(rgb[0] / self._brightness * 255))
-            green_compensated = clamp(round(rgb[1] / self._brightness * 255))
-            blue_compensated = clamp(round(rgb[2] / self._brightness * 255))
-            white_compensated = clamp(round(self._white_value / self._brightness * 255))
-        else:
-            red_compensated = 0
-            green_compensated = 0
-            blue_compensated = 0
-            white_compensated = 0
-        return [red_compensated, green_compensated, blue_compensated, white_compensated]
-
-    @property
-    def force_update(self):
-        """Force update."""
-        if self.color_mode == COLOR_MODE_RGBW:
-            return True
-        return False
+        return [*self._rgb, self._white_value]
 
     @property
     def is_on(self):
@@ -264,10 +238,18 @@ class TasmotaLight(
 
         if ATTR_RGBW_COLOR in kwargs and COLOR_MODE_RGBW in supported_color_modes:
             rgbw = kwargs[ATTR_RGBW_COLOR]
-            attributes["color"] = [rgbw[0], rgbw[1], rgbw[2], rgbw[3]]
             # Tasmota does not support direct RGBW control, the light must be set to
-            # either white mode or color mode. Set the mode to white if white channel
-            # is on, and to color otherwise
+            # either white mode or color mode. Set the mode according to max of rgb
+            # and white channels
+            if max(rgbw[0:3]) > rgbw[3]:
+                attributes["color"] = [rgbw[0], rgbw[1], rgbw[2]]
+            else:
+                white_value_normalized = rgbw[3] / DEFAULT_BRIGHTNESS_MAX
+                device_white_value = min(
+                    round(white_value_normalized * TASMOTA_BRIGHTNESS_MAX),
+                    TASMOTA_BRIGHTNESS_MAX,
+                )
+                attributes["white_value"] = device_white_value
 
         if ATTR_TRANSITION in kwargs:
             attributes["transition"] = kwargs[ATTR_TRANSITION]

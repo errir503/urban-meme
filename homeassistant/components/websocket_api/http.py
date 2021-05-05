@@ -2,18 +2,15 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable
 from contextlib import suppress
-import datetime as dt
 import logging
-from typing import Any, Final
 
 from aiohttp import WSMsgType, web
 import async_timeout
 
 from homeassistant.components.http import HomeAssistantView
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
-from homeassistant.core import Event, HomeAssistant, callback
+from homeassistant.core import callback
 from homeassistant.helpers.event import async_call_later
 
 from .auth import AuthPhase, auth_required_message
@@ -30,15 +27,16 @@ from .const import (
 from .error import Disconnect
 from .messages import message_to_json
 
-_WS_LOGGER: Final = logging.getLogger(f"{__name__}.connection")
+# mypy: allow-untyped-calls, allow-untyped-defs, no-check-untyped-defs
+_WS_LOGGER = logging.getLogger(f"{__name__}.connection")
 
 
 class WebsocketAPIView(HomeAssistantView):
     """View to serve a websockets endpoint."""
 
-    name: str = "websocketapi"
-    url: str = URL
-    requires_auth: bool = False
+    name = "websocketapi"
+    url = URL
+    requires_auth = False
 
     async def get(self, request: web.Request) -> web.WebSocketResponse:
         """Handle an incoming websocket connection."""
@@ -48,7 +46,7 @@ class WebsocketAPIView(HomeAssistantView):
 class WebSocketAdapter(logging.LoggerAdapter):
     """Add connection id to websocket messages."""
 
-    def process(self, msg: str, kwargs: Any) -> tuple[str, Any]:
+    def process(self, msg, kwargs):
         """Add connid to websocket log messages."""
         return f'[{self.extra["connid"]}] {msg}', kwargs
 
@@ -56,21 +54,20 @@ class WebSocketAdapter(logging.LoggerAdapter):
 class WebSocketHandler:
     """Handle an active websocket client connection."""
 
-    def __init__(self, hass: HomeAssistant, request: web.Request) -> None:
+    def __init__(self, hass, request):
         """Initialize an active connection."""
         self.hass = hass
         self.request = request
         self.wsock: web.WebSocketResponse | None = None
         self._to_write: asyncio.Queue = asyncio.Queue(maxsize=MAX_PENDING_MSG)
-        self._handle_task: asyncio.Task | None = None
-        self._writer_task: asyncio.Task | None = None
+        self._handle_task = None
+        self._writer_task = None
         self._logger = WebSocketAdapter(_WS_LOGGER, {"connid": id(self)})
-        self._peak_checker_unsub: Callable[[], None] | None = None
+        self._peak_checker_unsub = None
 
-    async def _writer(self) -> None:
+    async def _writer(self):
         """Write outgoing messages."""
         # Exceptions if Socket disconnected or cancelled by connection handler
-        assert self.wsock is not None
         with suppress(RuntimeError, ConnectionResetError, *CANCELLATION_ERRORS):
             while not self.wsock.closed:
                 message = await self._to_write.get()
@@ -81,12 +78,12 @@ class WebSocketHandler:
                 await self.wsock.send_str(message)
 
         # Clean up the peaker checker when we shut down the writer
-        if self._peak_checker_unsub is not None:
+        if self._peak_checker_unsub:
             self._peak_checker_unsub()
             self._peak_checker_unsub = None
 
     @callback
-    def _send_message(self, message: str | dict[str, Any]) -> None:
+    def _send_message(self, message):
         """Send a message to the client.
 
         Closes connection if the client is not reading the messages.
@@ -117,7 +114,7 @@ class WebSocketHandler:
             )
 
     @callback
-    def _check_write_peak(self, _utc_time: dt.datetime) -> None:
+    def _check_write_peak(self, _):
         """Check that we are no longer above the write peak."""
         self._peak_checker_unsub = None
 
@@ -132,12 +129,10 @@ class WebSocketHandler:
         self._cancel()
 
     @callback
-    def _cancel(self) -> None:
+    def _cancel(self):
         """Cancel the connection."""
-        if self._handle_task is not None:
-            self._handle_task.cancel()
-        if self._writer_task is not None:
-            self._writer_task.cancel()
+        self._handle_task.cancel()
+        self._writer_task.cancel()
 
     async def async_handle(self) -> web.WebSocketResponse:
         """Handle a websocket response."""
@@ -148,7 +143,7 @@ class WebSocketHandler:
         self._handle_task = asyncio.current_task()
 
         @callback
-        def handle_hass_stop(event: Event) -> None:
+        def handle_hass_stop(event):
             """Cancel this connection."""
             self._cancel()
 

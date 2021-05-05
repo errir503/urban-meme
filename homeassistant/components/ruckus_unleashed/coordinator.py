@@ -22,7 +22,7 @@ _LOGGER = logging.getLogger(__package__)
 class RuckusUnleashedDataUpdateCoordinator(DataUpdateCoordinator):
     """Coordinator to manage data from Ruckus Unleashed client."""
 
-    def __init__(self, hass: HomeAssistant, *, ruckus: Ruckus) -> None:
+    def __init__(self, hass: HomeAssistant, *, ruckus: Ruckus):
         """Initialize global Ruckus Unleashed data updater."""
         self.ruckus = ruckus
 

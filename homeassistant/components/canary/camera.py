@@ -3,26 +3,19 @@ from __future__ import annotations
 
 import asyncio
 from datetime import timedelta
-from typing import Final
+from typing import Callable
 
-from aiohttp.web import Request, StreamResponse
-from canary.api import Device, Location
-from canary.live_stream_api import LiveStreamSession
 from haffmpeg.camera import CameraMjpeg
 from haffmpeg.tools import IMAGE_JPEG, ImageFrame
 import voluptuous as vol
 
-from homeassistant.components.camera import (
-    PLATFORM_SCHEMA as PARENT_PLATFORM_SCHEMA,
-    Camera,
-)
-from homeassistant.components.ffmpeg import DATA_FFMPEG, FFmpegManager
+from homeassistant.components.camera import PLATFORM_SCHEMA, Camera
+from homeassistant.components.ffmpeg import DATA_FFMPEG
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import Throttle
 
@@ -36,11 +29,11 @@ from .const import (
 )
 from .coordinator import CanaryDataUpdateCoordinator
 
-MIN_TIME_BETWEEN_SESSION_RENEW: Final = timedelta(seconds=90)
+MIN_TIME_BETWEEN_SESSION_RENEW = timedelta(seconds=90)
 
-PLATFORM_SCHEMA: Final = vol.All(
+PLATFORM_SCHEMA = vol.All(
     cv.deprecated(CONF_FFMPEG_ARGUMENTS),
-    PARENT_PLATFORM_SCHEMA.extend(
+    PLATFORM_SCHEMA.extend(
         {
             vol.Optional(
                 CONF_FFMPEG_ARGUMENTS, default=DEFAULT_FFMPEG_ARGUMENTS
@@ -53,16 +46,16 @@ PLATFORM_SCHEMA: Final = vol.All(
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[list[Entity], bool], None],
 ) -> None:
     """Set up Canary sensors based on a config entry."""
     coordinator: CanaryDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id][
         DATA_COORDINATOR
     ]
-    ffmpeg_arguments: str = entry.options.get(
+    ffmpeg_arguments = entry.options.get(
         CONF_FFMPEG_ARGUMENTS, DEFAULT_FFMPEG_ARGUMENTS
     )
-    cameras: list[CanaryCamera] = []
+    cameras = []
 
     for location_id, location in coordinator.data["locations"].items():
         for device in location.devices:
@@ -84,47 +77,37 @@ async def async_setup_entry(
 class CanaryCamera(CoordinatorEntity, Camera):
     """An implementation of a Canary security camera."""
 
-    coordinator: CanaryDataUpdateCoordinator
-
-    def __init__(
-        self,
-        hass: HomeAssistant,
-        coordinator: CanaryDataUpdateCoordinator,
-        location_id: str,
-        device: Device,
-        timeout: int,
-        ffmpeg_args: str,
-    ) -> None:
+    def __init__(self, hass, coordinator, location_id, device, timeout, ffmpeg_args):
         """Initialize a Canary security camera."""
         super().__init__(coordinator)
         Camera.__init__(self)
-        self._ffmpeg: FFmpegManager = hass.data[DATA_FFMPEG]
+        self._ffmpeg = hass.data[DATA_FFMPEG]
         self._ffmpeg_arguments = ffmpeg_args
         self._location_id = location_id
         self._device = device
-        self._device_id: str = device.device_id
-        self._device_name: str = device.name
+        self._device_id = device.device_id
+        self._device_name = device.name
         self._device_type_name = device.device_type["name"]
         self._timeout = timeout
-        self._live_stream_session: LiveStreamSession | None = None
+        self._live_stream_session = None
 
     @property
-    def location(self) -> Location:
+    def location(self):
         """Return information about the location."""
         return self.coordinator.data["locations"][self._location_id]
 
     @property
-    def name(self) -> str:
+    def name(self):
         """Return the name of this device."""
         return self._device_name
 
     @property
-    def unique_id(self) -> str:
+    def unique_id(self):
         """Return the unique ID of this camera."""
         return str(self._device_id)
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self):
         """Return the device_info of the device."""
         return {
             "identifiers": {(DOMAIN, str(self._device_id))},
@@ -134,16 +117,16 @@ class CanaryCamera(CoordinatorEntity, Camera):
         }
 
     @property
-    def is_recording(self) -> bool:
+    def is_recording(self):
         """Return true if the device is recording."""
-        return self.location.is_recording  # type: ignore[no-any-return]
+        return self.location.is_recording
 
     @property
-    def motion_detection_enabled(self) -> bool:
+    def motion_detection_enabled(self):
         """Return the camera motion detection status."""
         return not self.location.is_recording
 
-    async def async_camera_image(self) -> bytes | None:
+    async def async_camera_image(self):
         """Return a still image response from the camera."""
         await self.hass.async_add_executor_job(self.renew_live_stream_session)
         live_stream_url = await self.hass.async_add_executor_job(
@@ -151,7 +134,7 @@ class CanaryCamera(CoordinatorEntity, Camera):
         )
 
         ffmpeg = ImageFrame(self._ffmpeg.binary)
-        image: bytes | None = await asyncio.shield(
+        image = await asyncio.shield(
             ffmpeg.get_image(
                 live_stream_url,
                 output_format=IMAGE_JPEG,
@@ -160,12 +143,10 @@ class CanaryCamera(CoordinatorEntity, Camera):
         )
         return image
 
-    async def handle_async_mjpeg_stream(
-        self, request: Request
-    ) -> StreamResponse | None:
+    async def handle_async_mjpeg_stream(self, request):
         """Generate an HTTP MJPEG stream from the camera."""
         if self._live_stream_session is None:
-            return None
+            return
 
         stream = CameraMjpeg(self._ffmpeg.binary)
         await stream.open_camera(
@@ -184,7 +165,7 @@ class CanaryCamera(CoordinatorEntity, Camera):
             await stream.close()
 
     @Throttle(MIN_TIME_BETWEEN_SESSION_RENEW)
-    def renew_live_stream_session(self) -> None:
+    def renew_live_stream_session(self):
         """Renew live stream session."""
         self._live_stream_session = self.coordinator.canary.get_live_stream_session(
             self._device

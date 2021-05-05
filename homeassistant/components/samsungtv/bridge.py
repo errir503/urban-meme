@@ -1,11 +1,10 @@
 """samsungctl and samsungtvws bridge classes."""
 from abc import ABC, abstractmethod
-import contextlib
 
 from samsungctl import Remote
 from samsungctl.exceptions import AccessDenied, ConnectionClosed, UnhandledResponse
 from samsungtvws import SamsungTVWS
-from samsungtvws.exceptions import ConnectionFailure, HttpApiError
+from samsungtvws.exceptions import ConnectionFailure
 from websocket import WebSocketException
 
 from homeassistant.const import (
@@ -26,11 +25,8 @@ from .const import (
     RESULT_CANNOT_CONNECT,
     RESULT_NOT_SUPPORTED,
     RESULT_SUCCESS,
-    TIMEOUT_REQUEST,
-    TIMEOUT_WEBSOCKET,
     VALUE_CONF_ID,
     VALUE_CONF_NAME,
-    WEBSOCKET_PORTS,
 )
 
 
@@ -62,14 +58,9 @@ class SamsungTVBridge(ABC):
     def try_connect(self):
         """Try to connect to the TV."""
 
-    @abstractmethod
-    def device_info(self):
-        """Try to gather infos of this TV."""
-
     def is_on(self):
         """Tells if the TV is on."""
-        if self._remote:
-            self.close_remote()
+        self.close_remote()
 
         try:
             return self._get_remote() is not None
@@ -113,7 +104,7 @@ class SamsungTVBridge(ABC):
         """Send the key."""
 
     @abstractmethod
-    def _get_remote(self, avoid_open: bool = False):
+    def _get_remote(self):
         """Get Remote object."""
 
     def close_remote(self):
@@ -158,7 +149,7 @@ class SamsungTVLegacyBridge(SamsungTVBridge):
             CONF_METHOD: self.method,
             CONF_PORT: None,
             # We need this high timeout because waiting for auth popup is just an open socket
-            CONF_TIMEOUT: TIMEOUT_REQUEST,
+            CONF_TIMEOUT: 31,
         }
         try:
             LOGGER.debug("Try config: %s", config)
@@ -171,22 +162,16 @@ class SamsungTVLegacyBridge(SamsungTVBridge):
         except UnhandledResponse:
             LOGGER.debug("Working but unsupported config: %s", config)
             return RESULT_NOT_SUPPORTED
-        except (ConnectionClosed, OSError) as err:
+        except OSError as err:
             LOGGER.debug("Failing config: %s, error: %s", config, err)
             return RESULT_CANNOT_CONNECT
 
-    def device_info(self):
-        """Try to gather infos of this device."""
-        return None
-
-    def _get_remote(self, avoid_open: bool = False):
+    def _get_remote(self):
         """Create or return a remote control instance."""
         if self._remote is None:
             # We need to create a new instance to reconnect.
             try:
-                LOGGER.debug(
-                    "Create SamsungTVLegacyBridge for %s (%s)", CONF_NAME, self.host
-                )
+                LOGGER.debug("Create SamsungRemote")
                 self._remote = Remote(self.config.copy())
             # This is only happening when the auth was switched to DENY
             # A removed auth will lead to socket timeout because waiting for auth popup is just an open socket
@@ -198,11 +183,6 @@ class SamsungTVLegacyBridge(SamsungTVBridge):
     def _send_key(self, key):
         """Send the key using legacy protocol."""
         self._get_remote().control(key)
-
-    def stop(self):
-        """Stop Bridge."""
-        LOGGER.debug("Stopping SamsungTVLegacyBridge")
-        self.close_remote()
 
 
 class SamsungTVWSBridge(SamsungTVBridge):
@@ -216,14 +196,14 @@ class SamsungTVWSBridge(SamsungTVBridge):
 
     def try_connect(self):
         """Try to connect to the Websocket TV."""
-        for self.port in WEBSOCKET_PORTS:
+        for self.port in (8001, 8002):
             config = {
                 CONF_NAME: VALUE_CONF_NAME,
                 CONF_HOST: self.host,
                 CONF_METHOD: self.method,
                 CONF_PORT: self.port,
                 # We need this high timeout because waiting for auth popup is just an open socket
-                CONF_TIMEOUT: TIMEOUT_REQUEST,
+                CONF_TIMEOUT: 31,
             }
 
             result = None
@@ -254,46 +234,31 @@ class SamsungTVWSBridge(SamsungTVBridge):
 
         return RESULT_CANNOT_CONNECT
 
-    def device_info(self):
-        """Try to gather infos of this TV."""
-        remote = self._get_remote(avoid_open=True)
-        if not remote:
-            return None
-        with contextlib.suppress(HttpApiError):
-            return remote.rest_device_info()
-
     def _send_key(self, key):
         """Send the key using websocket protocol."""
         if key == "KEY_POWEROFF":
             key = "KEY_POWER"
         self._get_remote().send_key(key)
 
-    def _get_remote(self, avoid_open: bool = False):
+    def _get_remote(self):
         """Create or return a remote control instance."""
         if self._remote is None:
             # We need to create a new instance to reconnect.
             try:
-                LOGGER.debug(
-                    "Create SamsungTVWSBridge for %s (%s)", CONF_NAME, self.host
-                )
+                LOGGER.debug("Create SamsungTVWS")
                 self._remote = SamsungTVWS(
                     host=self.host,
                     port=self.port,
                     token=self.token,
-                    timeout=TIMEOUT_WEBSOCKET,
+                    timeout=8,
                     name=VALUE_CONF_NAME,
                 )
-                if not avoid_open:
-                    self._remote.open()
+                self._remote.open()
             # This is only happening when the auth was switched to DENY
             # A removed auth will lead to socket timeout because waiting for auth popup is just an open socket
             except ConnectionFailure:
                 self._notify_callback()
-            except (WebSocketException, OSError):
+                raise
+            except WebSocketException:
                 self._remote = None
         return self._remote
-
-    def stop(self):
-        """Stop Bridge."""
-        LOGGER.debug("Stopping SamsungTVWSBridge")
-        self.close_remote()

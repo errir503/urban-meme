@@ -7,15 +7,8 @@ set_time_to:
       domain: sensor
   fields:
     minutes:
-      name: Minutes
       description: Minutes until action
-      required: true
-      selector:
-        number:
-          min: 0
-          max: 1440
-          unit_of_measurement: minutes
-
+      example: "60"
 set_myzone:
   name: Set MyZone
   description: Change which zone is set as the reference for temperature control

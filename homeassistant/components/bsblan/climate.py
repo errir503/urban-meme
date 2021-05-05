@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 import logging
-from typing import Any
+from typing import Any, Callable
 
 from bsblan import BSBLan, BSBLanError, Info, State
 
@@ -27,8 +27,7 @@ from homeassistant.const import (
     TEMP_FAHRENHEIT,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import Entity
 
 from .const import (
     ATTR_IDENTIFIERS,
@@ -77,7 +76,7 @@ BSBLAN_TO_HA_PRESET = {
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[list[Entity], bool], None],
 ) -> None:
     """Set up BSBLan device based on a config entry."""
     bsblan: BSBLan = hass.data[DOMAIN][entry.entry_id][DATA_BSBLAN_CLIENT]
@@ -93,7 +92,7 @@ class BSBLanClimate(ClimateEntity):
         entry_id: str,
         bsblan: BSBLan,
         info: Info,
-    ) -> None:
+    ):
         """Initialize BSBLan climate device."""
         self._current_temperature: float | None = None
         self._available = True
@@ -232,7 +231,7 @@ class BSBLanClimate(ClimateEntity):
         self._temperature_unit = state.current_temperature.unit
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> dict[str, Any]:
         """Return device information about this BSBLan device."""
         return {
             ATTR_IDENTIFIERS: {(DOMAIN, self._info.device_identification)},

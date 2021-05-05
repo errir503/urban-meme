@@ -127,9 +127,7 @@ async def test_invalid_config_no_lights(hass):
         await hass.async_block_till_done()
 
 
-async def test_flux_when_switch_is_off(
-    hass, legacy_patchable_time, enable_custom_integrations
-):
+async def test_flux_when_switch_is_off(hass, legacy_patchable_time):
     """Test the flux switch when it is off."""
     platform = getattr(hass.components, "test.light")
     platform.init()
@@ -180,9 +178,7 @@ async def test_flux_when_switch_is_off(
     assert not turn_on_calls
 
 
-async def test_flux_before_sunrise(
-    hass, legacy_patchable_time, enable_custom_integrations
-):
+async def test_flux_before_sunrise(hass, legacy_patchable_time):
     """Test the flux switch before sunrise."""
     platform = getattr(hass.components, "test.light")
     platform.init()
@@ -241,9 +237,7 @@ async def test_flux_before_sunrise(
     assert call.data[light.ATTR_XY_COLOR] == [0.606, 0.379]
 
 
-async def test_flux_before_sunrise_known_location(
-    hass, legacy_patchable_time, enable_custom_integrations
-):
+async def test_flux_before_sunrise_known_location(hass, legacy_patchable_time):
     """Test the flux switch before sunrise."""
     platform = getattr(hass.components, "test.light")
     platform.init()
@@ -302,9 +296,7 @@ async def test_flux_before_sunrise_known_location(
 
 
 # pylint: disable=invalid-name
-async def test_flux_after_sunrise_before_sunset(
-    hass, legacy_patchable_time, enable_custom_integrations
-):
+async def test_flux_after_sunrise_before_sunset(hass, legacy_patchable_time):
     """Test the flux switch after sunrise and before sunset."""
     platform = getattr(hass.components, "test.light")
     platform.init()
@@ -363,9 +355,7 @@ async def test_flux_after_sunrise_before_sunset(
 
 
 # pylint: disable=invalid-name
-async def test_flux_after_sunset_before_stop(
-    hass, legacy_patchable_time, enable_custom_integrations
-):
+async def test_flux_after_sunset_before_stop(hass, legacy_patchable_time):
     """Test the flux switch after sunset and before stop."""
     platform = getattr(hass.components, "test.light")
     platform.init()
@@ -425,9 +415,7 @@ async def test_flux_after_sunset_before_stop(
 
 
 # pylint: disable=invalid-name
-async def test_flux_after_stop_before_sunrise(
-    hass, legacy_patchable_time, enable_custom_integrations
-):
+async def test_flux_after_stop_before_sunrise(hass, legacy_patchable_time):
     """Test the flux switch after stop and before sunrise."""
     platform = getattr(hass.components, "test.light")
     platform.init()
@@ -486,9 +474,7 @@ async def test_flux_after_stop_before_sunrise(
 
 
 # pylint: disable=invalid-name
-async def test_flux_with_custom_start_stop_times(
-    hass, legacy_patchable_time, enable_custom_integrations
-):
+async def test_flux_with_custom_start_stop_times(hass, legacy_patchable_time):
     """Test the flux with custom start and stop times."""
     platform = getattr(hass.components, "test.light")
     platform.init()
@@ -548,9 +534,7 @@ async def test_flux_with_custom_start_stop_times(
     assert call.data[light.ATTR_XY_COLOR] == [0.504, 0.385]
 
 
-async def test_flux_before_sunrise_stop_next_day(
-    hass, legacy_patchable_time, enable_custom_integrations
-):
+async def test_flux_before_sunrise_stop_next_day(hass, legacy_patchable_time):
     """Test the flux switch before sunrise.
 
     This test has the stop_time on the next day (after midnight).
@@ -614,7 +598,7 @@ async def test_flux_before_sunrise_stop_next_day(
 
 # pylint: disable=invalid-name
 async def test_flux_after_sunrise_before_sunset_stop_next_day(
-    hass, legacy_patchable_time, enable_custom_integrations
+    hass, legacy_patchable_time
 ):
     """
     Test the flux switch after sunrise and before sunset.
@@ -681,7 +665,7 @@ async def test_flux_after_sunrise_before_sunset_stop_next_day(
 # pylint: disable=invalid-name
 @pytest.mark.parametrize("x", [0, 1])
 async def test_flux_after_sunset_before_midnight_stop_next_day(
-    hass, legacy_patchable_time, x, enable_custom_integrations
+    hass, legacy_patchable_time, x
 ):
     """Test the flux switch after sunset and before stop.
 
@@ -746,7 +730,7 @@ async def test_flux_after_sunset_before_midnight_stop_next_day(
 
 # pylint: disable=invalid-name
 async def test_flux_after_sunset_after_midnight_stop_next_day(
-    hass, legacy_patchable_time, enable_custom_integrations
+    hass, legacy_patchable_time
 ):
     """Test the flux switch after sunset and before stop.
 
@@ -811,7 +795,7 @@ async def test_flux_after_sunset_after_midnight_stop_next_day(
 
 # pylint: disable=invalid-name
 async def test_flux_after_stop_before_sunrise_stop_next_day(
-    hass, legacy_patchable_time, enable_custom_integrations
+    hass, legacy_patchable_time
 ):
     """Test the flux switch after stop and before sunrise.
 
@@ -875,9 +859,7 @@ async def test_flux_after_stop_before_sunrise_stop_next_day(
 
 
 # pylint: disable=invalid-name
-async def test_flux_with_custom_colortemps(
-    hass, legacy_patchable_time, enable_custom_integrations
-):
+async def test_flux_with_custom_colortemps(hass, legacy_patchable_time):
     """Test the flux with custom start and stop colortemps."""
     platform = getattr(hass.components, "test.light")
     platform.init()
@@ -939,9 +921,7 @@ async def test_flux_with_custom_colortemps(
 
 
 # pylint: disable=invalid-name
-async def test_flux_with_custom_brightness(
-    hass, legacy_patchable_time, enable_custom_integrations
-):
+async def test_flux_with_custom_brightness(hass, legacy_patchable_time):
     """Test the flux with custom start and stop colortemps."""
     platform = getattr(hass.components, "test.light")
     platform.init()
@@ -1001,9 +981,7 @@ async def test_flux_with_custom_brightness(
     assert call.data[light.ATTR_XY_COLOR] == [0.506, 0.385]
 
 
-async def test_flux_with_multiple_lights(
-    hass, legacy_patchable_time, enable_custom_integrations
-):
+async def test_flux_with_multiple_lights(hass, legacy_patchable_time):
     """Test the flux switch with multiple light entities."""
     platform = getattr(hass.components, "test.light")
     platform.init()
@@ -1086,7 +1064,7 @@ async def test_flux_with_multiple_lights(
     assert call.data[light.ATTR_XY_COLOR] == [0.46, 0.376]
 
 
-async def test_flux_with_mired(hass, legacy_patchable_time, enable_custom_integrations):
+async def test_flux_with_mired(hass, legacy_patchable_time):
     """Test the flux switch´s mode mired."""
     platform = getattr(hass.components, "test.light")
     platform.init()
@@ -1143,7 +1121,7 @@ async def test_flux_with_mired(hass, legacy_patchable_time, enable_custom_integr
     assert call.data[light.ATTR_COLOR_TEMP] == 269
 
 
-async def test_flux_with_rgb(hass, legacy_patchable_time, enable_custom_integrations):
+async def test_flux_with_rgb(hass, legacy_patchable_time):
     """Test the flux switch´s mode rgb."""
     platform = getattr(hass.components, "test.light")
     platform.init()

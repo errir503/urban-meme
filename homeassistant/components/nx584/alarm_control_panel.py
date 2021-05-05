@@ -7,9 +7,7 @@ import requests
 import voluptuous as vol
 
 import homeassistant.components.alarm_control_panel as alarm
-from homeassistant.components.alarm_control_panel import (
-    PLATFORM_SCHEMA as PARENT_PLATFORM_SCHEMA,
-)
+from homeassistant.components.alarm_control_panel import PLATFORM_SCHEMA
 from homeassistant.components.alarm_control_panel.const import (
     SUPPORT_ALARM_ARM_AWAY,
     SUPPORT_ALARM_ARM_HOME,
@@ -37,7 +35,7 @@ SERVICE_BYPASS_ZONE = "bypass_zone"
 SERVICE_UNBYPASS_ZONE = "unbypass_zone"
 ATTR_ZONE = "zone"
 
-PLATFORM_SCHEMA = PARENT_PLATFORM_SCHEMA.extend(
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Optional(CONF_HOST, default=DEFAULT_HOST): cv.string,
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
@@ -67,7 +65,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     entity = NX584Alarm(name, alarm_client, url)
     async_add_entities([entity])
 
-    platform = entity_platform.async_get_current_platform()
+    platform = entity_platform.current_platform.get()
 
     platform.async_register_entity_service(
         SERVICE_BYPASS_ZONE,

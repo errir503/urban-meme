@@ -98,7 +98,7 @@ async def async_setup_sdm_entry(
 class ThermostatEntity(ClimateEntity):
     """A nest thermostat climate entity."""
 
-    def __init__(self, device: Device) -> None:
+    def __init__(self, device: Device):
         """Initialize ThermostatEntity."""
         self._device = device
         self._device_info = DeviceInfo(device)

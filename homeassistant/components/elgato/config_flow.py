@@ -1,4 +1,4 @@
-"""Config flow to configure the Elgato Light integration."""
+"""Config flow to configure the Elgato Key Light integration."""
 from __future__ import annotations
 
 from typing import Any
@@ -6,7 +6,7 @@ from typing import Any
 from elgato import Elgato, ElgatoError
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigFlow
+from homeassistant.config_entries import CONN_CLASS_LOCAL_POLL, ConfigFlow
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
@@ -16,9 +16,10 @@ from .const import CONF_SERIAL_NUMBER, DOMAIN
 
 
 class ElgatoFlowHandler(ConfigFlow, domain=DOMAIN):
-    """Handle a Elgato Light config flow."""
+    """Handle a Elgato Key Light config flow."""
 
     VERSION = 1
+    CONNECTION_CLASS = CONN_CLASS_LOCAL_POLL
 
     host: str
     port: int
@@ -91,7 +92,7 @@ class ElgatoFlowHandler(ConfigFlow, domain=DOMAIN):
         )
 
     async def _get_elgato_serial_number(self, raise_on_progress: bool = True) -> None:
-        """Get device information from an Elgato Light device."""
+        """Get device information from an Elgato Key Light device."""
         session = async_get_clientsession(self.hass)
         elgato = Elgato(
             host=self.host,

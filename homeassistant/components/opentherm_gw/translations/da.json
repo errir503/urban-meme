@@ -19,7 +19,8 @@
         "step": {
             "init": {
                 "data": {
-                    "floor_temperature": "Gulvtemperatur"
+                    "floor_temperature": "Gulvtemperatur",
+                    "precision": "Pr\u00e6cision"
                 },
                 "description": "Indstillinger for OpenTherm Gateway"
             }

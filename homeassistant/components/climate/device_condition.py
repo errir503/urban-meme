@@ -54,20 +54,29 @@ async def async_get_conditions(
 
         state = hass.states.get(entry.entity_id)
 
-        base_condition = {
-            CONF_CONDITION: "device",
-            CONF_DEVICE_ID: device_id,
-            CONF_DOMAIN: DOMAIN,
-            CONF_ENTITY_ID: entry.entity_id,
-        }
-
-        conditions.append({**base_condition, CONF_TYPE: "is_hvac_mode"})
+        conditions.append(
+            {
+                CONF_CONDITION: "device",
+                CONF_DEVICE_ID: device_id,
+                CONF_DOMAIN: DOMAIN,
+                CONF_ENTITY_ID: entry.entity_id,
+                CONF_TYPE: "is_hvac_mode",
+            }
+        )
 
         if (
             state
             and state.attributes[ATTR_SUPPORTED_FEATURES] & const.SUPPORT_PRESET_MODE
         ):
-            conditions.append({**base_condition, CONF_TYPE: "is_preset_mode"})
+            conditions.append(
+                {
+                    CONF_CONDITION: "device",
+                    CONF_DEVICE_ID: device_id,
+                    CONF_DOMAIN: DOMAIN,
+                    CONF_ENTITY_ID: entry.entity_id,
+                    CONF_TYPE: "is_preset_mode",
+                }
+            )
 
     return conditions
 

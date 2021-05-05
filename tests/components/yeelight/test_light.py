@@ -353,7 +353,11 @@ async def test_device_types(hass: HomeAssistant):
         entity_id=ENTITY_LIGHT,
     ):
         config_entry = MockConfigEntry(
-            domain=DOMAIN, data={**CONFIG_ENTRY_DATA, CONF_NIGHTLIGHT_SWITCH: False}
+            domain=DOMAIN,
+            data={
+                **CONFIG_ENTRY_DATA,
+                CONF_NIGHTLIGHT_SWITCH: False,
+            },
         )
         config_entry.add_to_hass(hass)
 
@@ -379,7 +383,11 @@ async def test_device_types(hass: HomeAssistant):
         if nightlight_properties is None:
             return
         config_entry = MockConfigEntry(
-            domain=DOMAIN, data={**CONFIG_ENTRY_DATA, CONF_NIGHTLIGHT_SWITCH: True}
+            domain=DOMAIN,
+            data={
+                **CONFIG_ENTRY_DATA,
+                CONF_NIGHTLIGHT_SWITCH: True,
+            },
         )
         config_entry.add_to_hass(hass)
         await _async_setup(config_entry)
@@ -569,13 +577,16 @@ async def test_effects(hass: HomeAssistant):
                                 {YEELIGHT_SLEEP_TRANSACTION: [800]},
                             ],
                         },
-                    }
-                ]
-            }
+                    },
+                ],
+            },
         },
     )
 
-    config_entry = MockConfigEntry(domain=DOMAIN, data=CONFIG_ENTRY_DATA)
+    config_entry = MockConfigEntry(
+        domain=DOMAIN,
+        data=CONFIG_ENTRY_DATA,
+    )
     config_entry.add_to_hass(hass)
 
     mocked_bulb = _mocked_bulb()

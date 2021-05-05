@@ -1,13 +1,14 @@
 """Support for Verisure Smartplugs."""
 from __future__ import annotations
 
+from collections.abc import Iterable
 from time import monotonic
+from typing import Any, Callable
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import CONF_GIID, DOMAIN
@@ -17,7 +18,7 @@ from .coordinator import VerisureDataUpdateCoordinator
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[Iterable[Entity]], None],
 ) -> None:
     """Set up Verisure alarm control panel from a config entry."""
     coordinator: VerisureDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
@@ -37,16 +38,22 @@ class VerisureSmartplug(CoordinatorEntity, SwitchEntity):
     ) -> None:
         """Initialize the Verisure device."""
         super().__init__(coordinator)
-
-        self._attr_name = coordinator.data["smart_plugs"][serial_number]["area"]
-        self._attr_unique_id = serial_number
-
         self.serial_number = serial_number
         self._change_timestamp = 0
         self._state = False
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def name(self) -> str:
+        """Return the name of this entity."""
+        return self.coordinator.data["smart_plugs"][self.serial_number]["area"]
+
+    @property
+    def unique_id(self) -> str:
+        """Return the unique ID for this entity."""
+        return self.serial_number
+
+    @property
+    def device_info(self) -> dict[str, Any]:
         """Return device information about this entity."""
         area = self.coordinator.data["smart_plugs"][self.serial_number]["area"]
         return {

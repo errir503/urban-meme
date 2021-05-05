@@ -1,8 +1,6 @@
 """Provides device automations for Device Tracker."""
 from __future__ import annotations
 
-from typing import Final
-
 import voluptuous as vol
 
 from homeassistant.components.automation import AutomationActionType
@@ -23,9 +21,9 @@ from homeassistant.helpers.typing import ConfigType
 
 from . import DOMAIN
 
-TRIGGER_TYPES: Final[set[str]] = {"enters", "leaves"}
+TRIGGER_TYPES = {"enters", "leaves"}
 
-TRIGGER_SCHEMA: Final = TRIGGER_BASE_SCHEMA.extend(
+TRIGGER_SCHEMA = TRIGGER_BASE_SCHEMA.extend(
     {
         vol.Required(CONF_ENTITY_ID): cv.entity_id,
         vol.Required(CONF_TYPE): vol.In(TRIGGER_TYPES),
@@ -90,9 +88,7 @@ async def async_attach_trigger(
     )
 
 
-async def async_get_trigger_capabilities(
-    hass: HomeAssistant, config: ConfigType
-) -> dict[str, vol.Schema]:
+async def async_get_trigger_capabilities(hass: HomeAssistant, config: ConfigType):
     """List trigger capabilities."""
     zones = {
         ent.entity_id: ent.name

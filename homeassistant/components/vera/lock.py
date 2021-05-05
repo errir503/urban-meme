@@ -1,7 +1,7 @@
 """Support for Vera locks."""
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Callable
 
 import pyvera as veraApi
 
@@ -13,7 +13,7 @@ from homeassistant.components.lock import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_LOCKED, STATE_UNLOCKED
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import Entity
 
 from . import VeraDevice
 from .common import ControllerData, get_controller_data
@@ -25,7 +25,7 @@ ATTR_LOW_BATTERY = "low_battery"
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[list[Entity], bool], None],
 ) -> None:
     """Set up the sensor config entry."""
     controller_data = get_controller_data(hass, entry)
@@ -41,9 +41,7 @@ async def async_setup_entry(
 class VeraLock(VeraDevice[veraApi.VeraLock], LockEntity):
     """Representation of a Vera lock."""
 
-    def __init__(
-        self, vera_device: veraApi.VeraLock, controller_data: ControllerData
-    ) -> None:
+    def __init__(self, vera_device: veraApi.VeraLock, controller_data: ControllerData):
         """Initialize the Vera device."""
         self._state = None
         VeraDevice.__init__(self, vera_device, controller_data)

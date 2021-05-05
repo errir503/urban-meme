@@ -14,7 +14,6 @@
                 "title": "W\u00e4hle die Authentifizierungsmethode"
             },
             "reauth_confirm": {
-                "description": "Die Spotify-Integration muss sich bei Spotify f\u00fcr das Konto neu authentifizieren: {account}",
                 "title": "Integration erneut authentifizieren"
             }
         }

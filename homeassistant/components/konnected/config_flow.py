@@ -164,11 +164,12 @@ class KonnectedFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Konnected Panels."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
 
     # class variable to store/share discovered host information
     discovered_hosts = {}
 
-    def __init__(self) -> None:
+    def __init__(self):
         """Initialize the Konnected flow."""
         self.data = {}
         self.options = OPTIONS_SCHEMA({CONF_IO: {}})
@@ -360,7 +361,7 @@ class KonnectedFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handle a option flow for a Konnected Panel."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+    def __init__(self, config_entry: config_entries.ConfigEntry):
         """Initialize options flow."""
         self.entry = config_entry
         self.model = self.entry.data[CONF_MODEL]

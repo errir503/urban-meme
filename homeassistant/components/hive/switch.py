@@ -84,4 +84,3 @@ class HiveDevicePlug(HiveEntity, SwitchEntity):
         """Update all Node data from Hive."""
         await self.hive.session.updateData(self.device)
         self.device = await self.hive.switch.getSwitch(self.device)
-        self.attributes.update(self.device.get("attributes", {}))

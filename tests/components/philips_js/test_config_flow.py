@@ -152,7 +152,6 @@ async def test_pairing(hass, mock_tv_pairable, mock_setup_entry):
         "title": "55PUS7181/12 (ABCDEFGHIJKLF)",
         "data": MOCK_CONFIG_PAIRED,
         "version": 1,
-        "options": {},
     }
 
     await hass.async_block_till_done()

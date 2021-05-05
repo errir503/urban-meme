@@ -3,8 +3,6 @@ from __future__ import annotations
 
 import configparser
 import io
-import os
-from pathlib import Path
 from typing import Final
 
 from .model import Config, Integration
@@ -16,6 +14,7 @@ from .model import Config, Integration
 IGNORED_MODULES: Final[list[str]] = [
     "homeassistant.components.adguard.*",
     "homeassistant.components.aemet.*",
+    "homeassistant.components.airly.*",
     "homeassistant.components.alarmdecoder.*",
     "homeassistant.components.alexa.*",
     "homeassistant.components.almond.*",
@@ -25,11 +24,15 @@ IGNORED_MODULES: Final[list[str]] = [
     "homeassistant.components.atag.*",
     "homeassistant.components.aurora.*",
     "homeassistant.components.awair.*",
+    "homeassistant.components.axis.*",
     "homeassistant.components.azure_devops.*",
     "homeassistant.components.azure_event_hub.*",
     "homeassistant.components.blueprint.*",
+    "homeassistant.components.bluetooth_tracker.*",
     "homeassistant.components.bmw_connected_drive.*",
     "homeassistant.components.bsblan.*",
+    "homeassistant.components.camera.*",
+    "homeassistant.components.canary.*",
     "homeassistant.components.cast.*",
     "homeassistant.components.cert_expiry.*",
     "homeassistant.components.climacell.*",
@@ -42,6 +45,7 @@ IGNORED_MODULES: Final[list[str]] = [
     "homeassistant.components.deconz.*",
     "homeassistant.components.demo.*",
     "homeassistant.components.denonavr.*",
+    "homeassistant.components.device_tracker.*",
     "homeassistant.components.devolo_home_control.*",
     "homeassistant.components.dhcp.*",
     "homeassistant.components.directv.*",
@@ -50,6 +54,7 @@ IGNORED_MODULES: Final[list[str]] = [
     "homeassistant.components.dynalite.*",
     "homeassistant.components.eafm.*",
     "homeassistant.components.edl21.*",
+    "homeassistant.components.elgato.*",
     "homeassistant.components.elkm1.*",
     "homeassistant.components.emonitor.*",
     "homeassistant.components.enphase_envoy.*",
@@ -61,12 +66,16 @@ IGNORED_MODULES: Final[list[str]] = [
     "homeassistant.components.fints.*",
     "homeassistant.components.fireservicerota.*",
     "homeassistant.components.firmata.*",
+    "homeassistant.components.fitbit.*",
     "homeassistant.components.flo.*",
     "homeassistant.components.fortios.*",
     "homeassistant.components.foscam.*",
     "homeassistant.components.freebox.*",
+    "homeassistant.components.fritz.*",
+    "homeassistant.components.fritzbox.*",
     "homeassistant.components.garmin_connect.*",
     "homeassistant.components.geniushub.*",
+    "homeassistant.components.gios.*",
     "homeassistant.components.glances.*",
     "homeassistant.components.gogogate2.*",
     "homeassistant.components.google_assistant.*",
@@ -90,10 +99,12 @@ IGNORED_MODULES: Final[list[str]] = [
     "homeassistant.components.homekit_controller.*",
     "homeassistant.components.homematicip_cloud.*",
     "homeassistant.components.honeywell.*",
+    "homeassistant.components.hue.*",
     "homeassistant.components.huisbaasje.*",
     "homeassistant.components.humidifier.*",
     "homeassistant.components.iaqualink.*",
     "homeassistant.components.icloud.*",
+    "homeassistant.components.ihc.*",
     "homeassistant.components.image.*",
     "homeassistant.components.incomfort.*",
     "homeassistant.components.influxdb.*",
@@ -124,9 +135,13 @@ IGNORED_MODULES: Final[list[str]] = [
     "homeassistant.components.metoffice.*",
     "homeassistant.components.minecraft_server.*",
     "homeassistant.components.mobile_app.*",
+    "homeassistant.components.modbus.*",
     "homeassistant.components.motion_blinds.*",
+    "homeassistant.components.motioneye.*",
     "homeassistant.components.mqtt.*",
     "homeassistant.components.mullvad.*",
+    "homeassistant.components.mysensors.*",
+    "homeassistant.components.n26.*",
     "homeassistant.components.neato.*",
     "homeassistant.components.ness_alarm.*",
     "homeassistant.components.nest.*",
@@ -144,6 +159,7 @@ IGNORED_MODULES: Final[list[str]] = [
     "homeassistant.components.omnilogic.*",
     "homeassistant.components.onboarding.*",
     "homeassistant.components.ondilo_ico.*",
+    "homeassistant.components.onewire.*",
     "homeassistant.components.onvif.*",
     "homeassistant.components.ovo_energy.*",
     "homeassistant.components.ozw.*",
@@ -165,6 +181,7 @@ IGNORED_MODULES: Final[list[str]] = [
     "homeassistant.components.recorder.*",
     "homeassistant.components.reddit.*",
     "homeassistant.components.ring.*",
+    "homeassistant.components.rituals_perfume_genie.*",
     "homeassistant.components.roku.*",
     "homeassistant.components.rpi_power.*",
     "homeassistant.components.ruckus_unleashed.*",
@@ -173,13 +190,17 @@ IGNORED_MODULES: Final[list[str]] = [
     "homeassistant.components.script.*",
     "homeassistant.components.search.*",
     "homeassistant.components.sense.*",
+    "homeassistant.components.sentry.*",
     "homeassistant.components.sesame.*",
     "homeassistant.components.sharkiq.*",
+    "homeassistant.components.shell_command.*",
+    "homeassistant.components.shelly.*",
     "homeassistant.components.sma.*",
     "homeassistant.components.smart_meter_texas.*",
     "homeassistant.components.smartthings.*",
     "homeassistant.components.smarttub.*",
     "homeassistant.components.smarty.*",
+    "homeassistant.components.smhi.*",
     "homeassistant.components.solaredge.*",
     "homeassistant.components.solarlog.*",
     "homeassistant.components.somfy.*",
@@ -188,15 +209,18 @@ IGNORED_MODULES: Final[list[str]] = [
     "homeassistant.components.songpal.*",
     "homeassistant.components.sonos.*",
     "homeassistant.components.spotify.*",
+    "homeassistant.components.stream.*",
     "homeassistant.components.stt.*",
     "homeassistant.components.surepetcare.*",
     "homeassistant.components.switchbot.*",
     "homeassistant.components.switcher_kis.*",
+    "homeassistant.components.synology_dsm.*",
     "homeassistant.components.synology_srm.*",
     "homeassistant.components.system_health.*",
     "homeassistant.components.system_log.*",
     "homeassistant.components.tado.*",
     "homeassistant.components.tasmota.*",
+    "homeassistant.components.tcp.*",
     "homeassistant.components.telegram_bot.*",
     "homeassistant.components.template.*",
     "homeassistant.components.tesla.*",
@@ -207,7 +231,9 @@ IGNORED_MODULES: Final[list[str]] = [
     "homeassistant.components.trace.*",
     "homeassistant.components.tradfri.*",
     "homeassistant.components.tuya.*",
+    "homeassistant.components.twentemilieu.*",
     "homeassistant.components.unifi.*",
+    "homeassistant.components.upcloud.*",
     "homeassistant.components.updater.*",
     "homeassistant.components.upnp.*",
     "homeassistant.components.velbus.*",
@@ -219,6 +245,7 @@ IGNORED_MODULES: Final[list[str]] = [
     "homeassistant.components.wemo.*",
     "homeassistant.components.wink.*",
     "homeassistant.components.withings.*",
+    "homeassistant.components.wled.*",
     "homeassistant.components.wunderground.*",
     "homeassistant.components.xbox.*",
     "homeassistant.components.xiaomi_aqara.*",
@@ -241,13 +268,10 @@ GENERAL_SETTINGS: Final[dict[str, str]] = {
     "python_version": "3.8",
     "show_error_codes": "true",
     "follow_imports": "silent",
-    # Enable some checks globally.
     "ignore_missing_imports": "true",
-    "strict_equality": "true",
     "warn_incomplete_stub": "true",
     "warn_redundant_casts": "true",
     "warn_unused_configs": "true",
-    "warn_unused_ignores": "true",
 }
 
 # This is basically the list of checks which is enabled for "strict=true".
@@ -260,8 +284,10 @@ STRICT_SETTINGS: Final[list[str]] = [
     "disallow_untyped_decorators",
     "disallow_untyped_defs",
     "no_implicit_optional",
+    "strict_equality",
     "warn_return_any",
     "warn_unreachable",
+    "warn_unused_ignores",
     # TODO: turn these on, address issues
     # "disallow_any_generics",
     # "no_implicit_reexport",
@@ -293,29 +319,7 @@ def generate_and_validate(config: Config) -> str:
                 "mypy_config", f"Only components should be added: {module}"
             )
         if module in ignored_modules_set:
-            config.add_error(
-                "mypy_config", f"Module '{module}' is in ignored list in mypy_config.py"
-            )
-
-    # Validate that all modules exist.
-    all_modules = strict_modules + IGNORED_MODULES
-    for module in all_modules:
-        if module.endswith(".*"):
-            module_path = Path(module[:-2].replace(".", os.path.sep))
-            if not module_path.is_dir():
-                config.add_error("mypy_config", f"Module '{module} is not a folder")
-        else:
-            module = module.replace(".", os.path.sep)
-            module_path = Path(f"{module}.py")
-            if module_path.is_file():
-                continue
-            module_path = Path(module) / "__init__.py"
-            if not module_path.is_file():
-                config.add_error("mypy_config", f"Module '{module} doesn't exist")
-
-    # Don't generate mypy.ini if there're errors found because it will likely crash.
-    if any(err.plugin == "mypy_config" for err in config.errors):
-        return ""
+            config.add_error("mypy_config", f"Module '{module}' is in ignored list")
 
     mypy_config = configparser.ConfigParser()
 
@@ -332,22 +336,14 @@ def generate_and_validate(config: Config) -> str:
     for key in STRICT_SETTINGS:
         mypy_config.set(components_section, key, "false")
 
-    for strict_module in strict_modules:
-        strict_section = f"mypy-{strict_module}"
-        mypy_config.add_section(strict_section)
-        for key in STRICT_SETTINGS:
-            mypy_config.set(strict_section, key, "true")
-
-    # Disable strict checks for tests
-    tests_section = "mypy-tests.*"
-    mypy_config.add_section(tests_section)
+    strict_section = "mypy-" + ",".join(strict_modules)
+    mypy_config.add_section(strict_section)
     for key in STRICT_SETTINGS:
-        mypy_config.set(tests_section, key, "false")
+        mypy_config.set(strict_section, key, "true")
 
-    for ignored_module in IGNORED_MODULES:
-        ignored_section = f"mypy-{ignored_module}"
-        mypy_config.add_section(ignored_section)
-        mypy_config.set(ignored_section, "ignore_errors", "true")
+    ignored_section = "mypy-" + ",".join(IGNORED_MODULES)
+    mypy_config.add_section(ignored_section)
+    mypy_config.set(ignored_section, "ignore_errors", "true")
 
     with io.StringIO() as fp:
         mypy_config.write(fp)
@@ -359,9 +355,6 @@ def validate(integrations: dict[str, Integration], config: Config) -> None:
     """Validate mypy config."""
     config_path = config.root / "mypy.ini"
     config.cache["mypy_config"] = content = generate_and_validate(config)
-
-    if any(err.plugin == "mypy_config" for err in config.errors):
-        return
 
     with open(str(config_path)) as fp:
         if fp.read().strip() != content:

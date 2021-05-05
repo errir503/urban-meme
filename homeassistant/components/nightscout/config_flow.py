@@ -39,6 +39,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Nightscout."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
@@ -66,7 +67,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class InputValidationError(exceptions.HomeAssistantError):
     """Error to indicate we cannot proceed due to invalid input."""
 
-    def __init__(self, base: str) -> None:
+    def __init__(self, base: str):
         """Initialize with error base."""
         super().__init__()
         self.base = base

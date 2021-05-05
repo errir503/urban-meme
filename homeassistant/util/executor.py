@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
-import contextlib
 import logging
 import queue
 import sys
@@ -50,11 +49,7 @@ def join_or_interrupt_threads(
         if log:
             _log_thread_running_at_shutdown(thread.name, thread.ident)
 
-        with contextlib.suppress(SystemError):
-            # SystemError at this stage is usually a race condition
-            # where the thread happens to die right before we force
-            # it to raise the exception
-            async_raise(thread.ident, SystemExit)
+        async_raise(thread.ident, SystemExit)
 
     return joined
 

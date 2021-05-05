@@ -1,139 +1,137 @@
 """Support for the GIOS service."""
-from __future__ import annotations
-
-from typing import Any, Optional, cast
-
-from homeassistant.components.air_quality import AirQualityEntity
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.components.air_quality import (
+    ATTR_CO,
+    ATTR_NO2,
+    ATTR_OZONE,
+    ATTR_PM_2_5,
+    ATTR_PM_10,
+    ATTR_SO2,
+    AirQualityEntity,
+)
 from homeassistant.const import CONF_NAME
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity_registry import async_get_registry
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import GiosDataUpdateCoordinator
-from .const import (
-    API_AQI,
-    API_CO,
-    API_NO2,
-    API_O3,
-    API_PM10,
-    API_PM25,
-    API_SO2,
-    ATTR_STATION,
-    ATTRIBUTION,
-    DEFAULT_NAME,
-    DOMAIN,
-    ICONS_MAP,
-    MANUFACTURER,
-    SENSOR_MAP,
-)
+from .const import ATTR_STATION, DEFAULT_NAME, DOMAIN, ICONS_MAP, MANUFACTURER
+
+ATTRIBUTION = "Data provided by GIOŚ"
+
+SENSOR_MAP = {
+    "CO": ATTR_CO,
+    "NO2": ATTR_NO2,
+    "O3": ATTR_OZONE,
+    "PM10": ATTR_PM_10,
+    "PM2.5": ATTR_PM_2_5,
+    "SO2": ATTR_SO2,
+}
 
 PARALLEL_UPDATES = 1
 
 
-async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
-) -> None:
+async def async_setup_entry(hass, config_entry, async_add_entities):
     """Add a GIOS entities from a config_entry."""
-    name = entry.data[CONF_NAME]
+    name = config_entry.data[CONF_NAME]
 
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]
 
-    # We used to use int as entity unique_id, convert this to str.
-    entity_registry = await async_get_registry(hass)
-    old_entity_id = entity_registry.async_get_entity_id(
-        "air_quality", DOMAIN, coordinator.gios.station_id
-    )
-    if old_entity_id is not None:
-        entity_registry.async_update_entity(
-            old_entity_id, new_unique_id=str(coordinator.gios.station_id)
-        )
+    async_add_entities([GiosAirQuality(coordinator, name)], False)
 
-    async_add_entities([GiosAirQuality(coordinator, name)])
+
+def round_state(func):
+    """Round state."""
+
+    def _decorator(self):
+        res = func(self)
+        if isinstance(res, float):
+            return round(res)
+        return res
+
+    return _decorator
 
 
 class GiosAirQuality(CoordinatorEntity, AirQualityEntity):
     """Define an GIOS sensor."""
 
-    coordinator: GiosDataUpdateCoordinator
-
-    def __init__(self, coordinator: GiosDataUpdateCoordinator, name: str) -> None:
+    def __init__(self, coordinator, name):
         """Initialize."""
         super().__init__(coordinator)
         self._name = name
-        self._attrs: dict[str, Any] = {}
+        self._attrs = {}
 
     @property
-    def name(self) -> str:
+    def name(self):
         """Return the name."""
         return self._name
 
     @property
-    def icon(self) -> str:
+    def icon(self):
         """Return the icon."""
-        if self.air_quality_index is not None and self.air_quality_index in ICONS_MAP:
+        if self.air_quality_index in ICONS_MAP:
             return ICONS_MAP[self.air_quality_index]
         return "mdi:blur"
 
     @property
-    def air_quality_index(self) -> str | None:
+    def air_quality_index(self):
         """Return the air quality index."""
-        return cast(Optional[str], self.coordinator.data.get(API_AQI, {}).get("value"))
+        return self._get_sensor_value("AQI")
 
     @property
-    def particulate_matter_2_5(self) -> float | None:
+    @round_state
+    def particulate_matter_2_5(self):
         """Return the particulate matter 2.5 level."""
-        return round_state(self._get_sensor_value(API_PM25))
+        return self._get_sensor_value("PM2.5")
 
     @property
-    def particulate_matter_10(self) -> float | None:
+    @round_state
+    def particulate_matter_10(self):
         """Return the particulate matter 10 level."""
-        return round_state(self._get_sensor_value(API_PM10))
+        return self._get_sensor_value("PM10")
 
     @property
-    def ozone(self) -> float | None:
+    @round_state
+    def ozone(self):
         """Return the O3 (ozone) level."""
-        return round_state(self._get_sensor_value(API_O3))
+        return self._get_sensor_value("O3")
 
     @property
-    def carbon_monoxide(self) -> float | None:
+    @round_state
+    def carbon_monoxide(self):
         """Return the CO (carbon monoxide) level."""
-        return round_state(self._get_sensor_value(API_CO))
+        return self._get_sensor_value("CO")
 
     @property
-    def sulphur_dioxide(self) -> float | None:
+    @round_state
+    def sulphur_dioxide(self):
         """Return the SO2 (sulphur dioxide) level."""
-        return round_state(self._get_sensor_value(API_SO2))
+        return self._get_sensor_value("SO2")
 
     @property
-    def nitrogen_dioxide(self) -> float | None:
+    @round_state
+    def nitrogen_dioxide(self):
         """Return the NO2 (nitrogen dioxide) level."""
-        return round_state(self._get_sensor_value(API_NO2))
+        return self._get_sensor_value("NO2")
 
     @property
-    def attribution(self) -> str:
+    def attribution(self):
         """Return the attribution."""
         return ATTRIBUTION
 
     @property
-    def unique_id(self) -> str:
+    def unique_id(self):
         """Return a unique_id for this entity."""
-        return str(self.coordinator.gios.station_id)
+        return self.coordinator.gios.station_id
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self):
         """Return the device info."""
         return {
-            "identifiers": {(DOMAIN, str(self.coordinator.gios.station_id))},
+            "identifiers": {(DOMAIN, self.coordinator.gios.station_id)},
             "name": DEFAULT_NAME,
             "manufacturer": MANUFACTURER,
             "entry_type": "service",
         }
 
     @property
-    def extra_state_attributes(self) -> dict[str, Any] | None:
+    def extra_state_attributes(self):
         """Return the state attributes."""
         # Different measuring stations have different sets of sensors. We don't know
         # what data we will get.
@@ -145,13 +143,8 @@ class GiosAirQuality(CoordinatorEntity, AirQualityEntity):
         self._attrs[ATTR_STATION] = self.coordinator.gios.station_name
         return self._attrs
 
-    def _get_sensor_value(self, sensor: str) -> float | None:
+    def _get_sensor_value(self, sensor):
         """Return value of specified sensor."""
         if sensor in self.coordinator.data:
-            return cast(float, self.coordinator.data[sensor]["value"])
+            return self.coordinator.data[sensor]["value"]
         return None
-
-
-def round_state(state: float | None) -> float | None:
-    """Round state."""
-    return round(state) if state is not None else None

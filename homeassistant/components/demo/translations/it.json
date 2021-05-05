@@ -1,12 +1,6 @@
 {
     "options": {
         "step": {
-            "init": {
-                "data": {
-                    "one": "Pi\u00f9",
-                    "other": "Altri"
-                }
-            },
             "options_1": {
                 "data": {
                     "bool": "Valore booleano facoltativo",

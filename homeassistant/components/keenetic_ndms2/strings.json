@@ -1,6 +1,5 @@
 {
   "config": {
-    "flow_title": "{name} ({host})",
     "step": {
       "user": {
         "title": "Set up Keenetic NDMS2 Router",
@@ -16,9 +15,7 @@
       "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]"
     },
     "abort": {
-      "already_configured": "[%key:common::config_flow::abort::already_configured_account%]",
-      "no_udn": "SSDP discovery info has no UDN",
-      "not_keenetic_ndms2": "Discovered item is not a Keenetic router"
+      "already_configured": "[%key:common::config_flow::abort::already_configured_account%]"
     }
   },
   "options": {

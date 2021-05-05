@@ -1,8 +1,5 @@
 """Config flow to configure the Synology DSM integration."""
-from __future__ import annotations
-
 import logging
-from typing import Any
 from urllib.parse import urlparse
 
 from synology_dsm import SynologyDSM
@@ -15,14 +12,8 @@ from synology_dsm.exceptions import (
 )
 import voluptuous as vol
 
-from homeassistant import exceptions
+from homeassistant import config_entries, exceptions
 from homeassistant.components import ssdp
-from homeassistant.config_entries import (
-    CONN_CLASS_CLOUD_POLL,
-    ConfigEntry,
-    ConfigFlow,
-    OptionsFlow,
-)
 from homeassistant.const import (
     CONF_DISKS,
     CONF_HOST,
@@ -37,9 +28,7 @@ from homeassistant.const import (
     CONF_VERIFY_SSL,
 )
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import FlowResult
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.typing import DiscoveryInfoType
 
 from .const import (
     CONF_DEVICE_TOKEN,
@@ -58,11 +47,11 @@ _LOGGER = logging.getLogger(__name__)
 CONF_OTP_CODE = "otp_code"
 
 
-def _discovery_schema_with_defaults(discovery_info: DiscoveryInfoType) -> vol.Schema:
+def _discovery_schema_with_defaults(discovery_info):
     return vol.Schema(_ordered_shared_schema(discovery_info))
 
 
-def _user_schema_with_defaults(user_input: dict[str, Any]) -> vol.Schema:
+def _user_schema_with_defaults(user_input):
     user_schema = {
         vol.Required(CONF_HOST, default=user_input.get(CONF_HOST, "")): str,
     }
@@ -71,9 +60,7 @@ def _user_schema_with_defaults(user_input: dict[str, Any]) -> vol.Schema:
     return vol.Schema(user_schema)
 
 
-def _ordered_shared_schema(
-    schema_input: dict[str, Any]
-) -> dict[vol.Required | vol.Optional, Any]:
+def _ordered_shared_schema(schema_input):
     return {
         vol.Required(CONF_USERNAME, default=schema_input.get(CONF_USERNAME, "")): str,
         vol.Required(CONF_PASSWORD, default=schema_input.get(CONF_PASSWORD, "")): str,
@@ -88,30 +75,24 @@ def _ordered_shared_schema(
     }
 
 
-class SynologyDSMFlowHandler(ConfigFlow, domain=DOMAIN):
+class SynologyDSMFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow."""
 
     VERSION = 1
-    CONNECTION_CLASS = CONN_CLASS_CLOUD_POLL
+    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     @staticmethod
     @callback
-    def async_get_options_flow(
-        config_entry: ConfigEntry,
-    ) -> SynologyDSMOptionsFlowHandler:
+    def async_get_options_flow(config_entry):
         """Get the options flow for this handler."""
         return SynologyDSMOptionsFlowHandler(config_entry)
 
-    def __init__(self) -> None:
+    def __init__(self):
         """Initialize the synology_dsm config flow."""
-        self.saved_user_input: dict[str, Any] = {}
-        self.discovered_conf: dict[str, Any] = {}
+        self.saved_user_input = {}
+        self.discovered_conf = {}
 
-    async def _show_setup_form(
-        self,
-        user_input: dict[str, Any] | None = None,
-        errors: dict[str, str] | None = None,
-    ) -> FlowResult:
+    async def _show_setup_form(self, user_input=None, errors=None):
         """Show the setup form to the user."""
         if not user_input:
             user_input = {}
@@ -131,9 +112,7 @@ class SynologyDSMFlowHandler(ConfigFlow, domain=DOMAIN):
             description_placeholders=self.discovered_conf or {},
         )
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_user(self, user_input=None):
         """Handle a flow initiated by the user."""
         errors = {}
 
@@ -210,7 +189,7 @@ class SynologyDSMFlowHandler(ConfigFlow, domain=DOMAIN):
 
         return self.async_create_entry(title=host, data=config_data)
 
-    async def async_step_ssdp(self, discovery_info: DiscoveryInfoType) -> FlowResult:
+    async def async_step_ssdp(self, discovery_info):
         """Handle a discovered synology_dsm."""
         parsed_url = urlparse(discovery_info[ssdp.ATTR_SSDP_LOCATION])
         friendly_name = (
@@ -233,19 +212,15 @@ class SynologyDSMFlowHandler(ConfigFlow, domain=DOMAIN):
         self.context["title_placeholders"] = self.discovered_conf
         return await self.async_step_user()
 
-    async def async_step_import(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_import(self, user_input=None):
         """Import a config entry."""
         return await self.async_step_user(user_input)
 
-    async def async_step_link(self, user_input: dict[str, Any]) -> FlowResult:
+    async def async_step_link(self, user_input):
         """Link a config entry from discovery."""
         return await self.async_step_user(user_input)
 
-    async def async_step_2sa(
-        self, user_input: dict[str, Any], errors: dict[str, str] | None = None
-    ) -> FlowResult:
+    async def async_step_2sa(self, user_input, errors=None):
         """Enter 2SA code to anthenticate."""
         if not self.saved_user_input:
             self.saved_user_input = user_input
@@ -262,7 +237,7 @@ class SynologyDSMFlowHandler(ConfigFlow, domain=DOMAIN):
 
         return await self.async_step_user(user_input)
 
-    def _mac_already_configured(self, mac: str) -> bool:
+    def _mac_already_configured(self, mac):
         """See if we already have configured a NAS with this MAC address."""
         existing_macs = [
             mac.replace("-", "")
@@ -272,16 +247,14 @@ class SynologyDSMFlowHandler(ConfigFlow, domain=DOMAIN):
         return mac in existing_macs
 
 
-class SynologyDSMOptionsFlowHandler(OptionsFlow):
+class SynologyDSMOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle a option flow."""
 
-    def __init__(self, config_entry: ConfigEntry) -> None:
+    def __init__(self, config_entry: config_entries.ConfigEntry):
         """Initialize options flow."""
         self.config_entry = config_entry
 
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_init(self, user_input=None):
         """Handle options flow."""
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
@@ -305,7 +278,7 @@ class SynologyDSMOptionsFlowHandler(OptionsFlow):
         return self.async_show_form(step_id="init", data_schema=data_schema)
 
 
-def _login_and_fetch_syno_info(api: SynologyDSM, otp_code: str) -> str:
+def _login_and_fetch_syno_info(api, otp_code):
     """Login to the NAS and fetch basic data."""
     # These do i/o
     api.login(otp_code)
@@ -321,7 +294,7 @@ def _login_and_fetch_syno_info(api: SynologyDSM, otp_code: str) -> str:
     ):
         raise InvalidData
 
-    return api.information.serial  # type: ignore[no-any-return]
+    return api.information.serial
 
 
 class InvalidData(exceptions.HomeAssistantError):

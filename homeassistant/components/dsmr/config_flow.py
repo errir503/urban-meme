@@ -123,6 +123,7 @@ class DSMRFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for DSMR."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
 
     @staticmethod
     @callback
@@ -149,8 +150,8 @@ class DSMRFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         and reload_on_update
                         and entry.state
                         in (
-                            config_entries.ConfigEntryState.LOADED,
-                            config_entries.ConfigEntryState.SETUP_RETRY,
+                            config_entries.ENTRY_STATE_LOADED,
+                            config_entries.ENTRY_STATE_SETUP_RETRY,
                         )
                     ):
                         self.hass.async_create_task(

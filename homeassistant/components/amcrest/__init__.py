@@ -201,15 +201,11 @@ def _monitor_events(hass, name, api, event_codes):
     while True:
         api.available_flag.wait()
         try:
-            for code, payload in api.event_actions("All", retries=5):
-                event_data = {"camera": name, "event": code, "payload": payload}
+            for code, start in api.event_actions("All", retries=5):
+                event_data = {"camera": name, "event": code, "payload": start}
                 hass.bus.fire("amcrest", event_data)
                 if code in event_codes:
                     signal = service_signal(SERVICE_EVENT, name, code)
-                    start = any(
-                        str(key).lower() == "action" and str(val).lower() == "start"
-                        for key, val in payload.items()
-                    )
                     _LOGGER.debug("Sending signal: '%s': %s", signal, start)
                     dispatcher_send(hass, signal, start)
         except AmcrestError as error:

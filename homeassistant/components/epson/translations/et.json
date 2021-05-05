@@ -1,14 +1,14 @@
 {
     "config": {
         "error": {
-            "cannot_connect": "\u00dchendamine nurjus",
-            "powered_off": "Kas projektor on sisse l\u00fclitatud? Esmaseks seadistamiseks pead projektori sisse l\u00fclitama."
+            "cannot_connect": "\u00dchendamine nurjus"
         },
         "step": {
             "user": {
                 "data": {
                     "host": "Host",
-                    "name": "Nimi"
+                    "name": "Nimi",
+                    "port": "Port"
                 }
             }
         }

@@ -5,17 +5,13 @@
             "reauth_successful": "Die erneute Authentifizierung war erfolgreich"
         },
         "error": {
-            "invalid_auth": "Ung\u00fcltige Authentifizierung",
-            "usercode": "Der Benutzercode ist an dieser Stelle f\u00fcr diesen Benutzer nicht g\u00fcltig"
+            "invalid_auth": "Ung\u00fcltige Authentifizierung"
         },
         "step": {
             "locations": {
                 "data": {
-                    "location": "Standort",
-                    "usercode": "Benutzercode"
-                },
-                "description": "Geben Sie den Benutzercode f\u00fcr den Benutzer {location_id} an dieser Stelle ein",
-                "title": "Standort-Benutzercodes"
+                    "location": "Standort"
+                }
             },
             "reauth_confirm": {
                 "description": "Total Connect muss dein Konto neu authentifizieren",

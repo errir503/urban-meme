@@ -3,32 +3,15 @@ from __future__ import annotations
 
 import math
 
-from aioesphomeapi import (
-    SensorInfo,
-    SensorState,
-    SensorStateClass,
-    TextSensorInfo,
-    TextSensorState,
-)
+from aioesphomeapi import SensorInfo, SensorState, TextSensorInfo, TextSensorState
 import voluptuous as vol
 
-from homeassistant.components.sensor import (
-    DEVICE_CLASS_TIMESTAMP,
-    DEVICE_CLASSES,
-    STATE_CLASS_MEASUREMENT,
-    SensorEntity,
-)
+from homeassistant.components.sensor import DEVICE_CLASSES, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
-from homeassistant.util import dt
 
-from . import (
-    EsphomeEntity,
-    esphome_map_enum,
-    esphome_state_property,
-    platform_async_setup_entry,
-)
+from . import EsphomeEntity, esphome_state_property, platform_async_setup_entry
 
 ICON_SCHEMA = vol.Schema(cv.icon)
 
@@ -61,14 +44,6 @@ async def async_setup_entry(
 # pylint: disable=invalid-overridden-method
 
 
-@esphome_map_enum
-def _state_classes():
-    return {
-        SensorStateClass.NONE: None,
-        SensorStateClass.MEASUREMENT: STATE_CLASS_MEASUREMENT,
-    }
-
-
 class EsphomeSensor(EsphomeEntity, SensorEntity):
     """A sensor implementation for esphome."""
 
@@ -99,8 +74,6 @@ class EsphomeSensor(EsphomeEntity, SensorEntity):
             return None
         if self._state.missing_state:
             return None
-        if self.device_class == DEVICE_CLASS_TIMESTAMP:
-            return dt.utc_from_timestamp(self._state.state).isoformat()
         return f"{self._state.state:.{self._static_info.accuracy_decimals}f}"
 
     @property
@@ -116,13 +89,6 @@ class EsphomeSensor(EsphomeEntity, SensorEntity):
         if self._static_info.device_class not in DEVICE_CLASSES:
             return None
         return self._static_info.device_class
-
-    @property
-    def state_class(self) -> str | None:
-        """Return the state class of this entity."""
-        if not self._static_info.state_class:
-            return None
-        return _state_classes.from_esphome(self._static_info.state_class)
 
 
 class EsphomeTextSensor(EsphomeEntity, SensorEntity):

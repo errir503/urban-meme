@@ -37,12 +37,12 @@ from .legacy import (  # noqa: F401
 
 
 @bind_hass
-def is_on(hass: HomeAssistant, entity_id: str) -> bool:
+def is_on(hass: HomeAssistant, entity_id: str):
     """Return the state if any or a specified device is home."""
     return hass.states.is_state(entity_id, STATE_HOME)
 
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+async def async_setup(hass: HomeAssistant, config: ConfigType):
     """Set up the device tracker."""
     await async_setup_legacy_integration(hass, config)
 

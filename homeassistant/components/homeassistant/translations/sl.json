@@ -4,6 +4,7 @@
             "arch": "Arhitektura CPU",
             "dev": "Razvoj",
             "docker": "Docker",
+            "docker_version": "Docker",
             "hassio": "Nadzornik",
             "installation_type": "Vrsta namestitve",
             "os_version": "Razli\u010dica operacijskega sistema",

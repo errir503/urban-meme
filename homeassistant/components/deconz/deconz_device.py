@@ -58,12 +58,15 @@ class DeconzDevice(DeconzBase, Entity):
         self.gateway.entities[self.TYPE].add(self.unique_id)
 
     @property
-    def entity_registry_enabled_default(self) -> bool:
+    def entity_registry_enabled_default(self):
         """Return if the entity should be enabled when first added to the entity registry.
 
         Daylight is a virtual sensor from deCONZ that should never be enabled by default.
         """
-        return self._device.type != "Daylight"
+        if self._device.type == "Daylight":
+            return False
+
+        return True
 
     async def async_added_to_hass(self):
         """Subscribe to device events."""

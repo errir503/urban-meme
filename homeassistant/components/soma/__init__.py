@@ -15,14 +15,11 @@ from .const import API, DOMAIN, HOST, PORT
 DEVICES = "devices"
 
 CONFIG_SCHEMA = vol.Schema(
-    vol.All(
-        cv.deprecated(DOMAIN),
-        {
-            DOMAIN: vol.Schema(
-                {vol.Required(CONF_HOST): cv.string, vol.Required(CONF_PORT): cv.string}
-            )
-        },
-    ),
+    {
+        DOMAIN: vol.Schema(
+            {vol.Required(CONF_HOST): cv.string, vol.Required(CONF_PORT): cv.string}
+        )
+    },
     extra=vol.ALLOW_EXTRA,
 )
 
@@ -45,7 +42,7 @@ async def async_setup(hass, config):
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up Soma from a config entry."""
     hass.data[DOMAIN] = {}
     hass.data[DOMAIN][API] = SomaApi(entry.data[HOST], entry.data[PORT])

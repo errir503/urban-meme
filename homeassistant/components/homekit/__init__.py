@@ -231,7 +231,7 @@ def _async_update_config_entry_if_from_yaml(hass, entries_by_name, conf):
     return False
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up HomeKit from a config entry."""
     _async_import_options_from_data_if_missing(hass, entry)
 
@@ -297,7 +297,7 @@ async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry):
     await hass.config_entries.async_reload(entry.entry_id)
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Unload a config entry."""
     dismiss_setup_message(hass, entry.entry_id)
     homekit = hass.data[DOMAIN][entry.entry_id][HOMEKIT]
@@ -456,7 +456,7 @@ class HomeKit:
         self.bridge = None
         self.driver = None
 
-    def setup(self, async_zeroconf_instance):
+    def setup(self, zeroconf_instance):
         """Set up bridge and accessory driver."""
         ip_addr = self._ip_address or get_local_ip()
         persist_file = get_persist_fullpath_for_entry_id(self.hass, self._entry_id)
@@ -471,7 +471,7 @@ class HomeKit:
             port=self._port,
             persist_file=persist_file,
             advertised_address=self._advertise_ip,
-            async_zeroconf_instance=async_zeroconf_instance,
+            zeroconf_instance=zeroconf_instance,
         )
 
         # If we do not load the mac address will be wrong
@@ -595,8 +595,8 @@ class HomeKit:
         if self.status != STATUS_READY:
             return
         self.status = STATUS_WAIT
-        async_zc_instance = await zeroconf.async_get_async_instance(self.hass)
-        await self.hass.async_add_executor_job(self.setup, async_zc_instance)
+        zc_instance = await zeroconf.async_get_instance(self.hass)
+        await self.hass.async_add_executor_job(self.setup, zc_instance)
         self.aid_storage = AccessoryAidStorage(self.hass, self._entry_id)
         await self.aid_storage.async_initialize()
         await self._async_create_accessories()
@@ -675,8 +675,7 @@ class HomeKit:
                 self.add_bridge_accessory(state)
             acc = self.bridge
 
-        # No need to load/persist as we do it in setup
-        self.driver.accessory = acc
+        await self.hass.async_add_executor_job(self.driver.add_accessory, acc)
 
     async def async_stop(self, *args):
         """Stop the accessory driver."""

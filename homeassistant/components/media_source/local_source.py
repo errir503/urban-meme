@@ -30,7 +30,7 @@ class LocalSource(MediaSource):
 
     name: str = "Local Media"
 
-    def __init__(self, hass: HomeAssistant) -> None:
+    def __init__(self, hass: HomeAssistant):
         """Initialize local source."""
         super().__init__(DOMAIN)
         self.hass = hass
@@ -183,7 +183,7 @@ class LocalMediaView(HomeAssistantView):
     url = "/media/{source_dir_id}/{location:.*}"
     name = "media"
 
-    def __init__(self, hass: HomeAssistant, source: LocalSource) -> None:
+    def __init__(self, hass: HomeAssistant, source: LocalSource):
         """Initialize the media view."""
         self.hass = hass
         self.source = source

@@ -85,21 +85,63 @@ async def async_get_conditions(hass: HomeAssistant, device_id: str) -> list[dict
         supports_open_close = supported_features & (SUPPORT_OPEN | SUPPORT_CLOSE)
 
         # Add conditions for each entity that belongs to this integration
-        base_condition = {
-            CONF_CONDITION: "device",
-            CONF_DEVICE_ID: device_id,
-            CONF_DOMAIN: DOMAIN,
-            CONF_ENTITY_ID: entry.entity_id,
-        }
-
         if supports_open_close:
-            conditions += [
-                {**base_condition, CONF_TYPE: cond} for cond in STATE_CONDITION_TYPES
-            ]
+            conditions.append(
+                {
+                    CONF_CONDITION: "device",
+                    CONF_DEVICE_ID: device_id,
+                    CONF_DOMAIN: DOMAIN,
+                    CONF_ENTITY_ID: entry.entity_id,
+                    CONF_TYPE: "is_open",
+                }
+            )
+            conditions.append(
+                {
+                    CONF_CONDITION: "device",
+                    CONF_DEVICE_ID: device_id,
+                    CONF_DOMAIN: DOMAIN,
+                    CONF_ENTITY_ID: entry.entity_id,
+                    CONF_TYPE: "is_closed",
+                }
+            )
+            conditions.append(
+                {
+                    CONF_CONDITION: "device",
+                    CONF_DEVICE_ID: device_id,
+                    CONF_DOMAIN: DOMAIN,
+                    CONF_ENTITY_ID: entry.entity_id,
+                    CONF_TYPE: "is_opening",
+                }
+            )
+            conditions.append(
+                {
+                    CONF_CONDITION: "device",
+                    CONF_DEVICE_ID: device_id,
+                    CONF_DOMAIN: DOMAIN,
+                    CONF_ENTITY_ID: entry.entity_id,
+                    CONF_TYPE: "is_closing",
+                }
+            )
         if supported_features & SUPPORT_SET_POSITION:
-            conditions.append({**base_condition, CONF_TYPE: "is_position"})
+            conditions.append(
+                {
+                    CONF_CONDITION: "device",
+                    CONF_DEVICE_ID: device_id,
+                    CONF_DOMAIN: DOMAIN,
+                    CONF_ENTITY_ID: entry.entity_id,
+                    CONF_TYPE: "is_position",
+                }
+            )
         if supported_features & SUPPORT_SET_TILT_POSITION:
-            conditions.append({**base_condition, CONF_TYPE: "is_tilt_position"})
+            conditions.append(
+                {
+                    CONF_CONDITION: "device",
+                    CONF_DEVICE_ID: device_id,
+                    CONF_DOMAIN: DOMAIN,
+                    CONF_ENTITY_ID: entry.entity_id,
+                    CONF_TYPE: "is_tilt_position",
+                }
+            )
 
     return conditions
 

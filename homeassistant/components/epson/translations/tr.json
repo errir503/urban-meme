@@ -7,7 +7,8 @@
             "user": {
                 "data": {
                     "host": "Ana Bilgisayar",
-                    "name": "\u0130sim"
+                    "name": "\u0130sim",
+                    "port": "Port"
                 }
             }
         }

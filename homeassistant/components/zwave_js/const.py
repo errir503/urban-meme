@@ -44,8 +44,6 @@ ATTR_DATA_TYPE = "data_type"
 ATTR_WAIT_FOR_RESULT = "wait_for_result"
 
 # service constants
-ATTR_NODES = "nodes"
-
 SERVICE_SET_CONFIG_PARAMETER = "set_config_parameter"
 SERVICE_BULK_SET_PARTIAL_CONFIG_PARAMETERS = "bulk_set_partial_config_parameters"
 
@@ -58,8 +56,5 @@ SERVICE_REFRESH_VALUE = "refresh_value"
 ATTR_REFRESH_ALL_VALUES = "refresh_all_values"
 
 SERVICE_SET_VALUE = "set_value"
-SERVICE_MULTICAST_SET_VALUE = "multicast_set_value"
-
-ATTR_BROADCAST = "broadcast"
 
 ADDON_SLUG = "core_zwave_js"

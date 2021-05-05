@@ -9,7 +9,7 @@
             "invalid_auth": "Ugyldig godkjenning",
             "invalid_zone": "Ugyldig sone"
         },
-        "flow_title": "{name}",
+        "flow_title": "Cloudflare: {name}",
         "step": {
             "records": {
                 "data": {

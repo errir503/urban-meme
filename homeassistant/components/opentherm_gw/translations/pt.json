@@ -12,5 +12,14 @@
                 }
             }
         }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "precision": "Precis\u00e3o"
+                }
+            }
+        }
     }
 }

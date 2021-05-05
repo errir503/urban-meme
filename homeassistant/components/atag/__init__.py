@@ -11,7 +11,6 @@ from homeassistant.components.water_heater import DOMAIN as WATER_HEATER
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -24,7 +23,7 @@ DOMAIN = "atag"
 PLATFORMS = [CLIMATE, WATER_HEATER, SENSOR]
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up Atag integration from a config entry."""
 
     async def _async_update_data():
@@ -78,7 +77,7 @@ class AtagEntity(CoordinatorEntity):
         self._name = DOMAIN.title()
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> dict:
         """Return info for device registry."""
         device = self.coordinator.data.id
         version = self.coordinator.data.apiversion

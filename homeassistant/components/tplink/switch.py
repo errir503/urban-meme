@@ -1,12 +1,8 @@
 """Support for TPLink HS100/HS110/HS200 smart switch."""
-from __future__ import annotations
-
 import asyncio
-from collections.abc import Mapping
 from contextlib import suppress
 import logging
 import time
-from typing import Any
 
 from pyHS100 import SmartDeviceException, SmartPlug
 
@@ -15,13 +11,10 @@ from homeassistant.components.switch import (
     ATTR_TODAY_ENERGY_KWH,
     SwitchEntity,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_VOLTAGE
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import PlatformNotReady
 import homeassistant.helpers.device_registry as dr
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import CONF_SWITCH, DOMAIN as TPLINK_DOMAIN
 from .common import add_available_devices
@@ -37,11 +30,7 @@ MAX_ATTEMPTS = 300
 SLEEP_TIME = 2
 
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
+async def async_setup_entry(hass: HomeAssistant, config_entry, async_add_entities):
     """Set up switches."""
     entities = await hass.async_add_executor_job(
         add_available_devices, hass, CONF_SWITCH, SmartPlugSwitch
@@ -57,7 +46,7 @@ async def async_setup_entry(
 class SmartPlugSwitch(SwitchEntity):
     """Representation of a TPLink Smart Plug switch."""
 
-    def __init__(self, smartplug: SmartPlug) -> None:
+    def __init__(self, smartplug: SmartPlug):
         """Initialize the switch."""
         self.smartplug = smartplug
         self._sysinfo = None
@@ -73,17 +62,17 @@ class SmartPlugSwitch(SwitchEntity):
         self._host = None
 
     @property
-    def unique_id(self) -> str | None:
+    def unique_id(self):
         """Return a unique ID."""
         return self._device_id
 
     @property
-    def name(self) -> str | None:
+    def name(self):
         """Return the name of the Smart Plug."""
         return self._alias
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self):
         """Return information about the device."""
         return {
             "name": self._alias,
@@ -99,37 +88,37 @@ class SmartPlugSwitch(SwitchEntity):
         return self._is_available
 
     @property
-    def is_on(self) -> bool | None:
+    def is_on(self):
         """Return true if switch is on."""
         return self._state
 
-    def turn_on(self, **kwargs: Any) -> None:
+    def turn_on(self, **kwargs):
         """Turn the switch on."""
         self.smartplug.turn_on()
 
-    def turn_off(self, **kwargs: Any) -> None:
+    def turn_off(self, **kwargs):
         """Turn the switch off."""
         self.smartplug.turn_off()
 
     @property
-    def extra_state_attributes(self) -> Mapping[str, Any] | None:
+    def extra_state_attributes(self):
         """Return the state attributes of the device."""
         return self._emeter_params
 
     @property
-    def _plug_from_context(self) -> Any:
+    def _plug_from_context(self):
         """Return the plug from the context."""
         children = self.smartplug.sys_info["children"]
         return next(c for c in children if c["id"] == self.smartplug.context)
 
-    def update_state(self) -> None:
+    def update_state(self):
         """Update the TP-Link switch's state."""
         if self.smartplug.context is None:
             self._state = self.smartplug.state == self.smartplug.SWITCH_STATE_ON
         else:
             self._state = self._plug_from_context["state"] == 1
 
-    def attempt_update(self, update_attempt: int) -> bool:
+    def attempt_update(self, update_attempt):
         """Attempt to get details from the TP-Link switch."""
         try:
             if not self._sysinfo:
@@ -179,7 +168,7 @@ class SmartPlugSwitch(SwitchEntity):
                 )
             return False
 
-    async def async_update(self) -> None:
+    async def async_update(self):
         """Update the TP-Link switch's state."""
         for update_attempt in range(MAX_ATTEMPTS):
             is_ready = await self.hass.async_add_executor_job(

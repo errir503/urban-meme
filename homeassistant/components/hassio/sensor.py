@@ -1,10 +1,12 @@
 """Sensor platform for Hass.io addons."""
 from __future__ import annotations
 
+from typing import Callable
+
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import Entity
 
 from . import ADDONS_COORDINATOR
 from .const import ATTR_VERSION, ATTR_VERSION_LATEST
@@ -14,7 +16,7 @@ from .entity import HassioAddonEntity, HassioOSEntity
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[list[Entity], bool], None],
 ) -> None:
     """Sensor set up for Hass.io config entry."""
     coordinator = hass.data[ADDONS_COORDINATOR]

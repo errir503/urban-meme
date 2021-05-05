@@ -15,14 +15,13 @@ import homeassistant.util.dt as dt_util
 class TraceElement:
     """Container for trace data."""
 
-    def __init__(self, variables: TemplateVarsType, path: str) -> None:
+    def __init__(self, variables: TemplateVarsType, path: str):
         """Container for trace data."""
         self._child_key: tuple[str, str] | None = None
         self._child_run_id: str | None = None
         self._error: Exception | None = None
         self.path: str = path
         self._result: dict | None = None
-        self.reuse_by_child = False
         self._timestamp = dt_util.utcnow()
 
         if variables is None:
@@ -197,12 +196,6 @@ def trace_set_result(**kwargs: Any) -> None:
     """Set the result of TraceElement at the top of the stack."""
     node = cast(TraceElement, trace_stack_top(trace_stack_cv))
     node.set_result(**kwargs)
-
-
-def trace_update_result(**kwargs: Any) -> None:
-    """Update the result of TraceElement at the top of the stack."""
-    node = cast(TraceElement, trace_stack_top(trace_stack_cv))
-    node.update_result(**kwargs)
 
 
 class StopReason:

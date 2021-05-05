@@ -1,6 +1,7 @@
 """Config flow for xbox."""
 import logging
 
+from homeassistant import config_entries
 from homeassistant.helpers import config_entry_oauth2_flow
 
 from .const import DOMAIN
@@ -12,6 +13,7 @@ class OAuth2FlowHandler(
     """Config flow to handle xbox OAuth2 authentication."""
 
     DOMAIN = DOMAIN
+    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     @property
     def logger(self) -> logging.Logger:

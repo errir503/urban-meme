@@ -40,7 +40,12 @@ from .const import (
     VAR_UNITS,
     VARIABLES,
 )
-from .helpers import get_device_connection, is_address, is_states_string
+from .helpers import (
+    get_device_connection,
+    is_address,
+    is_key_lock_states_string,
+    is_relays_states_string,
+)
 
 
 class LcnServiceCall:
@@ -145,7 +150,9 @@ class OutputToggle(LcnServiceCall):
 class Relays(LcnServiceCall):
     """Set the relays status."""
 
-    schema = LcnServiceCall.schema.extend({vol.Required(CONF_STATE): is_states_string})
+    schema = LcnServiceCall.schema.extend(
+        {vol.Required(CONF_STATE): is_relays_states_string}
+    )
 
     async def async_call_service(self, service):
         """Execute service call."""
@@ -323,7 +330,7 @@ class LockKeys(LcnServiceCall):
             vol.Optional(CONF_TABLE, default="a"): vol.All(
                 vol.Upper, cv.matches_regex(r"^[A-D]$")
             ),
-            vol.Required(CONF_STATE): is_states_string,
+            vol.Required(CONF_STATE): is_key_lock_states_string,
             vol.Optional(CONF_TIME, default=0): cv.positive_int,
             vol.Optional(CONF_TIME_UNIT, default=TIME_SECONDS): vol.All(
                 vol.Upper, vol.In(TIME_UNITS)
@@ -354,7 +361,7 @@ class LockKeys(LcnServiceCall):
         else:
             await device_connection.lock_keys(table_id, states)
 
-        handler = device_connection.status_requests_handler
+        handler = device_connection.status_request_handler
         await handler.request_status_locked_keys_timeout()
 
 

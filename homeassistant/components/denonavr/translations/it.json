@@ -10,7 +10,7 @@
         "error": {
             "discovery_error": "Impossibile rilevare un ricevitore di rete Denon AVR"
         },
-        "flow_title": "{name}",
+        "flow_title": "Ricevitore di rete Denon AVR: {name}",
         "step": {
             "confirm": {
                 "description": "Si prega di confermare l'aggiunta del ricevitore",
