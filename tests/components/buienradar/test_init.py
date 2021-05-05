@@ -3,7 +3,6 @@ from unittest.mock import patch
 
 from homeassistant import setup
 from homeassistant.components.buienradar.const import DOMAIN
-from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE
 from homeassistant.helpers.entity_registry import async_get_registry
 
@@ -40,7 +39,7 @@ async def test_import_all(hass):
 
     entry = conf_entries[0]
 
-    assert entry.state is ConfigEntryState.LOADED
+    assert entry.state == "loaded"
     assert entry.data == {
         "latitude": hass.config.latitude,
         "longitude": hass.config.longitude,
@@ -78,7 +77,7 @@ async def test_import_camera(hass):
 
     entry = conf_entries[0]
 
-    assert entry.state is ConfigEntryState.LOADED
+    assert entry.state == "loaded"
     assert entry.data == {
         "latitude": hass.config.latitude,
         "longitude": hass.config.longitude,
@@ -113,9 +112,9 @@ async def test_load_unload(aioclient_mock, hass):
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert entry.state is ConfigEntryState.LOADED
+    assert entry.state == "loaded"
 
     await hass.config_entries.async_unload(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert entry.state is ConfigEntryState.NOT_LOADED
+    assert entry.state == "not_loaded"
