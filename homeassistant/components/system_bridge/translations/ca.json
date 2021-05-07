@@ -10,7 +10,7 @@
             "invalid_auth": "Autenticaci\u00f3 inv\u00e0lida",
             "unknown": "Error inesperat"
         },
-        "flow_title": "{name}",
+        "flow_title": "Enlla\u00e7 de sistema: {name}",
         "step": {
             "authenticate": {
                 "data": {
