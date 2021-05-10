@@ -31,7 +31,7 @@ PLATFORMS = ["air_quality", "sensor"]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Nettigo as config entry."""
-    host: str = entry.data[CONF_HOST]
+    host = entry.data[CONF_HOST]
 
     websession = async_get_clientsession(hass)
 

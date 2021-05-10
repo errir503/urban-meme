@@ -10,7 +10,7 @@
             "invalid_auth": "Ugyldig godkjenning",
             "unknown": "Uventet feil"
         },
-        "flow_title": "{name}",
+        "flow_title": "System Bridge: {name}",
         "step": {
             "authenticate": {
                 "data": {
