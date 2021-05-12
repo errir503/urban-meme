@@ -10,7 +10,7 @@
             "otp_failed": "Kaheastmeline autentimine nurjus, proovi uuesti uue p\u00e4\u00e4sukoodiga",
             "unknown": "Tundmatu viga"
         },
-        "flow_title": "{name} ({host})",
+        "flow_title": "",
         "step": {
             "2sa": {
                 "data": {

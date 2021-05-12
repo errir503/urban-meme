@@ -11,6 +11,7 @@
             "user": {
                 "data": {
                     "host": "Hostitel",
+                    "pin": "PIN k\u00f3d",
                     "port": "Port"
                 }
             }

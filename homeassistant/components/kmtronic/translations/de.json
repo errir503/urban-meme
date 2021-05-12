@@ -17,14 +17,5 @@
                 }
             }
         }
-    },
-    "options": {
-        "step": {
-            "init": {
-                "data": {
-                    "reverse": "Umgekehrte Schalterlogik (NC verwenden)"
-                }
-            }
-        }
     }
 }

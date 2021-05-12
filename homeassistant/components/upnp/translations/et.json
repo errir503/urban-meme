@@ -9,7 +9,7 @@
             "one": "\u00fcks",
             "other": "Teine"
         },
-        "flow_title": "{name}",
+        "flow_title": "UPnP / IGD: {name}",
         "step": {
             "init": {
                 "one": "\u00dcks",

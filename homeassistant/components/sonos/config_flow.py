@@ -1,6 +1,7 @@
 """Config flow for SONOS."""
 import pysonos
 
+from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_entry_flow
 
@@ -13,4 +14,6 @@ async def _async_has_devices(hass: HomeAssistant) -> bool:
     return bool(result)
 
 
-config_entry_flow.register_discovery_flow(DOMAIN, "Sonos", _async_has_devices)
+config_entry_flow.register_discovery_flow(
+    DOMAIN, "Sonos", _async_has_devices, config_entries.CONN_CLASS_LOCAL_PUSH
+)

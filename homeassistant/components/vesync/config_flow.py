@@ -17,10 +17,12 @@ def configured_instances(hass):
     return hass.config_entries.async_entries(DOMAIN)
 
 
-class VeSyncFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+@config_entries.HANDLERS.register(DOMAIN)
+class VeSyncFlowHandler(config_entries.ConfigFlow):
     """Handle a config flow."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self):
         """Instantiate config flow."""

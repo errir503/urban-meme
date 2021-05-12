@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from typing import Any
 
 from directv import DIRECTV, DIRECTVError
 
@@ -11,7 +12,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.entity import DeviceInfo, Entity
+from homeassistant.helpers.entity import Entity
 
 from .const import (
     ATTR_IDENTIFIERS,
@@ -71,7 +72,7 @@ class DIRECTVEntity(Entity):
         return self._name
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> dict[str, Any]:
         """Return device information about this DirecTV receiver."""
         return {
             ATTR_IDENTIFIERS: {(DOMAIN, self._device_id)},

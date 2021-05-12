@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any
 
 from aioshelly import Block
 import async_timeout
@@ -213,7 +212,7 @@ class ShellyLight(ShellyBlockEntity, LightEntity):
 
         set_mode = None
         supported_color_modes = self._supported_color_modes
-        params: dict[str, Any] = {"turn": "on"}
+        params = {"turn": "on"}
 
         if ATTR_BRIGHTNESS in kwargs and brightness_supported(supported_color_modes):
             brightness_pct = int(100 * (kwargs[ATTR_BRIGHTNESS] + 1) / 255)

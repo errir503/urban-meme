@@ -11,6 +11,7 @@
             "user": {
                 "data": {
                     "host": "Host",
+                    "pin": "PIN kood",
                     "port": "Port"
                 }
             }

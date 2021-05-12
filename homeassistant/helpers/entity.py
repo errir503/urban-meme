@@ -10,7 +10,7 @@ import logging
 import math
 import sys
 from timeit import default_timer as timer
-from typing import Any, TypedDict
+from typing import Any
 
 from homeassistant.config import DATA_CUSTOMIZE
 from homeassistant.const import (
@@ -110,23 +110,6 @@ def get_supported_features(hass: HomeAssistant, entity_id: str) -> int:
     return entry.supported_features or 0
 
 
-class DeviceInfo(TypedDict, total=False):
-    """Entity device information for device registry."""
-
-    name: str
-    connections: set[tuple[str, str]]
-    identifiers: set[tuple[str, str]]
-    manufacturer: str
-    model: str
-    suggested_area: str
-    sw_version: str
-    via_device: tuple[str, str]
-    entry_type: str | None
-    default_name: str
-    default_manufacturer: str
-    default_model: str
-
-
 class Entity(ABC):
     """An abstract class for Home Assistant entities."""
 
@@ -138,6 +121,7 @@ class Entity(ABC):
     # Owning hass instance. Will be set by EntityPlatform
     # While not purely typed, it makes typehinting more useful for us
     # and removes the need for constant None checks or asserts.
+    # Ignore types: https://github.com/PyCQA/pylint/issues/3167
     hass: HomeAssistant = None  # type: ignore
 
     # Owning platform instance. Will be set by EntityPlatform
@@ -230,7 +214,7 @@ class Entity(ABC):
         return None
 
     @property
-    def device_info(self) -> DeviceInfo | None:
+    def device_info(self) -> Mapping[str, Any] | None:
         """Return device specific attributes.
 
         Implemented by platform classes.

@@ -8,17 +8,20 @@ from pymodbus.exceptions import ModbusException
 from pymodbus.transaction import ModbusRtuFramer
 
 from homeassistant.const import (
+    CONF_BINARY_SENSORS,
+    CONF_COVERS,
     CONF_DELAY,
     CONF_HOST,
     CONF_METHOD,
     CONF_NAME,
     CONF_PORT,
+    CONF_SENSORS,
+    CONF_SWITCHES,
     CONF_TIMEOUT,
     CONF_TYPE,
     EVENT_HOMEASSISTANT_STOP,
 )
 from homeassistant.helpers.discovery import load_platform
-from homeassistant.helpers.event import call_later
 
 from .const import (
     ATTR_ADDRESS,
@@ -27,12 +30,17 @@ from .const import (
     ATTR_UNIT,
     ATTR_VALUE,
     CONF_BAUDRATE,
+    CONF_BINARY_SENSOR,
     CONF_BYTESIZE,
+    CONF_CLIMATE,
+    CONF_CLIMATES,
+    CONF_COVER,
     CONF_PARITY,
+    CONF_SENSOR,
     CONF_STOPBITS,
+    CONF_SWITCH,
     DEFAULT_HUB,
     MODBUS_DOMAIN as DOMAIN,
-    PLATFORMS,
     SERVICE_WRITE_COIL,
     SERVICE_WRITE_REGISTER,
 )
@@ -51,10 +59,16 @@ def modbus_setup(
 
         # modbus needs to be activated before components are loaded
         # to avoid a racing problem
-        hub_collect[conf_hub[CONF_NAME]].setup(hass)
+        hub_collect[conf_hub[CONF_NAME]].setup()
 
         # load platforms
-        for component, conf_key in PLATFORMS:
+        for component, conf_key in (
+            (CONF_CLIMATE, CONF_CLIMATES),
+            (CONF_COVER, CONF_COVERS),
+            (CONF_BINARY_SENSOR, CONF_BINARY_SENSORS),
+            (CONF_SENSOR, CONF_SENSORS),
+            (CONF_SWITCH, CONF_SWITCHES),
+        ):
             if conf_key in conf_hub:
                 load_platform(hass, component, DOMAIN, conf_hub, config)
 
@@ -94,7 +108,7 @@ def modbus_setup(
             hub_collect[client_name].write_coil(unit, address, state)
 
     # register function to gracefully stop modbus
-    hass.bus.listen_once(EVENT_HOMEASSISTANT_STOP, stop_modbus)
+    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, stop_modbus)
 
     # Register services for modbus
     hass.services.register(
@@ -117,15 +131,15 @@ class ModbusHub:
 
         # generic configuration
         self._client = None
-        self._cancel_listener = None
         self._in_error = False
         self._lock = threading.Lock()
         self._config_name = client_config[CONF_NAME]
         self._config_type = client_config[CONF_TYPE]
         self._config_port = client_config[CONF_PORT]
         self._config_timeout = client_config[CONF_TIMEOUT]
-        self._config_delay = client_config[CONF_DELAY]
-        Defaults.Timeout = client_config[CONF_TIMEOUT]
+        self._config_delay = 0
+
+        Defaults.Timeout = 10
         if self._config_type == "serial":
             # serial configuration
             self._config_method = client_config[CONF_METHOD]
@@ -136,6 +150,10 @@ class ModbusHub:
         else:
             # network configuration
             self._config_host = client_config[CONF_HOST]
+            self._config_delay = client_config[CONF_DELAY]
+
+        if self._config_delay > 0:
+            _LOGGER.warning("Parameter delay is accepted but not used in this version")
 
     @property
     def name(self):
@@ -150,7 +168,7 @@ class ModbusHub:
             _LOGGER.error(log_text)
             self._in_error = error_state
 
-    def setup(self, hass):
+    def setup(self):
         """Set up pymodbus client."""
         try:
             if self._config_type == "serial":
@@ -190,20 +208,8 @@ class ModbusHub:
         # Connect device
         self.connect()
 
-        # Start counting down to allow modbus requests.
-        if self._config_delay:
-            self._cancel_listener = call_later(hass, self._config_delay, self.end_delay)
-
-    def end_delay(self, args):
-        """End startup delay."""
-        self._cancel_listener = None
-        self._config_delay = 0
-
     def close(self):
         """Disconnect client."""
-        if self._cancel_listener:
-            self._cancel_listener()
-            self._cancel_listener = None
         with self._lock:
             try:
                 if self._client:
@@ -224,8 +230,6 @@ class ModbusHub:
 
     def read_coils(self, unit, address, count):
         """Read coils."""
-        if self._config_delay:
-            return None
         with self._lock:
             kwargs = {"unit": unit} if unit else {}
             try:
@@ -241,8 +245,6 @@ class ModbusHub:
 
     def read_discrete_inputs(self, unit, address, count):
         """Read discrete inputs."""
-        if self._config_delay:
-            return None
         with self._lock:
             kwargs = {"unit": unit} if unit else {}
             try:
@@ -257,8 +259,6 @@ class ModbusHub:
 
     def read_input_registers(self, unit, address, count):
         """Read input registers."""
-        if self._config_delay:
-            return None
         with self._lock:
             kwargs = {"unit": unit} if unit else {}
             try:
@@ -273,8 +273,6 @@ class ModbusHub:
 
     def read_holding_registers(self, unit, address, count):
         """Read holding registers."""
-        if self._config_delay:
-            return None
         with self._lock:
             kwargs = {"unit": unit} if unit else {}
             try:
@@ -289,8 +287,6 @@ class ModbusHub:
 
     def write_coil(self, unit, address, value) -> bool:
         """Write coil."""
-        if self._config_delay:
-            return False
         with self._lock:
             kwargs = {"unit": unit} if unit else {}
             try:
@@ -305,8 +301,6 @@ class ModbusHub:
 
     def write_coils(self, unit, address, values) -> bool:
         """Write coil."""
-        if self._config_delay:
-            return False
         with self._lock:
             kwargs = {"unit": unit} if unit else {}
             try:
@@ -321,8 +315,6 @@ class ModbusHub:
 
     def write_register(self, unit, address, value) -> bool:
         """Write register."""
-        if self._config_delay:
-            return False
         with self._lock:
             kwargs = {"unit": unit} if unit else {}
             try:
@@ -337,8 +329,6 @@ class ModbusHub:
 
     def write_registers(self, unit, address, values) -> bool:
         """Write registers."""
-        if self._config_delay:
-            return False
         with self._lock:
             kwargs = {"unit": unit} if unit else {}
             try:

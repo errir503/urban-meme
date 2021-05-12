@@ -14,5 +14,6 @@
             "update_channel": "Kana\u0142 aktualizacji",
             "version_api": "Wersja API"
         }
-    }
+    },
+    "title": "Home Assistant Supervisor"
 }

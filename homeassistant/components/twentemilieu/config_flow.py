@@ -10,6 +10,7 @@ from twentemilieu import (
 )
 import voluptuous as vol
 
+from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlow
 from homeassistant.const import CONF_ID
 from homeassistant.data_entry_flow import FlowResult
@@ -22,6 +23,7 @@ class TwenteMilieuFlowHandler(ConfigFlow, domain=DOMAIN):
     """Handle a Twente Milieu config flow."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     async def _show_setup_form(
         self, errors: dict[str, str] | None = None
@@ -66,7 +68,10 @@ class TwenteMilieuFlowHandler(ConfigFlow, domain=DOMAIN):
             errors["base"] = "invalid_address"
             return await self._show_setup_form(errors)
 
-        self._async_abort_entries_match({CONF_ID: unique_id})
+        entries = self._async_current_entries()
+        for entry in entries:
+            if entry.data[CONF_ID] == unique_id:
+                return self.async_abort(reason="already_configured")
 
         return self.async_create_entry(
             title=str(unique_id),

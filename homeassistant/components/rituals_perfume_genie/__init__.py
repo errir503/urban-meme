@@ -11,7 +11,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .const import ACCOUNT_HASH, COORDINATORS, DEVICES, DOMAIN, HUBLOT
+from .const import ACCOUNT_HASH, COORDINATORS, DEVICES, DOMAIN, HUB, HUBLOT
 
 PLATFORMS = ["binary_sensor", "sensor", "switch"]
 
@@ -39,9 +39,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     }
 
     for device in account_devices:
-        hublot = device.hub_data[HUBLOT]
+        hublot = device.data[HUB][HUBLOT]
 
-        coordinator = RitualsDataUpdateCoordinator(hass, device)
+        coordinator = RitualsPerufmeGenieDataUpdateCoordinator(hass, device)
         await coordinator.async_refresh()
 
         hass.data[DOMAIN][entry.entry_id][DEVICES][hublot] = device
@@ -61,7 +61,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     return unload_ok
 
 
-class RitualsDataUpdateCoordinator(DataUpdateCoordinator):
+class RitualsPerufmeGenieDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching Rituals Perufme Genie device data from single endpoint."""
 
     def __init__(self, hass: HomeAssistant, device: Diffuser):
@@ -70,10 +70,11 @@ class RitualsDataUpdateCoordinator(DataUpdateCoordinator):
         super().__init__(
             hass,
             _LOGGER,
-            name=f"{DOMAIN}-{device.hub_data[HUBLOT]}",
+            name=f"{DOMAIN}-{device.data[HUB][HUBLOT]}",
             update_interval=UPDATE_INTERVAL,
         )
 
-    async def _async_update_data(self) -> None:
+    async def _async_update_data(self) -> dict:
         """Fetch data from Rituals."""
         await self._device.update_data()
+        return self._device.data

@@ -1,6 +1,7 @@
 """Config flow for NEW_NAME."""
 import my_pypi_dependency
 
+from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_entry_flow
 
@@ -14,4 +15,6 @@ async def _async_has_devices(hass: HomeAssistant) -> bool:
     return len(devices) > 0
 
 
-config_entry_flow.register_discovery_flow(DOMAIN, "NEW_NAME", _async_has_devices)
+config_entry_flow.register_discovery_flow(
+    DOMAIN, "NEW_NAME", _async_has_devices, config_entries.CONN_CLASS_UNKNOWN
+)

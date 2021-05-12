@@ -1,6 +1,7 @@
 {
     "config": {
         "abort": {
+            "no_devices_found": "Keine Ger\u00e4te im Netzwerk gefunden.",
             "single_instance_allowed": "Bereits konfiguriert. Es ist nur eine Konfiguration m\u00f6glich."
         },
         "error": {
@@ -24,19 +25,11 @@
             "invalid_known_hosts": "Bekannte Hosts m\u00fcssen eine durch Kommata getrennte Liste von Hosts sein."
         },
         "step": {
-            "advanced_options": {
+            "options": {
                 "data": {
-                    "ignore_cec": "CEC ignorieren",
-                    "uuid": "Zul\u00e4ssige UUIDs"
+                    "known_hosts": "Optionale Liste bekannter Hosts, wenn die mDNS-Erkennung nicht funktioniert."
                 },
-                "title": "Erweiterte Google Cast-Konfiguration"
-            },
-            "basic_options": {
-                "data": {
-                    "known_hosts": "Bekannte Hosts"
-                },
-                "description": "Bekannte Hosts - Eine durch Kommas getrennte Liste von Hostnamen oder IP-Adressen von Cast-Ger\u00e4ten, die verwendet wird, wenn die mDNS-Erkennung nicht funktioniert.",
-                "title": "Google Cast-Konfiguration"
+                "description": "Bitte die Google Cast-Konfiguration eingeben."
             }
         }
     }

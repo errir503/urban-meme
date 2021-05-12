@@ -10,7 +10,7 @@
         "error": {
             "invalid_auth": "Ugyldig godkjenning"
         },
-        "flow_title": "{name}",
+        "flow_title": "",
         "step": {
             "confirm": {
                 "data": {

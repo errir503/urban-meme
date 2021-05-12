@@ -5,6 +5,9 @@
         },
         "step": {
             "user": {
+                "data": {
+                    "name": "Nazwa sensora"
+                },
                 "description": "Czy chcesz rozpocz\u0105\u0107 konfiguracj\u0119?",
                 "title": "Lokalny adres IP"
             }

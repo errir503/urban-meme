@@ -1,14 +1,14 @@
 {
     "config": {
         "error": {
-            "cannot_connect": "Verbindung fehlgeschlagen",
-            "powered_off": "Ist der Projektor eingeschaltet? Du musst den Projektor f\u00fcr die Erstkonfiguration einschalten."
+            "cannot_connect": "Verbindung fehlgeschlagen"
         },
         "step": {
             "user": {
                 "data": {
                     "host": "Host",
-                    "name": "Name"
+                    "name": "Name",
+                    "port": "Port"
                 }
             }
         }

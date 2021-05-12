@@ -12,7 +12,7 @@
         "error": {
             "already_configured": "El compte ja ha estat configurat"
         },
-        "flow_title": "{profile}",
+        "flow_title": "Withings: {profile}",
         "step": {
             "pick_implementation": {
                 "title": "Selecciona el m\u00e8tode d'autenticaci\u00f3"

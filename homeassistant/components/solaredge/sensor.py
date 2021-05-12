@@ -2,9 +2,10 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from collections.abc import Iterable
 from datetime import date, datetime, timedelta
 import logging
-from typing import Any
+from typing import Any, Callable
 
 from requests.exceptions import ConnectTimeout, HTTPError
 from solaredge import Solaredge
@@ -15,7 +16,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_API_KEY, DEVICE_CLASS_BATTERY, DEVICE_CLASS_POWER
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -38,7 +39,7 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[Iterable[Entity]], None],
 ) -> None:
     """Add an solarEdge entry."""
     # Add the needed sensors to hass

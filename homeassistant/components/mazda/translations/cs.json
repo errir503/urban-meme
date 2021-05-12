@@ -10,6 +10,13 @@
             "unknown": "Neo\u010dek\u00e1van\u00e1 chyba"
         },
         "step": {
+            "reauth": {
+                "data": {
+                    "email": "E-mail",
+                    "password": "Heslo",
+                    "region": "Region"
+                }
+            },
             "user": {
                 "data": {
                     "email": "E-mail",

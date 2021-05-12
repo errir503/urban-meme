@@ -14,5 +14,6 @@
             "update_channel": "Oppdater kanal",
             "version_api": "Versjon API"
         }
-    }
+    },
+    "title": "Home Assistant veileder"
 }

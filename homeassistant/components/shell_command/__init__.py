@@ -1,6 +1,4 @@
 """Expose regular shell commands as services."""
-from __future__ import annotations
-
 import asyncio
 from contextlib import suppress
 import logging
@@ -28,7 +26,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the shell_command component."""
     conf = config.get(DOMAIN, {})
 
-    cache: dict[str, tuple[str, str | None, template.Template | None]] = {}
+    cache = {}
 
     async def async_service_handler(service: ServiceCall) -> None:
         """Execute a shell command service."""
@@ -91,7 +89,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             )
             if process:
                 with suppress(TypeError):
-                    process.kill()
+                    await process.kill()
                 del process
 
             return

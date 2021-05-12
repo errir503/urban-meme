@@ -66,6 +66,7 @@ class SonosData:
     def __init__(self) -> None:
         """Initialize the data."""
         self.discovered: dict[str, SonosSpeaker] = {}
+        self.media_player_entities = {}
         self.topology_condition = asyncio.Condition()
         self.discovery_thread = None
         self.hosts_heartbeat = None

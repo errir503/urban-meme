@@ -8,6 +8,7 @@ from aiohue.scenes import Scenes
 from aiohue.sensors import Sensors
 import pytest
 
+from homeassistant import config_entries
 from homeassistant.components import hue
 from homeassistant.components.hue import sensor_base as hue_sensor_base
 
@@ -115,6 +116,7 @@ async def setup_bridge_for_sensors(hass, mock_bridge, hostname=None):
         domain=hue.DOMAIN,
         title="Mock Title",
         data={"host": hostname},
+        connection_class=config_entries.CONN_CLASS_LOCAL_POLL,
         system_options={},
     )
     mock_bridge.config_entry = config_entry

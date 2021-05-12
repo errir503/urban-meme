@@ -5,12 +5,12 @@ import asyncio
 import functools
 import logging
 import math
-from typing import Callable
+from typing import Any, Callable
 
 from aioesphomeapi import (
     APIClient,
     APIConnectionError,
-    DeviceInfo as EsphomeDeviceInfo,
+    DeviceInfo,
     EntityInfo,
     EntityState,
     HomeassistantServiceCall,
@@ -36,7 +36,7 @@ from homeassistant.helpers import template
 import homeassistant.helpers.config_validation as cv
 import homeassistant.helpers.device_registry as dr
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.entity import DeviceInfo, Entity
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.json import JSONEncoder
 from homeassistant.helpers.service import async_set_service_schema
@@ -50,6 +50,9 @@ DOMAIN = "esphome"
 _LOGGER = logging.getLogger(__name__)
 
 STORAGE_VERSION = 1
+
+# No config schema - only configuration entry
+CONFIG_SCHEMA = vol.Schema({}, extra=vol.ALLOW_EXTRA)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -448,7 +451,7 @@ class ReconnectLogic(RecordUpdateListener):
 
 
 async def _async_setup_device_registry(
-    hass: HomeAssistant, entry: ConfigEntry, device_info: EsphomeDeviceInfo
+    hass: HomeAssistant, entry: ConfigEntry, device_info: DeviceInfo
 ):
     """Set up device registry feature for a particular config entry."""
     sw_version = device_info.esphome_version
@@ -769,7 +772,7 @@ class EsphomeBaseEntity(Entity):
         return self._entry_data.old_info[self._component_key].get(self._key)
 
     @property
-    def _device_info(self) -> EsphomeDeviceInfo:
+    def _device_info(self) -> DeviceInfo:
         return self._entry_data.device_info
 
     @property
@@ -803,7 +806,7 @@ class EsphomeBaseEntity(Entity):
         return self._static_info.unique_id
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> dict[str, Any]:
         """Return device registry information for this entity."""
         return {
             "connections": {(dr.CONNECTION_NETWORK_MAC, self._device_info.mac_address)}

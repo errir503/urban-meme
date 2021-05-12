@@ -8,7 +8,7 @@
           "port": "[%key:common::config_flow::data::port%]"
         }
       },
-      "discovery_confirm": {
+      "zeroconf_confirm": {
         "description": "Do you want to set up this Guardian device?"
       }
     },

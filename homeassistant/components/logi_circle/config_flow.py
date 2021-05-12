@@ -54,10 +54,12 @@ def register_flow_implementation(
     }
 
 
-class LogiCircleFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+@config_entries.HANDLERS.register(DOMAIN)
+class LogiCircleFlowHandler(config_entries.ConfigFlow):
     """Config flow for Logi Circle component."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self):
         """Initialize flow."""
@@ -65,7 +67,8 @@ class LogiCircleFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_import(self, user_input=None):
         """Handle external yaml configuration."""
-        self._async_abort_entries_match()
+        if self.hass.config_entries.async_entries(DOMAIN):
+            return self.async_abort(reason="already_configured")
 
         self.flow_impl = DOMAIN
 
@@ -75,7 +78,8 @@ class LogiCircleFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle a flow start."""
         flows = self.hass.data.get(DATA_FLOW_IMPL, {})
 
-        self._async_abort_entries_match()
+        if self.hass.config_entries.async_entries(DOMAIN):
+            return self.async_abort(reason="already_configured")
 
         if not flows:
             return self.async_abort(reason="missing_configuration")
@@ -136,7 +140,8 @@ class LogiCircleFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_code(self, code=None):
         """Received code for authentication."""
-        self._async_abort_entries_match()
+        if self.hass.config_entries.async_entries(DOMAIN):
+            return self.async_abort(reason="already_configured")
 
         return await self._async_create_session(code)
 

@@ -9,10 +9,8 @@ from homeassistant.setup import async_setup_component
 
 from tests.common import MockConfigEntry
 
-LOCATION_ID = "123456"
-
 LOCATION_INFO_BASIC_NORMAL = {
-    "LocationID": LOCATION_ID,
+    "LocationID": "123456",
     "LocationName": "test",
     "SecurityDeviceID": "987654",
     "PhotoURL": "http://www.example.com/some/path/to/file.jpg",

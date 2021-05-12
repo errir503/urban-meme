@@ -62,8 +62,7 @@
                     "port": "Poort",
                     "username": "Gebruikersnaam"
                 },
-                "description": "Voer de verbindingsgegevens van uw MQTT-broker in.",
-                "title": "Broker opties"
+                "description": "Voer de verbindingsgegevens van uw MQTT-broker in."
             },
             "options": {
                 "data": {
@@ -79,8 +78,7 @@
                     "will_retain": "Will message behouden",
                     "will_topic": "Will message topic"
                 },
-                "description": "Selecteer MQTT-opties.",
-                "title": "MQTT-opties"
+                "description": "Selecteer MQTT-opties."
             }
         }
     }

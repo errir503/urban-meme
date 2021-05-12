@@ -21,11 +21,9 @@
                 "data": {
                     "host": "IP-Adresse",
                     "password": "Smile ID",
-                    "port": "Port",
-                    "username": "Smile-Benutzername"
+                    "port": "Port"
                 },
-                "description": "Bitte eingeben",
-                "title": "Stellen Sie eine Verbindung zu Smile her"
+                "description": "Bitte eingeben"
             }
         }
     },
@@ -34,8 +32,7 @@
             "init": {
                 "data": {
                     "scan_interval": "Scanintervall (Sekunden)"
-                },
-                "description": "Plugwise-Optionen einstellen"
+                }
             }
         }
     }

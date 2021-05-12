@@ -9,7 +9,7 @@
             "cannot_connect": "Tilkobling mislyktes",
             "invalid_auth": "Ugyldig godkjenning"
         },
-        "flow_title": "{name}",
+        "flow_title": "",
         "step": {
             "reauth_confirm": {
                 "description": "Sonarr-integrasjonen m\u00e5 autentiseres p\u00e5 nytt med Sonarr API vert p\u00e5: {host}",

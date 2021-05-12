@@ -6,18 +6,16 @@ from ipaddress import ip_network
 import logging
 import os
 import ssl
-from typing import Any, Final, Optional, TypedDict, cast
+from typing import Any, Optional, cast
 
 from aiohttp import web
-from aiohttp.typedefs import StrOrURL
-from aiohttp.web_exceptions import HTTPMovedPermanently, HTTPRedirection
+from aiohttp.web_exceptions import HTTPMovedPermanently
 import voluptuous as vol
 
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP, SERVER_PORT
 from homeassistant.core import Event, HomeAssistant
 from homeassistant.helpers import storage
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import bind_hass
 from homeassistant.setup import async_start_setup, async_when_setup_or_start
 import homeassistant.util as hass_util
@@ -31,42 +29,44 @@ from .forwarded import async_setup_forwarded
 from .request_context import setup_request_context
 from .security_filter import setup_security_filter
 from .static import CACHE_HEADERS, CachingStaticResource
-from .view import HomeAssistantView
+from .view import HomeAssistantView  # noqa: F401
 from .web_runner import HomeAssistantTCPSite
 
-DOMAIN: Final = "http"
+# mypy: allow-untyped-defs, no-check-untyped-defs
 
-CONF_SERVER_HOST: Final = "server_host"
-CONF_SERVER_PORT: Final = "server_port"
-CONF_BASE_URL: Final = "base_url"
-CONF_SSL_CERTIFICATE: Final = "ssl_certificate"
-CONF_SSL_PEER_CERTIFICATE: Final = "ssl_peer_certificate"
-CONF_SSL_KEY: Final = "ssl_key"
-CONF_CORS_ORIGINS: Final = "cors_allowed_origins"
-CONF_USE_X_FORWARDED_FOR: Final = "use_x_forwarded_for"
-CONF_TRUSTED_PROXIES: Final = "trusted_proxies"
-CONF_LOGIN_ATTEMPTS_THRESHOLD: Final = "login_attempts_threshold"
-CONF_IP_BAN_ENABLED: Final = "ip_ban_enabled"
-CONF_SSL_PROFILE: Final = "ssl_profile"
+DOMAIN = "http"
 
-SSL_MODERN: Final = "modern"
-SSL_INTERMEDIATE: Final = "intermediate"
+CONF_SERVER_HOST = "server_host"
+CONF_SERVER_PORT = "server_port"
+CONF_BASE_URL = "base_url"
+CONF_SSL_CERTIFICATE = "ssl_certificate"
+CONF_SSL_PEER_CERTIFICATE = "ssl_peer_certificate"
+CONF_SSL_KEY = "ssl_key"
+CONF_CORS_ORIGINS = "cors_allowed_origins"
+CONF_USE_X_FORWARDED_FOR = "use_x_forwarded_for"
+CONF_TRUSTED_PROXIES = "trusted_proxies"
+CONF_LOGIN_ATTEMPTS_THRESHOLD = "login_attempts_threshold"
+CONF_IP_BAN_ENABLED = "ip_ban_enabled"
+CONF_SSL_PROFILE = "ssl_profile"
 
-_LOGGER: Final = logging.getLogger(__name__)
+SSL_MODERN = "modern"
+SSL_INTERMEDIATE = "intermediate"
 
-DEFAULT_DEVELOPMENT: Final = "0"
+_LOGGER = logging.getLogger(__name__)
+
+DEFAULT_DEVELOPMENT = "0"
 # Cast to be able to load custom cards.
 # My to be able to check url and version info.
-DEFAULT_CORS: Final[list[str]] = ["https://cast.home-assistant.io"]
-NO_LOGIN_ATTEMPT_THRESHOLD: Final = -1
+DEFAULT_CORS = ["https://cast.home-assistant.io"]
+NO_LOGIN_ATTEMPT_THRESHOLD = -1
 
-MAX_CLIENT_SIZE: Final = 1024 ** 2 * 16
+MAX_CLIENT_SIZE: int = 1024 ** 2 * 16
 
-STORAGE_KEY: Final = DOMAIN
-STORAGE_VERSION: Final = 1
-SAVE_DELAY: Final = 180
+STORAGE_KEY = DOMAIN
+STORAGE_VERSION = 1
 
-HTTP_SCHEMA: Final = vol.All(
+
+HTTP_SCHEMA = vol.All(
     cv.deprecated(CONF_BASE_URL),
     vol.Schema(
         {
@@ -96,24 +96,7 @@ HTTP_SCHEMA: Final = vol.All(
     ),
 )
 
-CONFIG_SCHEMA: Final = vol.Schema({DOMAIN: HTTP_SCHEMA}, extra=vol.ALLOW_EXTRA)
-
-
-class ConfData(TypedDict, total=False):
-    """Typed dict for config data."""
-
-    server_host: list[str]
-    server_port: int
-    base_url: str
-    ssl_certificate: str
-    ssl_peer_certificate: str
-    ssl_key: str
-    cors_allowed_origins: list[str]
-    use_x_forwarded_for: bool
-    trusted_proxies: list[str]
-    login_attempts_threshold: int
-    ip_ban_enabled: bool
-    ssl_profile: str
+CONFIG_SCHEMA = vol.Schema({DOMAIN: HTTP_SCHEMA}, extra=vol.ALLOW_EXTRA)
 
 
 @bind_hass
@@ -130,8 +113,8 @@ class ApiConfig:
         self,
         local_ip: str,
         host: str,
-        port: int,
-        use_ssl: bool,
+        port: int | None = SERVER_PORT,
+        use_ssl: bool = False,
     ) -> None:
         """Initialize a new API config object."""
         self.local_ip = local_ip
@@ -140,12 +123,12 @@ class ApiConfig:
         self.use_ssl = use_ssl
 
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+async def async_setup(hass, config):
     """Set up the HTTP API and debug interface."""
-    conf: ConfData | None = config.get(DOMAIN)
+    conf = config.get(DOMAIN)
 
     if conf is None:
-        conf = cast(ConfData, HTTP_SCHEMA({}))
+        conf = HTTP_SCHEMA({})
 
     server_host = conf.get(CONF_SERVER_HOST)
     server_port = conf[CONF_SERVER_PORT]
@@ -154,7 +137,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     ssl_key = conf.get(CONF_SSL_KEY)
     cors_origins = conf[CONF_CORS_ORIGINS]
     use_x_forwarded_for = conf.get(CONF_USE_X_FORWARDED_FOR, False)
-    trusted_proxies = conf.get(CONF_TRUSTED_PROXIES) or []
+    trusted_proxies = conf.get(CONF_TRUSTED_PROXIES, [])
     is_ban_enabled = conf[CONF_IP_BAN_ENABLED]
     login_threshold = conf[CONF_LOGIN_ATTEMPTS_THRESHOLD]
     ssl_profile = conf[CONF_SSL_PROFILE]
@@ -182,8 +165,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         """Start the server."""
         with async_start_setup(hass, ["http"]):
             hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, stop_server)
-            # We already checked it's not None.
-            assert conf is not None
             await start_http_server_and_save_config(hass, dict(conf), server)
 
     async_when_setup_or_start(hass, "frontend", start_server)
@@ -209,19 +190,19 @@ class HomeAssistantHTTP:
 
     def __init__(
         self,
-        hass: HomeAssistant,
-        ssl_certificate: str | None,
-        ssl_peer_certificate: str | None,
-        ssl_key: str | None,
-        server_host: list[str] | None,
-        server_port: int,
-        cors_origins: list[str],
-        use_x_forwarded_for: bool,
-        trusted_proxies: list[str],
-        login_threshold: int,
-        is_ban_enabled: bool,
-        ssl_profile: str,
-    ) -> None:
+        hass,
+        ssl_certificate,
+        ssl_peer_certificate,
+        ssl_key,
+        server_host,
+        server_port,
+        cors_origins,
+        use_x_forwarded_for,
+        trusted_proxies,
+        login_threshold,
+        is_ban_enabled,
+        ssl_profile,
+    ):
         """Initialize the HTTP Home Assistant server."""
         app = self.app = web.Application(
             middlewares=[], client_max_size=MAX_CLIENT_SIZE
@@ -256,10 +237,10 @@ class HomeAssistantHTTP:
         self.is_ban_enabled = is_ban_enabled
         self.ssl_profile = ssl_profile
         self._handler = None
-        self.runner: web.AppRunner | None = None
-        self.site: HomeAssistantTCPSite | None = None
+        self.runner = None
+        self.site = None
 
-    def register_view(self, view: HomeAssistantView) -> None:
+    def register_view(self, view):
         """Register a view with the WSGI server.
 
         The view argument must be a class that inherits from HomeAssistantView.
@@ -280,13 +261,7 @@ class HomeAssistantHTTP:
 
         view.register(self.app, self.app.router)
 
-    def register_redirect(
-        self,
-        url: str,
-        redirect_to: StrOrURL,
-        *,
-        redirect_exc: type[HTTPRedirection] = HTTPMovedPermanently,
-    ) -> None:
+    def register_redirect(self, url, redirect_to, *, redirect_exc=HTTPMovedPermanently):
         """Register a redirect with the server.
 
         If given this must be either a string or callable. In case of a
@@ -296,39 +271,38 @@ class HomeAssistantHTTP:
         rule syntax.
         """
 
-        async def redirect(request: web.Request) -> web.StreamResponse:
+        async def redirect(request):
             """Redirect to location."""
-            # Should be instance of aiohttp.web_exceptions._HTTPMove.
-            raise redirect_exc(redirect_to)  # type: ignore[arg-type,misc]
+            raise redirect_exc(redirect_to)
 
         self.app.router.add_route("GET", url, redirect)
 
-    def register_static_path(
-        self, url_path: str, path: str, cache_headers: bool = True
-    ) -> web.FileResponse | None:
+    def register_static_path(self, url_path, path, cache_headers=True):
         """Register a folder or file to serve as a static path."""
         if os.path.isdir(path):
             if cache_headers:
-                resource: type[
-                    CachingStaticResource | web.StaticResource
-                ] = CachingStaticResource
+                resource = CachingStaticResource
             else:
                 resource = web.StaticResource
             self.app.router.register_resource(resource(url_path, path))
-            return None
+            return
 
-        async def serve_file(request: web.Request) -> web.FileResponse:
-            """Serve file from disk."""
-            if cache_headers:
+        if cache_headers:
+
+            async def serve_file(request):
+                """Serve file from disk."""
                 return web.FileResponse(path, headers=CACHE_HEADERS)
-            return web.FileResponse(path)
+
+        else:
+
+            async def serve_file(request):
+                """Serve file from disk."""
+                return web.FileResponse(path)
 
         self.app.router.add_route("GET", url_path, serve_file)
-        return None
 
-    async def start(self) -> None:
+    async def start(self):
         """Start the aiohttp server."""
-        context: ssl.SSLContext | None
         if self.ssl_certificate:
             try:
                 if self.ssl_profile == SSL_INTERMEDIATE:
@@ -360,7 +334,7 @@ class HomeAssistantHTTP:
         # This will now raise a RunTimeError.
         # To work around this we now prevent the router from getting frozen
         # pylint: disable=protected-access
-        self.app._router.freeze = lambda: None  # type: ignore[assignment]
+        self.app._router.freeze = lambda: None
 
         self.runner = web.AppRunner(self.app)
         await self.runner.setup()
@@ -377,19 +351,17 @@ class HomeAssistantHTTP:
 
         _LOGGER.info("Now listening on port %d", self.server_port)
 
-    async def stop(self) -> None:
+    async def stop(self):
         """Stop the aiohttp server."""
-        if self.site is not None:
-            await self.site.stop()
-        if self.runner is not None:
-            await self.runner.cleanup()
+        await self.site.stop()
+        await self.runner.cleanup()
 
 
 async def start_http_server_and_save_config(
     hass: HomeAssistant, conf: dict, server: HomeAssistantHTTP
 ) -> None:
     """Startup the http server and save the config."""
-    await server.start()
+    await server.start()  # type: ignore
 
     # If we are set up successful, we store the HTTP settings for safe mode.
     store = storage.Store(hass, STORAGE_VERSION, STORAGE_KEY)
@@ -399,7 +371,7 @@ async def start_http_server_and_save_config(
             str(ip.network_address) for ip in conf[CONF_TRUSTED_PROXIES]
         ]
 
-    store.async_delay_save(lambda: conf, SAVE_DELAY)
+    await store.async_save(conf)
 
 
 current_request: ContextVar[web.Request | None] = ContextVar(

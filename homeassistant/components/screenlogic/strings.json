@@ -1,6 +1,6 @@
 {
   "config": {
-    "flow_title": "{name}",
+    "flow_title": "ScreenLogic {name}",
     "error": {
       "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]"
     },

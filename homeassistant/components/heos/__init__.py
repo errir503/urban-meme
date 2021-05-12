@@ -31,11 +31,7 @@ from .const import (
 PLATFORMS = [MEDIA_PLAYER_DOMAIN]
 
 CONFIG_SCHEMA = vol.Schema(
-    vol.All(
-        cv.deprecated(DOMAIN),
-        {DOMAIN: vol.Schema({vol.Required(CONF_HOST): cv.string})},
-    ),
-    extra=vol.ALLOW_EXTRA,
+    {DOMAIN: vol.Schema({vol.Required(CONF_HOST): cv.string})}, extra=vol.ALLOW_EXTRA
 )
 
 MIN_UPDATE_SOURCES = timedelta(seconds=1)
