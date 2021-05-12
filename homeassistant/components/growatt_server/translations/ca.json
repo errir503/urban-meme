@@ -16,7 +16,7 @@
             "user": {
                 "data": {
                     "name": "Nom",
-                    "password": "Contrasenya",
+                    "password": "Nom",
                     "username": "Nom d'usuari"
                 },
                 "title": "Introdueix la teva informaci\u00f3 de Growatt"

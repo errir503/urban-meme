@@ -16,8 +16,7 @@
             "user": {
                 "data": {
                     "name": "Name",
-                    "password": "Passwort",
-                    "username": "Benutzername"
+                    "username": "Nutzername"
                 },
                 "title": "Gib deine Growatt-Informationen ein"
             }
