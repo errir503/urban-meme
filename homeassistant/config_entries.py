@@ -92,16 +92,19 @@ RECONFIGURE_NOTIFICATION_ID = "config_entry_reconfigure"
 
 EVENT_FLOW_DISCOVERED = "config_entry_discovered"
 
+DISABLED_USER = "user"
+
+RELOAD_AFTER_UPDATE_DELAY = 30
+
+# Deprecated: Connection classes
+# These aren't used anymore since 2021.6.0
+# Mainly here not to break custom integrations.
 CONN_CLASS_CLOUD_PUSH = "cloud_push"
 CONN_CLASS_CLOUD_POLL = "cloud_poll"
 CONN_CLASS_LOCAL_PUSH = "local_push"
 CONN_CLASS_LOCAL_POLL = "local_poll"
 CONN_CLASS_ASSUMED = "assumed"
 CONN_CLASS_UNKNOWN = "unknown"
-
-DISABLED_USER = "user"
-
-RELOAD_AFTER_UPDATE_DELAY = 30
 
 
 class ConfigError(HomeAssistantError):
@@ -133,7 +136,6 @@ class ConfigEntry:
         "supports_unload",
         "system_options",
         "source",
-        "connection_class",
         "state",
         "disabled_by",
         "_setup_lock",
@@ -150,9 +152,8 @@ class ConfigEntry:
         title: str,
         data: Mapping[str, Any],
         source: str,
-        connection_class: str,
         system_options: dict,
-        options: dict | None = None,
+        options: Mapping[str, Any] | None = None,
         unique_id: str | None = None,
         entry_id: str | None = None,
         state: str = ENTRY_STATE_NOT_LOADED,
@@ -182,9 +183,6 @@ class ConfigEntry:
 
         # Source of the configuration (user, discovery, cloud)
         self.source = source
-
-        # Connection class
-        self.connection_class = connection_class
 
         # State of the entry (LOADED, NOT_LOADED)
         self.state = state
@@ -521,7 +519,6 @@ class ConfigEntry:
             "options": dict(self.options),
             "system_options": self.system_options.as_dict(),
             "source": self.source,
-            "connection_class": self.connection_class,
             "unique_id": self.unique_id,
             "disabled_by": self.disabled_by,
         }
@@ -634,10 +631,9 @@ class ConfigEntriesFlowManager(data_entry_flow.FlowManager):
             domain=result["handler"],
             title=result["title"],
             data=result["data"],
-            options={},
+            options=result["options"],
             system_options={},
             source=flow.context["source"],
-            connection_class=flow.CONNECTION_CLASS,
             unique_id=flow.unique_id,
         )
 
@@ -837,8 +833,6 @@ class ConfigEntries:
                 data=entry["data"],
                 source=entry["source"],
                 title=entry["title"],
-                # New in 0.79
-                connection_class=entry.get("connection_class", CONN_CLASS_UNKNOWN),
                 # New in 0.89
                 options=entry.get("options"),
                 # New in 0.98
@@ -1077,8 +1071,6 @@ class ConfigFlow(data_entry_flow.FlowHandler):
         if domain is not None:
             HANDLERS.register(domain)(cls)
 
-    CONNECTION_CLASS = CONN_CLASS_UNKNOWN
-
     @property
     def unique_id(self) -> str | None:
         """Return unique ID if available."""
@@ -1092,6 +1084,17 @@ class ConfigFlow(data_entry_flow.FlowHandler):
     def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
         """Get the options flow for this handler."""
         raise data_entry_flow.UnknownHandler
+
+    @callback
+    def _async_abort_entries_match(
+        self, match_dict: dict[str, Any] | None = None
+    ) -> None:
+        """Abort if current entries match all data."""
+        if match_dict is None:
+            match_dict = {}  # Match any entry
+        for entry in self._async_current_entries(include_ignore=False):
+            if all(item in entry.data.items() for item in match_dict.items()):
+                raise data_entry_flow.AbortFlow("already_configured")
 
     @callback
     def _abort_if_unique_id_configured(
@@ -1304,6 +1307,28 @@ class ConfigFlow(data_entry_flow.FlowHandler):
     ) -> data_entry_flow.FlowResult:
         """Handle a flow initialized by DHCP discovery."""
         return await self.async_step_discovery(discovery_info)
+
+    @callback
+    def async_create_entry(  # pylint: disable=arguments-differ
+        self,
+        *,
+        title: str,
+        data: Mapping[str, Any],
+        description: str | None = None,
+        description_placeholders: dict | None = None,
+        options: Mapping[str, Any] | None = None,
+    ) -> data_entry_flow.FlowResult:
+        """Finish config flow and create a config entry."""
+        result = super().async_create_entry(
+            title=title,
+            data=data,
+            description=description,
+            description_placeholders=description_placeholders,
+        )
+
+        result["options"] = options or {}
+
+        return result
 
 
 class OptionsFlowManager(data_entry_flow.FlowManager):
