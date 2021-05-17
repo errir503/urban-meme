@@ -3,8 +3,6 @@
 from datetime import timedelta
 from unittest.mock import patch, sentinel
 
-from pytest import approx
-
 from homeassistant.components.recorder import history
 from homeassistant.components.recorder.const import DATA_INSTANCE
 from homeassistant.components.recorder.models import process_timestamp_to_utc_isoformat
@@ -32,12 +30,9 @@ def test_compile_hourly_statistics(hass_recorder):
             {
                 "statistic_id": "sensor.test1",
                 "start": process_timestamp_to_utc_isoformat(zero),
-                "mean": approx(14.915254237288135),
-                "min": approx(10.0),
-                "max": approx(20.0),
-                "last_reset": None,
-                "state": None,
-                "sum": None,
+                "mean": 15.0,
+                "min": 10.0,
+                "max": 20.0,
             }
         ]
     }
