@@ -11,7 +11,6 @@
         "step": {
             "user": {
                 "data": {
-                    "brand": "Brand",
                     "password": "Wachtwoord",
                     "username": "Gebruikersnaam"
                 },

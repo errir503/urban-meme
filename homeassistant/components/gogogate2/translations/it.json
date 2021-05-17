@@ -7,7 +7,6 @@
             "cannot_connect": "Impossibile connettersi",
             "invalid_auth": "Autenticazione non valida"
         },
-        "flow_title": "{device} ({ip_address})",
         "step": {
             "user": {
                 "data": {
@@ -16,7 +15,7 @@
                     "username": "Nome utente"
                 },
                 "description": "Fornire le informazioni richieste di seguito.",
-                "title": "Imposta Gogogate2 o ismartgate"
+                "title": "Configurazione di GogoGate2 o iSmartGate"
             }
         }
     }

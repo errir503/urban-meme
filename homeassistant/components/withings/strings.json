@@ -1,6 +1,6 @@
 {
   "config": {
-    "flow_title": "{profile}",
+    "flow_title": "Withings: {profile}",
     "step": {
       "profile": {
         "title": "User Profile.",

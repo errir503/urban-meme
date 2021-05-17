@@ -256,7 +256,7 @@ async def test_get_action_capabilities_features(
         assert capabilities == expected
 
 
-async def test_action(hass, calls, enable_custom_integrations):
+async def test_action(hass, calls):
     """Test for turn_on and turn_off actions."""
     platform = getattr(hass.components, f"test.{DOMAIN}")
 

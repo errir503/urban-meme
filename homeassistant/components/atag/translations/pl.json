@@ -10,6 +10,7 @@
         "step": {
             "user": {
                 "data": {
+                    "email": "Adres e-mail",
                     "host": "Nazwa hosta lub adres IP",
                     "port": "Port"
                 },

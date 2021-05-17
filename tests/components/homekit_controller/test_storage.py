@@ -95,6 +95,7 @@ async def test_storage_is_removed_on_config_entry_removal(hass, utcnow):
         "TestData",
         pairing_data,
         "test",
+        config_entries.CONN_CLASS_LOCAL_PUSH,
         system_options={},
     )
 

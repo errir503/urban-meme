@@ -1,5 +1,4 @@
 update:
-  name: Update
   description: Update iCloud devices.
   fields:
     account:
@@ -11,7 +10,6 @@ update:
         text:
 
 play_sound:
-  name: Play sound
   description: Play sound on an Apple device.
   fields:
     account:
@@ -30,7 +28,6 @@ play_sound:
         text:
 
 display_message:
-  name: Display message
   description: Display a message on an Apple device.
   fields:
     account:

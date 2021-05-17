@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 import voluptuous as vol
 
@@ -19,7 +20,7 @@ from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.typing import ConfigType
 
-from .common import FritzBoxTools, FritzDevice
+from .common import FritzBoxTools
 from .const import DATA_FRITZ, DEFAULT_DEVICE_NAME, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -75,9 +76,7 @@ async def async_setup_entry(
         """Update the values of the router."""
         _async_add_entities(router, async_add_entities, data_fritz)
 
-    entry.async_on_unload(
-        async_dispatcher_connect(hass, router.signal_device_new, update_router)
-    )
+    async_dispatcher_connect(hass, router.signal_device_new, update_router)
 
     update_router()
 
@@ -111,13 +110,13 @@ def _async_add_entities(router, async_add_entities, data_fritz):
 class FritzBoxTracker(ScannerEntity):
     """This class queries a FRITZ!Box router."""
 
-    def __init__(self, router: FritzBoxTools, device: FritzDevice) -> None:
+    def __init__(self, router: FritzBoxTools, device):
         """Initialize a FRITZ!Box device."""
         self._router = router
         self._mac = device.mac_address
         self._name = device.hostname or DEFAULT_DEVICE_NAME
         self._active = False
-        self._attrs: dict = {}
+        self._attrs = {}
 
     @property
     def is_connected(self):
@@ -155,18 +154,14 @@ class FritzBoxTracker(ScannerEntity):
         return SOURCE_TYPE_ROUTER
 
     @property
-    def device_info(self):
+    def device_info(self) -> dict[str, Any]:
         """Return the device information."""
         return {
             "connections": {(CONNECTION_NETWORK_MAC, self._mac)},
             "identifiers": {(DOMAIN, self.unique_id)},
-            "default_name": self.name,
-            "default_manufacturer": "AVM",
-            "default_model": "FRITZ!Box Tracked device",
-            "via_device": (
-                DOMAIN,
-                self._router.unique_id,
-            ),
+            "name": self.name,
+            "manufacturer": "AVM",
+            "model": "FRITZ!Box Tracked device",
         }
 
     @property
@@ -180,11 +175,6 @@ class FritzBoxTracker(ScannerEntity):
         if self.is_connected:
             return "mdi:lan-connect"
         return "mdi:lan-disconnect"
-
-    @property
-    def entity_registry_enabled_default(self) -> bool:
-        """Return if the entity should be enabled when first added to the entity registry."""
-        return False
 
     @callback
     def async_process_update(self) -> None:

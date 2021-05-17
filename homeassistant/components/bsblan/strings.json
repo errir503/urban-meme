@@ -1,6 +1,6 @@
 {
   "config": {
-    "flow_title": "{name}",
+    "flow_title": "BSB-Lan: {name}",
     "step": {
       "user": {
         "title": "Connect to the BSB-Lan device",

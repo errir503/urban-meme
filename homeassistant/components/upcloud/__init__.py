@@ -4,7 +4,7 @@ from __future__ import annotations
 import dataclasses
 from datetime import timedelta
 import logging
-from typing import Any, Dict
+from typing import Dict
 
 import requests.exceptions
 import upcloud_api
@@ -28,7 +28,6 @@ from homeassistant.helpers.dispatcher import (
     async_dispatcher_connect,
     async_dispatcher_send,
 )
-from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -118,7 +117,7 @@ class UpCloudHassData:
     scan_interval_migrations: dict[str, int] = dataclasses.field(default_factory=dict)
 
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+async def async_setup(hass: HomeAssistant, config) -> bool:
     """Set up UpCloud component."""
     domain_config = config.get(DOMAIN)
     if not domain_config:
@@ -229,7 +228,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass, config_entry):
     """Unload the config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(
         config_entry, CONFIG_ENTRY_DOMAINS
@@ -243,11 +242,7 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 class UpCloudServerEntity(CoordinatorEntity):
     """Entity class for UpCloud servers."""
 
-    def __init__(
-        self,
-        coordinator: DataUpdateCoordinator[dict[str, upcloud_api.Server]],
-        uuid: str,
-    ) -> None:
+    def __init__(self, coordinator, uuid):
         """Initialize the UpCloud server entity."""
         super().__init__(coordinator)
         self.uuid = uuid
@@ -262,7 +257,7 @@ class UpCloudServerEntity(CoordinatorEntity):
         return self.uuid
 
     @property
-    def name(self) -> str:
+    def name(self):
         """Return the name of the component."""
         try:
             return DEFAULT_COMPONENT_NAME.format(self._server.title)
@@ -270,12 +265,12 @@ class UpCloudServerEntity(CoordinatorEntity):
             return DEFAULT_COMPONENT_NAME.format(self.uuid)
 
     @property
-    def icon(self) -> str:
+    def icon(self):
         """Return the icon of this server."""
         return "mdi:server" if self.is_on else "mdi:server-off"
 
     @property
-    def state(self) -> str | None:
+    def state(self):
         """Return state of the server."""
         try:
             return STATE_MAP.get(self._server.state, self._server.state)
@@ -283,17 +278,17 @@ class UpCloudServerEntity(CoordinatorEntity):
             return None
 
     @property
-    def is_on(self) -> bool:
+    def is_on(self):
         """Return true if the server is on."""
         return self.state == STATE_ON
 
     @property
-    def device_class(self) -> str:
+    def device_class(self):
         """Return the class of this server."""
         return DEFAULT_COMPONENT_DEVICE_CLASS
 
     @property
-    def extra_state_attributes(self) -> dict[str, Any]:
+    def extra_state_attributes(self):
         """Return the state attributes of the UpCloud server."""
         return {
             x: getattr(self._server, x, None)

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from typing import Callable
 
 from pyisy.constants import (
     CMD_OFF,
@@ -26,7 +27,6 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.util import dt as dt_util
 
@@ -61,7 +61,7 @@ DEVICE_PARENT_REQUIRED = [
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[list], None],
 ) -> bool:
     """Set up the ISY994 binary sensor platform."""
     devices = []
@@ -251,11 +251,11 @@ class ISYInsteonBinarySensorEntity(ISYBinarySensorEntity):
         """Subscribe to the node and subnode event emitters."""
         await super().async_added_to_hass()
 
-        self._node.control_events.subscribe(self._async_positive_node_control_handler)
+        self._node.control_events.subscribe(self._positive_node_control_handler)
 
         if self._negative_node is not None:
             self._negative_node.control_events.subscribe(
-                self._async_negative_node_control_handler
+                self._negative_node_control_handler
             )
 
     def add_heartbeat_device(self, device) -> None:
@@ -267,10 +267,10 @@ class ISYInsteonBinarySensorEntity(ISYBinarySensorEntity):
         """
         self._heartbeat_device = device
 
-    def _async_heartbeat(self) -> None:
+    def _heartbeat(self) -> None:
         """Send a heartbeat to our heartbeat device, if we have one."""
         if self._heartbeat_device is not None:
-            self._heartbeat_device.async_heartbeat()
+            self._heartbeat_device.heartbeat()
 
     def add_negative_node(self, child) -> None:
         """Add a negative node to this binary sensor device.
@@ -292,8 +292,7 @@ class ISYInsteonBinarySensorEntity(ISYBinarySensorEntity):
             # of the sensor until we receive our first ON event.
             self._computed_state = None
 
-    @callback
-    def _async_negative_node_control_handler(self, event: object) -> None:
+    def _negative_node_control_handler(self, event: object) -> None:
         """Handle an "On" control event from the "negative" node."""
         if event.control == CMD_ON:
             _LOGGER.debug(
@@ -301,11 +300,10 @@ class ISYInsteonBinarySensorEntity(ISYBinarySensorEntity):
                 self.name,
             )
             self._computed_state = False
-            self.async_write_ha_state()
-            self._async_heartbeat()
+            self.schedule_update_ha_state()
+            self._heartbeat()
 
-    @callback
-    def _async_positive_node_control_handler(self, event: object) -> None:
+    def _positive_node_control_handler(self, event: object) -> None:
         """Handle On and Off control event coming from the primary node.
 
         Depending on device configuration, sometimes only On events
@@ -318,19 +316,18 @@ class ISYInsteonBinarySensorEntity(ISYBinarySensorEntity):
                 self.name,
             )
             self._computed_state = True
-            self.async_write_ha_state()
-            self._async_heartbeat()
+            self.schedule_update_ha_state()
+            self._heartbeat()
         if event.control == CMD_OFF:
             _LOGGER.debug(
                 "Sensor %s turning Off via the Primary node sending a DOF command",
                 self.name,
             )
             self._computed_state = False
-            self.async_write_ha_state()
-            self._async_heartbeat()
+            self.schedule_update_ha_state()
+            self._heartbeat()
 
-    @callback
-    def async_on_update(self, event: object) -> None:
+    def on_update(self, event: object) -> None:
         """Primary node status updates.
 
         We MOSTLY ignore these updates, as we listen directly to the Control
@@ -343,8 +340,8 @@ class ISYInsteonBinarySensorEntity(ISYBinarySensorEntity):
         if self._status_was_unknown and self._computed_state is None:
             self._computed_state = bool(self._node.status)
             self._status_was_unknown = False
-            self.async_write_ha_state()
-            self._async_heartbeat()
+            self.schedule_update_ha_state()
+            self._heartbeat()
 
     @property
     def is_on(self) -> bool:
@@ -398,10 +395,9 @@ class ISYBinarySensorHeartbeat(ISYNodeEntity, BinarySensorEntity):
         The ISY uses both DON and DOF commands (alternating) for a heartbeat.
         """
         if event.control in [CMD_ON, CMD_OFF]:
-            self.async_heartbeat()
+            self.heartbeat()
 
-    @callback
-    def async_heartbeat(self):
+    def heartbeat(self):
         """Mark the device as online, and restart the 25 hour timer.
 
         This gets called when the heartbeat node beats, but also when the
@@ -411,7 +407,7 @@ class ISYBinarySensorHeartbeat(ISYNodeEntity, BinarySensorEntity):
         """
         self._computed_state = False
         self._restart_timer()
-        self.async_write_ha_state()
+        self.schedule_update_ha_state()
 
     def _restart_timer(self):
         """Restart the 25 hour timer."""
@@ -427,7 +423,7 @@ class ISYBinarySensorHeartbeat(ISYNodeEntity, BinarySensorEntity):
             """Heartbeat missed; set state to ON to indicate dead battery."""
             self._computed_state = True
             self._heartbeat_timer = None
-            self.async_write_ha_state()
+            self.schedule_update_ha_state()
 
         point_in_time = dt_util.utcnow() + timedelta(hours=25)
         _LOGGER.debug(
@@ -440,8 +436,7 @@ class ISYBinarySensorHeartbeat(ISYNodeEntity, BinarySensorEntity):
             self.hass, timer_elapsed, point_in_time
         )
 
-    @callback
-    def async_on_update(self, event: object) -> None:
+    def on_update(self, event: object) -> None:
         """Ignore node status updates.
 
         We listen directly to the Control events for this device.

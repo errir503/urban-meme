@@ -50,13 +50,14 @@ async def test_get_entries(hass, client):
                 pass
 
         hass.helpers.config_entry_flow.register_discovery_flow(
-            "comp2", "Comp 2", lambda: None
+            "comp2", "Comp 2", lambda: None, core_ce.CONN_CLASS_ASSUMED
         )
 
         entry = MockConfigEntry(
             domain="comp1",
             title="Test 1",
             source="bla",
+            connection_class=core_ce.CONN_CLASS_LOCAL_POLL,
         )
         entry.supports_unload = True
         entry.add_to_hass(hass)
@@ -66,6 +67,7 @@ async def test_get_entries(hass, client):
             source="bla2",
             state=core_ce.ENTRY_STATE_SETUP_ERROR,
             reason="Unsupported API",
+            connection_class=core_ce.CONN_CLASS_ASSUMED,
         ).add_to_hass(hass)
         MockConfigEntry(
             domain="comp3",
@@ -85,6 +87,7 @@ async def test_get_entries(hass, client):
                 "title": "Test 1",
                 "source": "bla",
                 "state": "not_loaded",
+                "connection_class": "local_poll",
                 "supports_options": True,
                 "supports_unload": True,
                 "disabled_by": None,
@@ -95,6 +98,7 @@ async def test_get_entries(hass, client):
                 "title": "Test 2",
                 "source": "bla2",
                 "state": "setup_error",
+                "connection_class": "assumed",
                 "supports_options": False,
                 "supports_unload": False,
                 "disabled_by": None,
@@ -105,6 +109,7 @@ async def test_get_entries(hass, client):
                 "title": "Test 3",
                 "source": "bla3",
                 "state": "not_loaded",
+                "connection_class": "unknown",
                 "supports_options": False,
                 "supports_unload": False,
                 "disabled_by": core_ce.DISABLED_USER,
@@ -287,7 +292,7 @@ async def test_abort(hass, client):
     }
 
 
-async def test_create_account(hass, client, enable_custom_integrations):
+async def test_create_account(hass, client):
     """Test a flow that creates an account."""
     mock_entity_platform(hass, "config_flow.test", None)
 
@@ -321,6 +326,7 @@ async def test_create_account(hass, client, enable_custom_integrations):
         "type": "create_entry",
         "version": 1,
         "result": {
+            "connection_class": "unknown",
             "disabled_by": None,
             "domain": "test",
             "entry_id": entries[0].entry_id,
@@ -333,11 +339,10 @@ async def test_create_account(hass, client, enable_custom_integrations):
         },
         "description": None,
         "description_placeholders": None,
-        "options": {},
     }
 
 
-async def test_two_step_flow(hass, client, enable_custom_integrations):
+async def test_two_step_flow(hass, client):
     """Test we can finish a two step flow."""
     mock_integration(
         hass, MockModule("test", async_setup_entry=AsyncMock(return_value=True))
@@ -392,6 +397,7 @@ async def test_two_step_flow(hass, client, enable_custom_integrations):
             "title": "user-title",
             "version": 1,
             "result": {
+                "connection_class": "unknown",
                 "disabled_by": None,
                 "domain": "test",
                 "entry_id": entries[0].entry_id,
@@ -404,7 +410,6 @@ async def test_two_step_flow(hass, client, enable_custom_integrations):
             },
             "description": None,
             "description_placeholders": None,
-            "options": {},
         }
 
 
@@ -591,6 +596,7 @@ async def test_options_flow(hass, client):
         domain="test",
         entry_id="test1",
         source="bla",
+        connection_class=core_ce.CONN_CLASS_LOCAL_POLL,
     ).add_to_hass(hass)
     entry = hass.config_entries.async_entries()[0]
 
@@ -640,6 +646,7 @@ async def test_two_step_options_flow(hass, client):
         domain="test",
         entry_id="test1",
         source="bla",
+        connection_class=core_ce.CONN_CLASS_LOCAL_POLL,
     ).add_to_hass(hass)
     entry = hass.config_entries.async_entries()[0]
 

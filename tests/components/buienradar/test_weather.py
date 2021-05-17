@@ -1,20 +1,25 @@
 """The tests for the buienradar weather component."""
-from homeassistant.components.buienradar.const import DOMAIN
-from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE
+from homeassistant.components import weather
+from homeassistant.setup import async_setup_component
 
-from tests.common import MockConfigEntry
+# Example config snippet from documentation.
+BASE_CONFIG = {
+    "weather": [
+        {
+            "platform": "buienradar",
+            "name": "volkel",
+            "latitude": 51.65,
+            "longitude": 5.7,
+            "forecast": True,
+        }
+    ]
+}
 
-TEST_CFG_DATA = {CONF_LATITUDE: 51.5288504, CONF_LONGITUDE: 5.4002156}
 
-
-async def test_smoke_test_setup_component(aioclient_mock, hass):
+async def test_smoke_test_setup_component(hass):
     """Smoke test for successfully set-up with default config."""
-    mock_entry = MockConfigEntry(domain=DOMAIN, unique_id="TEST_ID", data=TEST_CFG_DATA)
-
-    mock_entry.add_to_hass(hass)
-
-    await hass.config_entries.async_setup(mock_entry.entry_id)
+    assert await async_setup_component(hass, weather.DOMAIN, BASE_CONFIG)
     await hass.async_block_till_done()
 
-    state = hass.states.get("weather.buienradar")
+    state = hass.states.get("weather.volkel")
     assert state.state == "unknown"

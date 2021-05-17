@@ -116,9 +116,7 @@ async def test_get_actions_arm_night_only(hass, device_reg, entity_reg):
     assert_lists_same(actions, expected_actions)
 
 
-async def test_get_action_capabilities(
-    hass, device_reg, entity_reg, enable_custom_integrations
-):
+async def test_get_action_capabilities(hass, device_reg, entity_reg):
     """Test we get the expected capabilities from a sensor trigger."""
     platform = getattr(hass.components, f"test.{DOMAIN}")
     platform.init()
@@ -156,9 +154,7 @@ async def test_get_action_capabilities(
         assert capabilities == expected_capabilities[action["type"]]
 
 
-async def test_get_action_capabilities_arm_code(
-    hass, device_reg, entity_reg, enable_custom_integrations
-):
+async def test_get_action_capabilities_arm_code(hass, device_reg, entity_reg):
     """Test we get the expected capabilities from a sensor trigger."""
     platform = getattr(hass.components, f"test.{DOMAIN}")
     platform.init()
@@ -202,7 +198,7 @@ async def test_get_action_capabilities_arm_code(
         assert capabilities == expected_capabilities[action["type"]]
 
 
-async def test_action(hass, enable_custom_integrations):
+async def test_action(hass):
     """Test for turn_on and turn_off actions."""
     platform = getattr(hass.components, f"test.{DOMAIN}")
     platform.init()

@@ -45,10 +45,7 @@ MIKROTIK_SCHEMA = vol.All(
 
 
 CONFIG_SCHEMA = vol.Schema(
-    vol.All(
-        cv.deprecated(DOMAIN), {DOMAIN: vol.All(cv.ensure_list, [MIKROTIK_SCHEMA])}
-    ),
-    extra=vol.ALLOW_EXTRA,
+    {DOMAIN: vol.All(cv.ensure_list, [MIKROTIK_SCHEMA])}, extra=vol.ALLOW_EXTRA
 )
 
 

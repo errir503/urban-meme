@@ -29,10 +29,12 @@ KEY_TOKEN_SECRET = "token_secret"
 _LOGGER = logging.getLogger(__name__)
 
 
-class FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+@config_entries.HANDLERS.register(DOMAIN)
+class FlowHandler(config_entries.ConfigFlow):
     """Handle a config flow."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
     def __init__(self):
         """Init config flow."""
@@ -53,7 +55,7 @@ class FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input=None):
         """Let user select host or cloud."""
-        if self._async_current_entries():
+        if self.hass.config_entries.async_entries(DOMAIN):
             return self.async_abort(reason="already_setup")
 
         if user_input is not None or len(self._hosts) == 1:
@@ -125,7 +127,7 @@ class FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_import(self, user_input):
         """Import a config entry."""
-        if self._async_current_entries():
+        if self.hass.config_entries.async_entries(DOMAIN):
             return self.async_abort(reason="already_setup")
 
         self._scan_interval = user_input[KEY_SCAN_INTERVAL]

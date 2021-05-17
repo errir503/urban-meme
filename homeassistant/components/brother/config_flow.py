@@ -1,17 +1,12 @@
 """Adds config flow for Brother Printer."""
-from __future__ import annotations
-
 import ipaddress
 import re
-from typing import Any
 
 from brother import Brother, SnmpError, UnsupportedModel
 import voluptuous as vol
 
 from homeassistant import config_entries, exceptions
 from homeassistant.const import CONF_HOST, CONF_TYPE
-from homeassistant.data_entry_flow import FlowResult
-from homeassistant.helpers.typing import DiscoveryInfoType
 
 from .const import DOMAIN, PRINTER_TYPES
 from .utils import get_snmp_engine
@@ -24,30 +19,28 @@ DATA_SCHEMA = vol.Schema(
 )
 
 
-def host_valid(host: str) -> bool:
+def host_valid(host):
     """Return True if hostname or IP address is valid."""
     try:
-        if ipaddress.ip_address(host).version in [4, 6]:
+        if ipaddress.ip_address(host).version == (4 or 6):
             return True
     except ValueError:
         disallowed = re.compile(r"[^a-zA-Z\d\-]")
         return all(x and not disallowed.search(x) for x in host.split("."))
-    return False
 
 
 class BrotherConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Brother Printer."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
-    def __init__(self) -> None:
+    def __init__(self):
         """Initialize."""
-        self.brother: Brother = None
-        self.host: str | None = None
+        self.brother = None
+        self.host = None
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_user(self, user_input=None):
         """Handle the initial step."""
         errors = {}
 
@@ -79,10 +72,16 @@ class BrotherConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user", data_schema=DATA_SCHEMA, errors=errors
         )
 
-    async def async_step_zeroconf(
-        self, discovery_info: DiscoveryInfoType
-    ) -> FlowResult:
+    async def async_step_zeroconf(self, discovery_info):
         """Handle zeroconf discovery."""
+        if discovery_info is None:
+            return self.async_abort(reason="cannot_connect")
+
+        if not discovery_info.get("name") or not discovery_info["name"].startswith(
+            "Brother"
+        ):
+            return self.async_abort(reason="not_brother_printer")
+
         # Hostname is format: brother.local.
         self.host = discovery_info["hostname"].rstrip(".")
 
@@ -108,9 +107,7 @@ class BrotherConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
         return await self.async_step_zeroconf_confirm()
 
-    async def async_step_zeroconf_confirm(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_zeroconf_confirm(self, user_input=None):
         """Handle a flow initiated by zeroconf."""
         if user_input is not None:
             title = f"{self.brother.model} {self.brother.serial}"

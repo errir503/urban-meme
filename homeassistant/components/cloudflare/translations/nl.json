@@ -9,7 +9,7 @@
             "invalid_auth": "Ongeldige authenticatie",
             "invalid_zone": "Ongeldige zone"
         },
-        "flow_title": "{name}",
+        "flow_title": "Cloudflare: {name}",
         "step": {
             "records": {
                 "data": {

@@ -1,5 +1,5 @@
 """Test to verify that we can load components."""
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import pytest
 
@@ -97,13 +97,18 @@ async def test_helpers_wrapper(hass):
     assert result == ["hello"]
 
 
-async def test_custom_component_name(hass, enable_custom_integrations):
+async def test_custom_component_name(hass):
     """Test the name attribute of custom components."""
-    with pytest.raises(loader.IntegrationNotFound):
-        await loader.async_get_integration(hass, "test_standalone")
+    integration = await loader.async_get_integration(hass, "test_standalone")
+    int_comp = integration.get_component()
+    assert int_comp.__name__ == "custom_components.test_standalone"
+    assert int_comp.__package__ == "custom_components"
+
+    comp = hass.components.test_standalone
+    assert comp.__name__ == "custom_components.test_standalone"
+    assert comp.__package__ == "custom_components"
 
     integration = await loader.async_get_integration(hass, "test_package")
-
     int_comp = integration.get_component()
     assert int_comp.__name__ == "custom_components.test_package"
     assert int_comp.__package__ == "custom_components.test_package"
@@ -123,39 +128,67 @@ async def test_custom_component_name(hass, enable_custom_integrations):
     assert TEST == 5
 
 
-async def test_log_warning_custom_component(hass, caplog, enable_custom_integrations):
+async def test_log_warning_custom_component(hass, caplog):
     """Test that we log a warning when loading a custom component."""
-
-    await loader.async_get_integration(hass, "test_package")
-    assert "You are using a custom integration test_package" in caplog.text
+    await loader.async_get_integration(hass, "test_standalone")
+    assert "You are using a custom integration test_standalone" in caplog.text
 
     await loader.async_get_integration(hass, "test")
     assert "You are using a custom integration test " in caplog.text
 
 
-async def test_custom_integration_version_not_valid(hass, caplog):
-    """Test that we log a warning when custom integrations have a invalid version."""
-    test_integration1 = loader.Integration(
-        hass, "custom_components.test", None, {"domain": "test1", "version": "test"}
+async def test_custom_integration_missing_version(hass, caplog):
+    """Test that we log a warning when custom integrations are missing a version."""
+    test_integration_1 = loader.Integration(
+        hass, "custom_components.test1", None, {"domain": "test1"}
     )
-    test_integration2 = loader.Integration(
-        hass, "custom_components.test", None, {"domain": "test2"}
+    test_integration_2 = loader.Integration(
+        hass,
+        "custom_components.test2",
+        None,
+        loader.manifest_from_legacy_module("test2", "custom_components.test2"),
     )
 
     with patch("homeassistant.loader.async_get_custom_components") as mock_get:
-        mock_get.return_value = {"test1": test_integration1, "test2": test_integration2}
+        mock_get.return_value = {
+            "test1": test_integration_1,
+            "test2": test_integration_2,
+        }
 
-        with pytest.raises(loader.IntegrationNotFound):
-            await loader.async_get_integration(hass, "test1")
+        await loader.async_get_integration(hass, "test1")
         assert (
-            "The custom integration 'test1' does not have a valid version key (test) in the manifest file and was blocked from loading."
+            "No 'version' key in the manifest file for custom integration 'test1'."
             in caplog.text
         )
 
-        with pytest.raises(loader.IntegrationNotFound):
-            await loader.async_get_integration(hass, "test2")
+        await loader.async_get_integration(hass, "test2")
         assert (
-            "The custom integration 'test2' does not have a valid version key (None) in the manifest file and was blocked from loading."
+            "No 'version' key in the manifest file for custom integration 'test2'."
+            in caplog.text
+        )
+
+
+async def test_no_version_warning_for_none_custom_integrations(hass, caplog):
+    """Test that we do not log a warning when core integrations are missing a version."""
+    await loader.async_get_integration(hass, "hue")
+    assert (
+        "No 'version' key in the manifest file for custom integration 'hue'."
+        not in caplog.text
+    )
+
+
+async def test_custom_integration_version_not_valid(hass, caplog):
+    """Test that we log a warning when custom integrations have a invalid version."""
+    test_integration = loader.Integration(
+        hass, "custom_components.test", None, {"domain": "test", "version": "test"}
+    )
+
+    with patch("homeassistant.loader.async_get_custom_components") as mock_get:
+        mock_get.return_value = {"test": test_integration}
+
+        await loader.async_get_integration(hass, "test")
+        assert (
+            "'test' is not a valid version for custom integration 'test'."
             in caplog.text
         )
 
@@ -167,7 +200,7 @@ async def test_get_integration(hass):
     assert hue_light == integration.get_platform("light")
 
 
-async def test_get_integration_legacy(hass, enable_custom_integrations):
+async def test_get_integration_legacy(hass):
     """Test resolving integration."""
     integration = await loader.async_get_integration(hass, "test_embedded")
     assert integration.get_component().DOMAIN == "test_embedded"
@@ -284,6 +317,13 @@ async def test_integrations_only_once(hass):
     int_2 = hass.async_create_task(loader.async_get_integration(hass, "hue"))
 
     assert await int_1 is await int_2
+
+
+async def test_get_custom_components_internal(hass):
+    """Test that we can a list of custom components."""
+    # pylint: disable=protected-access
+    integrations = await loader._async_get_custom_components(hass)
+    assert integrations == {"test": ANY, "test_package": ANY}
 
 
 def _get_test_integration(hass, name, config_flow):
@@ -467,32 +507,3 @@ async def test_get_custom_components_safe_mode(hass):
     """Test that we get empty custom components in safe mode."""
     hass.config.safe_mode = True
     assert await loader.async_get_custom_components(hass) == {}
-
-
-async def test_custom_integration_missing_version(hass, caplog):
-    """Test trying to load a custom integration without a version twice does not deadlock."""
-    test_integration_1 = loader.Integration(
-        hass, "custom_components.test1", None, {"domain": "test1"}
-    )
-    with patch("homeassistant.loader.async_get_custom_components") as mock_get:
-        mock_get.return_value = {
-            "test1": test_integration_1,
-        }
-
-        with pytest.raises(loader.IntegrationNotFound):
-            await loader.async_get_integration(hass, "test1")
-
-        with pytest.raises(loader.IntegrationNotFound):
-            await loader.async_get_integration(hass, "test1")
-
-
-async def test_custom_integration_missing(hass, caplog):
-    """Test trying to load a custom integration that is missing twice not deadlock."""
-    with patch("homeassistant.loader.async_get_custom_components") as mock_get:
-        mock_get.return_value = {}
-
-        with pytest.raises(loader.IntegrationNotFound):
-            await loader.async_get_integration(hass, "test1")
-
-        with pytest.raises(loader.IntegrationNotFound):
-            await loader.async_get_integration(hass, "test1")

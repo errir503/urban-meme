@@ -3,8 +3,6 @@ import logging
 
 from goalzero import Yeti, exceptions
 
-from homeassistant.components.binary_sensor import DOMAIN as DOMAIN_BINARY_SENSOR
-from homeassistant.components.switch import DOMAIN as DOMAIN_SWITCH
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_NAME
 from homeassistant.core import HomeAssistant
@@ -21,7 +19,7 @@ from .const import DATA_KEY_API, DATA_KEY_COORDINATOR, DOMAIN, MIN_TIME_BETWEEN_
 _LOGGER = logging.getLogger(__name__)
 
 
-PLATFORMS = [DOMAIN_BINARY_SENSOR, DOMAIN_SWITCH]
+PLATFORMS = ["binary_sensor"]
 
 
 async def async_setup_entry(hass, entry):
@@ -32,7 +30,7 @@ async def async_setup_entry(hass, entry):
     session = async_get_clientsession(hass)
     api = Yeti(host, hass.loop, session)
     try:
-        await api.init_connect()
+        await api.get_state()
     except exceptions.ConnectError as ex:
         _LOGGER.warning("Failed to connect: %s", ex)
         raise ConfigEntryNotReady from ex
@@ -42,7 +40,7 @@ async def async_setup_entry(hass, entry):
         try:
             await api.get_state()
         except exceptions.ConnectError as err:
-            raise UpdateFailed(f"Failed to communicating with device {err}") from err
+            raise UpdateFailed(f"Failed to communicating with API: {err}") from err
 
     coordinator = DataUpdateCoordinator(
         hass,
@@ -84,16 +82,11 @@ class YetiEntity(CoordinatorEntity):
     @property
     def device_info(self):
         """Return the device information of the entity."""
-        info = {
+        return {
             "identifiers": {(DOMAIN, self._server_unique_id)},
-            "manufacturer": "Goal Zero",
             "name": self._name,
+            "manufacturer": "Goal Zero",
         }
-        if self.api.sysdata:
-            info["model"] = self.api.sysdata["model"]
-        if self.api.data:
-            info["sw_version"] = self.api.data["firmwareVersion"]
-        return info
 
     @property
     def device_class(self):

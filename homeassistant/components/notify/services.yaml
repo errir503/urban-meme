@@ -7,13 +7,12 @@ notify:
     message:
       name: Message
       description: Message body of the notification.
-      required: true
       example: The garage door has been open for 10 minutes.
       selector:
         text:
     title:
       name: Title
-      description: Title for your notification.
+      description: Optional title for your notification.
       example: "Your Garage Door Friend"
       selector:
         text:
@@ -22,8 +21,6 @@ notify:
         An array of targets to send the notification to. Optional depending on
         the platform.
       example: platform specific
-      selector:
-        object:
     data:
       name: Data
       description:
@@ -39,15 +36,10 @@ persistent_notification:
   fields:
     message:
       description: Message body of the notification.
-      required: true
       example: The garage door has been open for 10 minutes.
-      selector:
-        text:
     title:
-      description: Title for your notification.
+      description: Optional title for your notification.
       example: "Your Garage Door Friend"
-      selector:
-        text:
 
 apns_register:
   name: Register APNS device

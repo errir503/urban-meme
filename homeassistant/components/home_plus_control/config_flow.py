@@ -1,6 +1,7 @@
 """Config flow for Legrand Home+ Control."""
 import logging
 
+from homeassistant import config_entries
 from homeassistant.helpers import config_entry_oauth2_flow
 
 from .const import DOMAIN
@@ -14,6 +15,7 @@ class HomePlusControlFlowHandler(
     DOMAIN = DOMAIN
 
     # Pick the Cloud Poll class
+    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     @property
     def logger(self) -> logging.Logger:

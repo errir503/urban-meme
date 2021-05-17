@@ -141,7 +141,6 @@ class BraviaTVDevice(MediaPlayerEntity):
         self._playing = False
         self._start_date_time = None
         self._program_media_type = None
-        self._audio_output = None
         self._min_volume = None
         self._max_volume = None
         self._volume = None
@@ -192,10 +191,9 @@ class BraviaTVDevice(MediaPlayerEntity):
     async def _async_refresh_volume(self):
         """Refresh volume information."""
         volume_info = await self.hass.async_add_executor_job(
-            self._braviarc.get_volume_info, self._audio_output
+            self._braviarc.get_volume_info
         )
         if volume_info is not None:
-            self._audio_output = volume_info.get("target")
             self._volume = volume_info.get("volume")
             self._min_volume = volume_info.get("minVolume")
             self._max_volume = volume_info.get("maxVolume")
@@ -307,7 +305,7 @@ class BraviaTVDevice(MediaPlayerEntity):
 
     def set_volume_level(self, volume):
         """Set volume level, range 0..1."""
-        self._braviarc.set_volume_level(volume, self._audio_output)
+        self._braviarc.set_volume_level(volume)
 
     async def async_turn_on(self):
         """Turn the media player on."""
@@ -321,11 +319,11 @@ class BraviaTVDevice(MediaPlayerEntity):
 
     def volume_up(self):
         """Volume up the media player."""
-        self._braviarc.volume_up(self._audio_output)
+        self._braviarc.volume_up()
 
     def volume_down(self):
         """Volume down media player."""
-        self._braviarc.volume_down(self._audio_output)
+        self._braviarc.volume_down()
 
     def mute_volume(self, mute):
         """Send mute command."""

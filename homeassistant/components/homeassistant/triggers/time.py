@@ -95,14 +95,8 @@ async def async_attach_trigger(hass, config, action, automation_info):
 
             if has_date:
                 # If input_datetime has date, then track point in time.
-                trigger_dt = datetime(
-                    year,
-                    month,
-                    day,
-                    hour,
-                    minute,
-                    second,
-                    tzinfo=dt_util.DEFAULT_TIME_ZONE,
+                trigger_dt = dt_util.DEFAULT_TIME_ZONE.localize(
+                    datetime(year, month, day, hour, minute, second)
                 )
                 # Only set up listener if time is now or in the future.
                 if trigger_dt >= dt_util.now():

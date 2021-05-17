@@ -1,6 +1,4 @@
 """Code to handle a Hue bridge."""
-from __future__ import annotations
-
 import asyncio
 from functools import partial
 import logging
@@ -51,7 +49,7 @@ class HueBridge:
         # Jobs to be executed when API is reset.
         self.reset_jobs = []
         self.sensor_manager = None
-        self._update_callbacks = {}
+        self.unsub_config_entry_listener = None
 
     @property
     def host(self):
@@ -113,8 +111,9 @@ class HueBridge:
             3 if self.api.config.modelid == "BSB001" else 10
         )
 
-        self.reset_jobs.append(self.config_entry.add_update_listener(_update_listener))
-        self.reset_jobs.append(asyncio.create_task(self._subscribe_events()).cancel)
+        self.unsub_config_entry_listener = self.config_entry.add_update_listener(
+            _update_listener
+        )
 
         self.authorized = True
         return True
@@ -169,7 +168,8 @@ class HueBridge:
         while self.reset_jobs:
             self.reset_jobs.pop()()
 
-        self._update_callbacks = {}
+        if self.unsub_config_entry_listener is not None:
+            self.unsub_config_entry_listener()
 
         # If setup was successful, we set api variable, forwarded entry and
         # register service
@@ -235,39 +235,6 @@ class HueBridge:
         )
         self.authorized = False
         create_config_flow(self.hass, self.host)
-
-    async def _subscribe_events(self):
-        """Subscribe to Hue events."""
-        try:
-            async for updated_object in self.api.listen_events():
-                key = (updated_object.ITEM_TYPE, updated_object.id)
-
-                if key in self._update_callbacks:
-                    for callback in self._update_callbacks[key]:
-                        callback()
-
-        except GeneratorExit:
-            pass
-
-    @core.callback
-    def listen_updates(self, item_type, item_id, update_callback):
-        """Listen to updates."""
-        key = (item_type, item_id)
-        callbacks: list[core.CALLBACK_TYPE] | None = self._update_callbacks.get(key)
-
-        if callbacks is None:
-            callbacks = self._update_callbacks[key] = []
-
-        callbacks.append(update_callback)
-
-        @core.callback
-        def unsub():
-            try:
-                callbacks.remove(update_callback)
-            except ValueError:
-                pass
-
-        return unsub
 
 
 async def authenticate_bridge(hass: core.HomeAssistant, bridge: aiohue.Bridge):

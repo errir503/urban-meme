@@ -17,11 +17,7 @@ import sys
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Callable, Dict, TypedDict, TypeVar, cast
 
-from awesomeversion import (
-    AwesomeVersion,
-    AwesomeVersionException,
-    AwesomeVersionStrategy,
-)
+from awesomeversion import AwesomeVersion, AwesomeVersionStrategy
 
 from homeassistant.generated.dhcp import DHCP
 from homeassistant.generated.mqtt import MQTT
@@ -52,7 +48,17 @@ CUSTOM_WARNING = (
     "cause stability problems, be sure to disable it if you "
     "experience issues with Home Assistant"
 )
-
+CUSTOM_WARNING_VERSION_MISSING = (
+    "No 'version' key in the manifest file for "
+    "custom integration '%s'. As of Home Assistant "
+    "2021.6, this integration will no longer be "
+    "loaded. Please report this to the maintainer of '%s'"
+)
+CUSTOM_WARNING_VERSION_TYPE = (
+    "'%s' is not a valid version for "
+    "custom integration '%s'. "
+    "Please report this to the maintainer of '%s'"
+)
 _UNDEF = object()  # Internal; not helpers.typing.UNDEFINED due to circular dependency
 
 MAX_LOAD_CONCURRENTLY = 4
@@ -291,13 +297,28 @@ class Integration:
                 continue
 
             return cls(
-                hass,
-                f"{root_module.__name__}.{domain}",
-                manifest_path.parent,
-                manifest,
+                hass, f"{root_module.__name__}.{domain}", manifest_path.parent, manifest
             )
 
         return None
+
+    @classmethod
+    def resolve_legacy(cls, hass: HomeAssistant, domain: str) -> Integration | None:
+        """Resolve legacy component.
+
+        Will create a stub manifest.
+        """
+        comp = _load_file(hass, domain, _lookup_path(hass))
+
+        if comp is None:
+            return None
+
+        return cls(
+            hass,
+            comp.__name__,
+            pathlib.Path(comp.__file__).parent,
+            manifest_from_legacy_module(domain, comp),
+        )
 
     def __init__(
         self,
@@ -506,35 +527,40 @@ async def async_get_integration(hass: HomeAssistant, domain: str) -> Integration
 
     event = cache[domain] = asyncio.Event()
 
-    try:
-        integration = await _async_get_integration(hass, domain)
-    except Exception:  # pylint: disable=broad-except
-        # Remove event from cache.
-        cache.pop(domain)
-        event.set()
-        raise
-
-    cache[domain] = integration
-    event.set()
-    return integration
-
-
-async def _async_get_integration(hass: HomeAssistant, domain: str) -> Integration:
     # Instead of using resolve_from_root we use the cache of custom
     # components to find the integration.
-    if integration := (await async_get_custom_components(hass)).get(domain):
-        validate_custom_integration_version(integration)
-        _LOGGER.warning(CUSTOM_WARNING, integration.domain)
+    integration = (await async_get_custom_components(hass)).get(domain)
+    if integration is not None:
+        custom_integration_warning(integration)
+        cache[domain] = integration
+        event.set()
         return integration
 
     from homeassistant import components  # pylint: disable=import-outside-toplevel
 
-    if integration := await hass.async_add_executor_job(
+    integration = await hass.async_add_executor_job(
         Integration.resolve_from_root, hass, components, domain
-    ):
+    )
+
+    if integration is not None:
+        cache[domain] = integration
+        event.set()
         return integration
 
-    raise IntegrationNotFound(domain)
+    integration = Integration.resolve_legacy(hass, domain)
+    if integration is not None:
+        custom_integration_warning(integration)
+        cache[domain] = integration
+    else:
+        # Remove event from cache.
+        cache.pop(domain)
+
+    event.set()
+
+    if not integration:
+        raise IntegrationNotFound(domain)
+
+    return integration
 
 
 class LoaderError(Exception):
@@ -746,29 +772,33 @@ def _lookup_path(hass: HomeAssistant) -> list[str]:
     return [PACKAGE_CUSTOM_COMPONENTS, PACKAGE_BUILTIN]
 
 
-def validate_custom_integration_version(integration: Integration) -> None:
-    """
-    Validate the version of custom integrations.
+def validate_custom_integration_version(version: str) -> bool:
+    """Validate the version of custom integrations."""
+    return AwesomeVersion(version).strategy in (
+        AwesomeVersionStrategy.CALVER,
+        AwesomeVersionStrategy.SEMVER,
+        AwesomeVersionStrategy.SIMPLEVER,
+        AwesomeVersionStrategy.BUILDVER,
+        AwesomeVersionStrategy.PEP440,
+    )
 
-    Raises IntegrationNotFound when version is missing or not valid
-    """
-    try:
-        AwesomeVersion(
-            integration.version,
-            [
-                AwesomeVersionStrategy.CALVER,
-                AwesomeVersionStrategy.SEMVER,
-                AwesomeVersionStrategy.SIMPLEVER,
-                AwesomeVersionStrategy.BUILDVER,
-                AwesomeVersionStrategy.PEP440,
-            ],
-        )
-    except AwesomeVersionException:
+
+def custom_integration_warning(integration: Integration) -> None:
+    """Create logs for custom integrations."""
+    if not integration.pkg_path.startswith(PACKAGE_CUSTOM_COMPONENTS):
+        return None
+
+    _LOGGER.warning(CUSTOM_WARNING, integration.domain)
+
+    if integration.manifest.get("version") is None:
         _LOGGER.error(
-            "The custom integration '%s' does not have a "
-            "valid version key (%s) in the manifest file and was blocked from loading. "
-            "See https://developers.home-assistant.io/blog/2021/01/29/custom-integration-changes#versions for more details",
-            integration.domain,
-            integration.version,
+            CUSTOM_WARNING_VERSION_MISSING, integration.domain, integration.domain
         )
-        raise IntegrationNotFound(integration.domain) from None
+    else:
+        if not validate_custom_integration_version(integration.manifest["version"]):
+            _LOGGER.error(
+                CUSTOM_WARNING_VERSION_TYPE,
+                integration.manifest["version"],
+                integration.domain,
+                integration.domain,
+            )

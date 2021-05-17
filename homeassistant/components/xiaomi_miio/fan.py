@@ -551,9 +551,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
         if model in MODELS_PURIFIER_MIOT:
             air_purifier = AirPurifierMiot(host, token)
-            entity = XiaomiAirPurifierMiot(
-                name, air_purifier, config_entry, unique_id, allowed_failures=2
-            )
+            entity = XiaomiAirPurifierMiot(name, air_purifier, config_entry, unique_id)
         elif model.startswith("zhimi.airpurifier."):
             air_purifier = AirPurifier(host, token)
             entity = XiaomiAirPurifier(name, air_purifier, config_entry, unique_id)
@@ -771,11 +769,9 @@ class XiaomiGenericDevice(XiaomiMiioEntity, FanEntity):
 class XiaomiAirPurifier(XiaomiGenericDevice):
     """Representation of a Xiaomi Air Purifier."""
 
-    def __init__(self, name, device, entry, unique_id, allowed_failures=0):
+    def __init__(self, name, device, entry, unique_id):
         """Initialize the plug switch."""
         super().__init__(name, device, entry, unique_id)
-        self._allowed_failures = allowed_failures
-        self._failure = 0
 
         if self._model == MODEL_AIRPURIFIER_PRO:
             self._device_features = FEATURE_FLAGS_AIRPURIFIER_PRO
@@ -826,24 +822,10 @@ class XiaomiAirPurifier(XiaomiGenericDevice):
                 }
             )
 
-            self._failure = 0
-
         except DeviceException as ex:
-            self._failure += 1
-            if self._failure < self._allowed_failures:
-                _LOGGER.info(
-                    "Got exception while fetching the state: %s, failure: %d",
-                    ex,
-                    self._failure,
-                )
-            else:
-                if self._available:
-                    self._available = False
-                    _LOGGER.error(
-                        "Got exception while fetching the state: %s, failure: %d",
-                        ex,
-                        self._failure,
-                    )
+            if self._available:
+                self._available = False
+                _LOGGER.error("Got exception while fetching the state: %s", ex)
 
     @property
     def speed_list(self) -> list:

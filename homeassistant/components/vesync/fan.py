@@ -18,16 +18,12 @@ _LOGGER = logging.getLogger(__name__)
 
 DEV_TYPE_TO_HA = {
     "LV-PUR131S": "fan",
-    "Core200S": "fan",
 }
 
 FAN_MODE_AUTO = "auto"
 FAN_MODE_SLEEP = "sleep"
 
-PRESET_MODES = {
-    "LV-PUR131S": [FAN_MODE_AUTO, FAN_MODE_SLEEP],
-    "Core200S": [FAN_MODE_SLEEP],
-}
+PRESET_MODES = [FAN_MODE_AUTO, FAN_MODE_SLEEP]
 SPEED_RANGE = (1, 3)  # off is not included
 
 
@@ -90,7 +86,7 @@ class VeSyncFanHA(VeSyncDevice, FanEntity):
     @property
     def preset_modes(self):
         """Get the list of available preset modes."""
-        return PRESET_MODES[self.device.device_type]
+        return PRESET_MODES
 
     @property
     def preset_mode(self):
@@ -107,30 +103,13 @@ class VeSyncFanHA(VeSyncDevice, FanEntity):
     @property
     def extra_state_attributes(self):
         """Return the state attributes of the fan."""
-        attr = {}
-
-        if hasattr(self.smartfan, "active_time"):
-            attr["active_time"] = self.smartfan.active_time
-
-        if hasattr(self.smartfan, "screen_status"):
-            attr["screen_status"] = self.smartfan.screen_status
-
-        if hasattr(self.smartfan, "child_lock"):
-            attr["child_lock"] = self.smartfan.child_lock
-
-        if hasattr(self.smartfan, "night_light"):
-            attr["night_light"] = self.smartfan.night_light
-
-        if hasattr(self.smartfan, "air_quality"):
-            attr["air_quality"] = self.smartfan.air_quality
-
-        if hasattr(self.smartfan, "mode"):
-            attr["mode"] = self.smartfan.mode
-
-        if hasattr(self.smartfan, "filter_life"):
-            attr["filter_life"] = self.smartfan.filter_life
-
-        return attr
+        return {
+            "mode": self.smartfan.mode,
+            "active_time": self.smartfan.active_time,
+            "filter_life": self.smartfan.filter_life,
+            "air_quality": self.smartfan.air_quality,
+            "screen_status": self.smartfan.screen_status,
+        }
 
     def set_percentage(self, percentage):
         """Set the speed of the device."""

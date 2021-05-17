@@ -9,6 +9,7 @@ CONF_ZONE_RUN_TIME = "zone_run_time"
 
 DATA_CONTROLLER = "controller"
 DATA_COORDINATOR = "coordinator"
+DATA_LISTENER = "listener"
 DATA_PROGRAMS = "programs"
 DATA_PROVISION_SETTINGS = "provision.settings"
 DATA_RESTRICTIONS_CURRENT = "restrictions.current"

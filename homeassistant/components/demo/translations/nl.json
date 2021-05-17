@@ -3,8 +3,8 @@
         "step": {
             "init": {
                 "data": {
-                    "one": "Leeg",
-                    "other": "Leeg"
+                    "one": "Empty",
+                    "other": ""
                 }
             },
             "options_1": {

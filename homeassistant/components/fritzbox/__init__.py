@@ -1,4 +1,4 @@
-"""Support for AVM FRITZ!SmartHome devices."""
+"""Support for AVM Fritz!Box smarthome devices."""
 from __future__ import annotations
 
 from datetime import timedelta
@@ -17,20 +17,18 @@ from homeassistant.const import (
     CONF_USERNAME,
     EVENT_HOMEASSISTANT_STOP,
 )
-from homeassistant.core import Event, HomeAssistant
+from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
 )
 
 from .const import CONF_CONNECTIONS, CONF_COORDINATOR, DOMAIN, LOGGER, PLATFORMS
-from .model import EntityInfo
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up the AVM FRITZ!SmartHome platforms."""
+    """Set up the AVM Fritz!Box platforms."""
     fritz = Fritzhome(
         host=entry.data[CONF_HOST],
         user=entry.data[CONF_USERNAME],
@@ -65,7 +63,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             data[device.ain] = device
         return data
 
-    async def async_update_coordinator() -> dict[str, FritzhomeDevice]:
+    async def async_update_coordinator():
         """Fetch all device data."""
         return await hass.async_add_executor_job(_update_fritz_devices)
 
@@ -83,7 +81,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.config_entries.async_setup_platforms(entry, PLATFORMS)
 
-    def logout_fritzbox(event: Event) -> None:
+    def logout_fritzbox(event):
         """Close connections to this fritzbox."""
         fritz.logout()
 
@@ -95,7 +93,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unloading the AVM FRITZ!SmartHome platforms."""
+    """Unloading the AVM Fritz!Box platforms."""
     fritz = hass.data[DOMAIN][entry.entry_id][CONF_CONNECTIONS]
     await hass.async_add_executor_job(fritz.logout)
 
@@ -111,10 +109,10 @@ class FritzBoxEntity(CoordinatorEntity):
 
     def __init__(
         self,
-        entity_info: EntityInfo,
-        coordinator: DataUpdateCoordinator[dict[str, FritzhomeDevice]],
+        entity_info: dict[str, str],
+        coordinator: DataUpdateCoordinator,
         ain: str,
-    ) -> None:
+    ):
         """Initialize the FritzBox entity."""
         super().__init__(coordinator)
 
@@ -130,7 +128,7 @@ class FritzBoxEntity(CoordinatorEntity):
         return self.coordinator.data[self.ain]
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self):
         """Return device specific attributes."""
         return {
             "name": self.device.name,
@@ -141,21 +139,21 @@ class FritzBoxEntity(CoordinatorEntity):
         }
 
     @property
-    def unique_id(self) -> str:
+    def unique_id(self):
         """Return the unique ID of the device."""
         return self._unique_id
 
     @property
-    def name(self) -> str:
+    def name(self):
         """Return the name of the device."""
         return self._name
 
     @property
-    def unit_of_measurement(self) -> str | None:
+    def unit_of_measurement(self):
         """Return the unit of measurement."""
         return self._unit_of_measurement
 
     @property
-    def device_class(self) -> str | None:
+    def device_class(self):
         """Return the device class."""
         return self._device_class

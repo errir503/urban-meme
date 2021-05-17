@@ -34,9 +34,7 @@ purge:
         boolean:
 
 disable:
-  name: Disable
   description: Stop the recording of events and state changes
 
-enable:
-  name: Enable
+enabled:
   description: Start the recording of events and state changes

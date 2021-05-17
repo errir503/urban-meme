@@ -15,14 +15,11 @@ from .const import API, DOMAIN, HOST, PORT
 DEVICES = "devices"
 
 CONFIG_SCHEMA = vol.Schema(
-    vol.All(
-        cv.deprecated(DOMAIN),
-        {
-            DOMAIN: vol.Schema(
-                {vol.Required(CONF_HOST): cv.string, vol.Required(CONF_PORT): cv.string}
-            )
-        },
-    ),
+    {
+        DOMAIN: vol.Schema(
+            {vol.Required(CONF_HOST): cv.string, vol.Required(CONF_PORT): cv.string}
+        )
+    },
     extra=vol.ALLOW_EXTRA,
 )
 

@@ -24,7 +24,7 @@ class LiteJetConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Create a LiteJet config entry based upon user input."""
-        if self._async_current_entries():
+        if self.hass.config_entries.async_entries(DOMAIN):
             return self.async_abort(reason="single_instance_allowed")
 
         errors = {}

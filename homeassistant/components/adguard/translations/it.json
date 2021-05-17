@@ -2,7 +2,8 @@
     "config": {
         "abort": {
             "already_configured": "Il servizio \u00e8 gi\u00e0 configurato",
-            "existing_instance_updated": "Configurazione esistente aggiornata."
+            "existing_instance_updated": "Configurazione esistente aggiornata.",
+            "single_instance_allowed": "Gi\u00e0 configurato. \u00c8 possibile una sola configurazione."
         },
         "error": {
             "cannot_connect": "Impossibile connettersi"

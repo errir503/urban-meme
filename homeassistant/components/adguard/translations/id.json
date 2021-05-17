@@ -1,7 +1,8 @@
 {
     "config": {
         "abort": {
-            "existing_instance_updated": "Memperbarui konfigurasi yang ada."
+            "existing_instance_updated": "Memperbarui konfigurasi yang ada.",
+            "single_instance_allowed": "Sudah dikonfigurasi. Hanya satu konfigurasi yang diizinkan."
         },
         "error": {
             "cannot_connect": "Gagal terhubung"

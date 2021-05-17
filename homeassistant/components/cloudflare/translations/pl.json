@@ -9,7 +9,7 @@
             "invalid_auth": "Niepoprawne uwierzytelnienie",
             "invalid_zone": "Nieprawid\u0142owa strefa"
         },
-        "flow_title": "{name}",
+        "flow_title": "Cloudflare: {name}",
         "step": {
             "records": {
                 "data": {

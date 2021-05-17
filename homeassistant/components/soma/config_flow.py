@@ -19,6 +19,7 @@ class SomaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
     def __init__(self):
         """Instantiate config flow."""
@@ -59,6 +60,6 @@ class SomaFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_import(self, user_input=None):
         """Handle flow start from existing config section."""
-        if self._async_current_entries():
+        if self.hass.config_entries.async_entries(DOMAIN):
             return self.async_abort(reason="already_setup")
         return await self.async_step_creation(user_input)

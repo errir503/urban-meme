@@ -2,10 +2,9 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable
 import json
 import logging
-from typing import Any
+from typing import Any, Callable
 
 from aiohttp import web
 from aiohttp.typedefs import LooseHeaders
@@ -14,7 +13,6 @@ from aiohttp.web_exceptions import (
     HTTPInternalServerError,
     HTTPUnauthorized,
 )
-from aiohttp.web_urldispatcher import AbstractRoute
 import voluptuous as vol
 
 from homeassistant import exceptions
@@ -83,7 +81,7 @@ class HomeAssistantView:
         """Register the view with a router."""
         assert self.url is not None, "No url set for view"
         urls = [self.url] + self.extra_urls
-        routes: list[AbstractRoute] = []
+        routes = []
 
         for method in ("get", "post", "delete", "put", "patch", "head", "options"):
             handler = getattr(self, method, None)
@@ -103,9 +101,7 @@ class HomeAssistantView:
             app["allow_cors"](route)
 
 
-def request_handler_factory(
-    view: HomeAssistantView, handler: Callable
-) -> Callable[[web.Request], Awaitable[web.StreamResponse]]:
+def request_handler_factory(view: HomeAssistantView, handler: Callable) -> Callable:
     """Wrap the handler classes."""
     assert asyncio.iscoroutinefunction(handler) or is_callback(
         handler

@@ -114,7 +114,7 @@ async def test_state_reporting(hass):
     assert hass.states.get("light.light_group").state == STATE_UNAVAILABLE
 
 
-async def test_brightness(hass, enable_custom_integrations):
+async def test_brightness(hass):
     """Test brightness reporting."""
     platform = getattr(hass.components, "test.light")
     platform.init(empty=True)
@@ -183,7 +183,7 @@ async def test_brightness(hass, enable_custom_integrations):
     assert state.attributes[ATTR_SUPPORTED_COLOR_MODES] == ["brightness"]
 
 
-async def test_color_hs(hass, enable_custom_integrations):
+async def test_color_hs(hass):
     """Test hs color reporting."""
     platform = getattr(hass.components, "test.light")
     platform.init(empty=True)
@@ -251,7 +251,7 @@ async def test_color_hs(hass, enable_custom_integrations):
     assert state.attributes[ATTR_SUPPORTED_FEATURES] == 0
 
 
-async def test_color_rgbw(hass, enable_custom_integrations):
+async def test_color_rgbw(hass):
     """Test rgbw color reporting."""
     platform = getattr(hass.components, "test.light")
     platform.init(empty=True)
@@ -322,7 +322,7 @@ async def test_color_rgbw(hass, enable_custom_integrations):
     assert state.attributes[ATTR_SUPPORTED_FEATURES] == 0
 
 
-async def test_color_rgbww(hass, enable_custom_integrations):
+async def test_color_rgbww(hass):
     """Test rgbww color reporting."""
     platform = getattr(hass.components, "test.light")
     platform.init(empty=True)
@@ -434,7 +434,7 @@ async def test_white_value(hass):
     assert state.attributes[ATTR_WHITE_VALUE] == 100
 
 
-async def test_color_temp(hass, enable_custom_integrations):
+async def test_color_temp(hass):
     """Test color temp reporting."""
     platform = getattr(hass.components, "test.light")
     platform.init(empty=True)
@@ -501,7 +501,7 @@ async def test_color_temp(hass, enable_custom_integrations):
     assert state.attributes[ATTR_SUPPORTED_COLOR_MODES] == ["color_temp"]
 
 
-async def test_emulated_color_temp_group(hass, enable_custom_integrations):
+async def test_emulated_color_temp_group(hass):
     """Test emulated color temperature in a group."""
     platform = getattr(hass.components, "test.light")
     platform.init(empty=True)
@@ -564,7 +564,7 @@ async def test_emulated_color_temp_group(hass, enable_custom_integrations):
     assert state.attributes[ATTR_HS_COLOR] == (27.001, 19.243)
 
 
-async def test_min_max_mireds(hass, enable_custom_integrations):
+async def test_min_max_mireds(hass):
     """Test min/max mireds reporting.
 
     min/max mireds is reported both when light is on and off
@@ -656,10 +656,6 @@ async def test_effect_list(hass):
     await hass.async_block_till_done()
     state = hass.states.get("light.light_group")
     assert set(state.attributes[ATTR_EFFECT_LIST]) == {"None", "Random", "Colorloop"}
-    # These ensure the output is sorted as expected
-    assert state.attributes[ATTR_EFFECT_LIST][0] == "None"
-    assert state.attributes[ATTR_EFFECT_LIST][1] == "Colorloop"
-    assert state.attributes[ATTR_EFFECT_LIST][2] == "Random"
 
     hass.states.async_set(
         "light.test2",
@@ -739,7 +735,7 @@ async def test_effect(hass):
     assert state.attributes[ATTR_EFFECT] == "Random"
 
 
-async def test_supported_color_modes(hass, enable_custom_integrations):
+async def test_supported_color_modes(hass):
     """Test supported_color_modes reporting."""
     platform = getattr(hass.components, "test.light")
     platform.init(empty=True)
@@ -784,7 +780,7 @@ async def test_supported_color_modes(hass, enable_custom_integrations):
     }
 
 
-async def test_color_mode(hass, enable_custom_integrations):
+async def test_color_mode(hass):
     """Test color_mode reporting."""
     platform = getattr(hass.components, "test.light")
     platform.init(empty=True)

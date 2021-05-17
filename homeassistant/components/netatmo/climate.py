@@ -158,7 +158,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     await data_handler.unregister_data_class(HOMEDATA_DATA_CLASS_NAME, None)
 
-    platform = entity_platform.async_get_current_platform()
+    platform = entity_platform.current_platform.get()
 
     if home_data is not None:
         platform.async_register_entity_service(
@@ -578,7 +578,9 @@ class NetatmoThermostat(NetatmoBase, ClimateEntity):
                 schedule_id = sid
 
         if not schedule_id:
-            _LOGGER.error("%s is not a valid schedule", kwargs.get(ATTR_SCHEDULE_NAME))
+            _LOGGER.error(
+                "%s is not a invalid schedule", kwargs.get(ATTR_SCHEDULE_NAME)
+            )
             return
 
         self._data.switch_home_schedule(home_id=self._home_id, schedule_id=schedule_id)

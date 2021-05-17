@@ -181,7 +181,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
     async_add_entities(devices, True)
 
-    platform = entity_platform.async_get_current_platform()
+    platform = entity_platform.current_platform.get()
 
     def create_vacation_service(service):
         """Create a vacation on the target thermostat."""

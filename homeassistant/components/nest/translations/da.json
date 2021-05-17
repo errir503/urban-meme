@@ -1,6 +1,7 @@
 {
     "config": {
         "abort": {
+            "authorize_url_fail": "Ukendt fejl ved generering af en autoriseret url.",
             "authorize_url_timeout": "Timeout ved generering af autoriseret url."
         },
         "error": {

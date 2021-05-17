@@ -8,7 +8,6 @@ import voluptuous as vol
 
 from homeassistant.config_entries import SOURCE_IMPORT
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_call_later, async_track_point_in_time
 import homeassistant.util.dt as dt_util
@@ -26,16 +25,13 @@ _LOGGER = logging.getLogger(__name__)
 PLATFORMS = ["sensor"]
 
 CONFIG_SCHEMA = vol.Schema(
-    vol.All(
-        cv.deprecated(DOMAIN),
-        {
-            DOMAIN: {
-                vol.Optional(CONF_CALC_METHOD, default=DEFAULT_CALC_METHOD): vol.In(
-                    CALC_METHODS
-                ),
-            }
-        },
-    ),
+    {
+        DOMAIN: {
+            vol.Optional(CONF_CALC_METHOD, default=DEFAULT_CALC_METHOD): vol.In(
+                CALC_METHODS
+            ),
+        }
+    },
     extra=vol.ALLOW_EXTRA,
 )
 

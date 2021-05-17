@@ -1,6 +1,7 @@
 {
     "config": {
         "abort": {
+            "authorize_url_fail": "Ok\u00e4nt fel vid generering av autentisieringsadress.",
             "authorize_url_timeout": "Timeout vid generering av en autentisieringsadress."
         },
         "error": {

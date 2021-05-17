@@ -11,7 +11,6 @@ from .const import (
     ATTR_ENERGY_IMPORTED,
     ATTR_FREQUENCY,
     ATTR_INSTANT_AVERAGE_VOLTAGE,
-    ATTR_INSTANT_TOTAL_CURRENT,
     ATTR_IS_ACTIVE,
     DOMAIN,
     ENERGY_KILO_WATT,
@@ -145,7 +144,6 @@ class PowerWallEnergySensor(PowerWallEntity, SensorEntity):
             ATTR_FREQUENCY: round(meter.frequency, 1),
             ATTR_ENERGY_EXPORTED: meter.get_energy_exported(),
             ATTR_ENERGY_IMPORTED: meter.get_energy_imported(),
-            ATTR_INSTANT_AVERAGE_VOLTAGE: round(meter.average_voltage, 1),
-            ATTR_INSTANT_TOTAL_CURRENT: meter.get_instant_total_current(),
+            ATTR_INSTANT_AVERAGE_VOLTAGE: round(meter.avarage_voltage, 1),
             ATTR_IS_ACTIVE: meter.is_active(),
         }

@@ -4,8 +4,6 @@ turn_on:
   name: Activate
   description: Activate a scene.
   target:
-    entity:
-      domain: scene
   fields:
     transition:
       name: Transition

@@ -1,5 +1,6 @@
 {
   "config": {
+    "flow_title": "Motion Blinds",
     "step": {
       "user": {
         "title": "Motion Blinds",

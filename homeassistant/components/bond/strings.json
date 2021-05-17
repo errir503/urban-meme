@@ -1,6 +1,6 @@
 {
   "config": {
-    "flow_title": "{name} ({host})",
+    "flow_title": "Bond: {name} ({host})",
     "step": {
       "confirm": {
         "description": "Do you want to set up {name}?",

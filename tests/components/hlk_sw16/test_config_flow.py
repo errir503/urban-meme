@@ -104,8 +104,9 @@ async def test_form(hass):
         conf,
     )
 
-    assert result4["type"] == "abort"
-    assert result4["reason"] == "already_configured"
+    assert result4["type"] == "form"
+    assert result4["errors"] == {"base": "already_configured"}
+    await hass.async_block_till_done()
 
 
 async def test_import(hass):

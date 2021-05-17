@@ -1,7 +1,7 @@
 {
   "title": "HomeKit Controller",
   "config": {
-    "flow_title": "{name}",
+    "flow_title": "{name} via HomeKit Accessory Protocol",
     "step": {
       "user": {
         "title": "Device selection",

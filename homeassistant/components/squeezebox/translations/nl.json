@@ -10,7 +10,7 @@
             "no_server_found": "Kan server niet automatisch vinden.",
             "unknown": "Onverwachte fout"
         },
-        "flow_title": "{host}",
+        "flow_title": "Logitech Squeezebox: {host}",
         "step": {
             "edit": {
                 "data": {

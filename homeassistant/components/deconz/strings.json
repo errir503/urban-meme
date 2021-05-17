@@ -1,6 +1,6 @@
 {
   "config": {
-    "flow_title": "{host}",
+    "flow_title": "deCONZ Zigbee gateway ({host})",
     "step": {
       "user": {
         "data": {

@@ -1,7 +1,8 @@
 """Support for KNX/IP climate devices."""
 from __future__ import annotations
 
-from typing import Any
+from collections.abc import Iterable
+from typing import Any, Callable
 
 from xknx.devices import Climate as XknxClimate
 from xknx.dpt.dpt_hvac_mode import HVACControllerMode, HVACOperationMode
@@ -18,7 +19,7 @@ from homeassistant.components.climate.const import (
 from homeassistant.const import ATTR_TEMPERATURE, TEMP_CELSIUS
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from .const import CONTROLLER_MODES, DOMAIN, PRESET_MODES
@@ -32,7 +33,7 @@ PRESET_MODES_INV = {value: key for key, value in PRESET_MODES.items()}
 async def async_setup_platform(
     hass: HomeAssistant,
     config: ConfigType,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[Iterable[Entity]], None],
     discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     """Set up climate(s) for KNX platform."""

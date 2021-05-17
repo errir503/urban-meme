@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 
 from aiohttp.test_utils import TestClient
 import arrow
+import pytz
 from withings_api.common import (
     MeasureGetMeasResponse,
     NotifyAppli,
@@ -39,7 +40,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_entry_oauth2_flow
 from homeassistant.helpers.config_entry_oauth2_flow import AUTH_CALLBACK_PATH
 from homeassistant.setup import async_setup_component
-from homeassistant.util import dt as dt_util
 
 from tests.test_util.aiohttp import AiohttpClientMocker
 
@@ -77,7 +77,7 @@ def new_profile_config(
             measuregrps=[],
             more=False,
             offset=0,
-            timezone=dt_util.UTC,
+            timezone=pytz.UTC,
             updatetime=arrow.get(12345),
         ),
         api_response_sleep_get_summary=api_response_sleep_get_summary

@@ -7,7 +7,7 @@ import pytest
 from homeassistant.components.fritz.const import (
     DOMAIN,
     ERROR_AUTH_INVALID,
-    ERROR_CANNOT_CONNECT,
+    ERROR_CONNECTION_ERROR,
     ERROR_UNKNOWN,
 )
 from homeassistant.components.ssdp import (
@@ -54,11 +54,11 @@ MOCK_SSDP_DATA = {
 
 
 @pytest.fixture()
-def fc_class_mock():
+def fc_class_mock(mocker):
     """Fixture that sets up a mocked FritzConnection class."""
-    with patch("fritzconnection.FritzConnection", autospec=True) as result:
-        result.return_value = FritzConnectionMock()
-        yield result
+    result = mocker.patch("fritzconnection.FritzConnection", autospec=True)
+    result.return_value = FritzConnectionMock()
+    yield result
 
 
 async def test_user(hass: HomeAssistant, fc_class_mock):
@@ -111,7 +111,6 @@ async def test_user_already_configured(hass: HomeAssistant, fc_class_mock):
         )
         assert result["type"] == RESULT_TYPE_FORM
         assert result["step_id"] == "user"
-        assert result["errors"]["base"] == "already_configured"
 
 
 async def test_exception_security(hass: HomeAssistant):
@@ -157,7 +156,7 @@ async def test_exception_connection(hass: HomeAssistant):
 
         assert result["type"] == RESULT_TYPE_FORM
         assert result["step_id"] == "user"
-        assert result["errors"]["base"] == ERROR_CANNOT_CONNECT
+        assert result["errors"]["base"] == ERROR_CONNECTION_ERROR
 
 
 async def test_exception_unknown(hass: HomeAssistant):
@@ -249,7 +248,6 @@ async def test_reauth_not_successful(hass: HomeAssistant, fc_class_mock):
 
         assert result["type"] == RESULT_TYPE_FORM
         assert result["step_id"] == "reauth_confirm"
-        assert result["errors"]["base"] == "cannot_connect"
 
 
 async def test_ssdp_already_configured(hass: HomeAssistant, fc_class_mock):

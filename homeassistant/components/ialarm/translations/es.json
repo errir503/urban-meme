@@ -11,6 +11,7 @@
             "user": {
                 "data": {
                     "host": "Host",
+                    "pin": "C\u00f3digo PIN",
                     "port": "Puerto"
                 }
             }

@@ -5,9 +5,6 @@
         },
         "step": {
             "config": {
-                "data": {
-                    "discovery_prefix": "Themenpr\u00e4fix f\u00fcr die Erkennung"
-                },
                 "description": "Bitte die Tasmota-Konfiguration einstellen.",
                 "title": "Tasmota"
             },

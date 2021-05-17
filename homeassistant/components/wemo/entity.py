@@ -5,12 +5,13 @@ import asyncio
 from collections.abc import Generator
 import contextlib
 import logging
+from typing import Any
 
 import async_timeout
 from pywemo import WeMoDevice
 from pywemo.exceptions import ActionException
 
-from homeassistant.helpers.entity import DeviceInfo, Entity
+from homeassistant.helpers.entity import Entity
 
 from .const import DOMAIN as WEMO_DOMAIN
 
@@ -126,7 +127,7 @@ class WemoSubscriptionEntity(WemoEntity):
         return self.wemo.serialnumber
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> dict[str, Any]:
         """Return the device info."""
         return {
             "name": self.name,
