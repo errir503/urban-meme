@@ -11,10 +11,18 @@ from homeassistant.core import callback
 from .const import DOMAIN
 
 
-class VeSyncFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+@callback
+def configured_instances(hass):
+    """Return already configured instances."""
+    return hass.config_entries.async_entries(DOMAIN)
+
+
+@config_entries.HANDLERS.register(DOMAIN)
+class VeSyncFlowHandler(config_entries.ConfigFlow):
     """Handle a config flow."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self):
         """Instantiate config flow."""
@@ -39,7 +47,7 @@ class VeSyncFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input=None):
         """Handle a flow start."""
-        if self._async_current_entries():
+        if configured_instances(self.hass):
             return self.async_abort(reason="single_instance_allowed")
 
         if not user_input:

@@ -14,5 +14,6 @@
             "update_channel": "Update Channel",
             "version_api": "Version API"
         }
-    }
+    },
+    "title": "Home Assistant Supervisor"
 }

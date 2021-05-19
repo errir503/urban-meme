@@ -7,11 +7,7 @@
         "error": {
             "cannot_connect": "Kon niet verbinden"
         },
-        "flow_title": "{model} {host}",
         "step": {
-            "discovery_confirm": {
-                "description": "Wilt u {model} ({host}) instellen?"
-            },
             "pick_device": {
                 "data": {
                     "device": "Apparaat"

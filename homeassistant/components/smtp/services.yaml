@@ -1,3 +1,2 @@
 reload:
-  name: Reload
   description: Reload smtp notify services.

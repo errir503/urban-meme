@@ -43,7 +43,7 @@ def calls(hass):
     return async_mock_service(hass, "test", "automation")
 
 
-async def test_get_conditions(hass, device_reg, entity_reg, enable_custom_integrations):
+async def test_get_conditions(hass, device_reg, entity_reg):
     """Test we get the expected conditions from a cover."""
     platform = getattr(hass.components, f"test.{DOMAIN}")
     platform.init()
@@ -94,9 +94,7 @@ async def test_get_conditions(hass, device_reg, entity_reg, enable_custom_integr
     assert_lists_same(conditions, expected_conditions)
 
 
-async def test_get_conditions_set_pos(
-    hass, device_reg, entity_reg, enable_custom_integrations
-):
+async def test_get_conditions_set_pos(hass, device_reg, entity_reg):
     """Test we get the expected conditions from a cover."""
     platform = getattr(hass.components, f"test.{DOMAIN}")
     platform.init()
@@ -154,9 +152,7 @@ async def test_get_conditions_set_pos(
     assert_lists_same(conditions, expected_conditions)
 
 
-async def test_get_conditions_set_tilt_pos(
-    hass, device_reg, entity_reg, enable_custom_integrations
-):
+async def test_get_conditions_set_tilt_pos(hass, device_reg, entity_reg):
     """Test we get the expected conditions from a cover."""
     platform = getattr(hass.components, f"test.{DOMAIN}")
     platform.init()
@@ -214,9 +210,7 @@ async def test_get_conditions_set_tilt_pos(
     assert_lists_same(conditions, expected_conditions)
 
 
-async def test_get_condition_capabilities(
-    hass, device_reg, entity_reg, enable_custom_integrations
-):
+async def test_get_condition_capabilities(hass, device_reg, entity_reg):
     """Test we get the expected capabilities from a cover condition."""
     platform = getattr(hass.components, f"test.{DOMAIN}")
     platform.init()
@@ -243,9 +237,7 @@ async def test_get_condition_capabilities(
         assert capabilities == {"extra_fields": []}
 
 
-async def test_get_condition_capabilities_set_pos(
-    hass, device_reg, entity_reg, enable_custom_integrations
-):
+async def test_get_condition_capabilities_set_pos(hass, device_reg, entity_reg):
     """Test we get the expected capabilities from a cover condition."""
     platform = getattr(hass.components, f"test.{DOMAIN}")
     platform.init()
@@ -295,9 +287,7 @@ async def test_get_condition_capabilities_set_pos(
             assert capabilities == {"extra_fields": []}
 
 
-async def test_get_condition_capabilities_set_tilt_pos(
-    hass, device_reg, entity_reg, enable_custom_integrations
-):
+async def test_get_condition_capabilities_set_tilt_pos(hass, device_reg, entity_reg):
     """Test we get the expected capabilities from a cover condition."""
     platform = getattr(hass.components, f"test.{DOMAIN}")
     platform.init()
@@ -459,7 +449,7 @@ async def test_if_state(hass, calls):
     assert calls[3].data["some"] == "is_closing - event - test_event4"
 
 
-async def test_if_position(hass, calls, enable_custom_integrations):
+async def test_if_position(hass, calls):
     """Test for position conditions."""
     platform = getattr(hass.components, f"test.{DOMAIN}")
     platform.init()
@@ -563,7 +553,7 @@ async def test_if_position(hass, calls, enable_custom_integrations):
     assert calls[4].data["some"] == "is_pos_gt_45 - event - test_event1"
 
 
-async def test_if_tilt_position(hass, calls, enable_custom_integrations):
+async def test_if_tilt_position(hass, calls):
     """Test for tilt position conditions."""
     platform = getattr(hass.components, f"test.{DOMAIN}")
     platform.init()

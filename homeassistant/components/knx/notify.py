@@ -3,15 +3,13 @@ from __future__ import annotations
 
 from typing import Any
 
-from xknx import XKNX
 from xknx.devices import Notification as XknxNotification
 
 from homeassistant.components.notify import BaseNotificationService
-from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
-from .const import DOMAIN, KNX_ADDRESS
+from .const import DOMAIN
 
 
 async def async_get_service(
@@ -20,21 +18,10 @@ async def async_get_service(
     discovery_info: DiscoveryInfoType | None = None,
 ) -> KNXNotificationService | None:
     """Get the KNX notification service."""
-    if not discovery_info or not discovery_info["platform_config"]:
-        return None
-
-    platform_config = discovery_info["platform_config"]
-    xknx: XKNX = hass.data[DOMAIN].xknx
-
     notification_devices = []
-    for device_config in platform_config:
-        notification_devices.append(
-            XknxNotification(
-                xknx,
-                name=device_config[CONF_NAME],
-                group_address=device_config[KNX_ADDRESS],
-            )
-        )
+    for device in hass.data[DOMAIN].xknx.devices:
+        if isinstance(device, XknxNotification):
+            notification_devices.append(device)
     return (
         KNXNotificationService(notification_devices) if notification_devices else None
     )

@@ -31,10 +31,12 @@ PORT_MSG = {UDP_PORT: "port_987_bind_error", TCP_PORT: "port_997_bind_error"}
 PIN_LENGTH = 8
 
 
-class PlayStation4FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+@config_entries.HANDLERS.register(DOMAIN)
+class PlayStation4FlowHandler(config_entries.ConfigFlow):
     """Handle a PlayStation 4 config flow."""
 
     VERSION = CONFIG_ENTRY_VERSION
+    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
     def __init__(self):
         """Initialize the config flow."""
@@ -118,7 +120,7 @@ class PlayStation4FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self.device_list = [device["host-ip"] for device in devices]
 
             # Check that devices found aren't configured per account.
-            entries = self._async_current_entries()
+            entries = self.hass.config_entries.async_entries(DOMAIN)
             if entries:
                 # Retrieve device data from all entries if creds match.
                 conf_devices = [

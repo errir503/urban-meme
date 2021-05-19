@@ -1,11 +1,8 @@
 """The Brother component."""
-from __future__ import annotations
-
 from datetime import timedelta
 import logging
 
-from brother import Brother, DictToObj, SnmpError, UnsupportedModel
-import pysnmp.hlapi.asyncio as SnmpEngine
+from brother import Brother, SnmpError, UnsupportedModel
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_TYPE
@@ -22,7 +19,7 @@ SCAN_INTERVAL = timedelta(seconds=30)
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up Brother from a config entry."""
     host = entry.data[CONF_HOST]
     kind = entry.data[CONF_TYPE]
@@ -44,7 +41,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Unload a config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
@@ -60,9 +57,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 class BrotherDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching Brother data from the printer."""
 
-    def __init__(
-        self, hass: HomeAssistant, host: str, kind: str, snmp_engine: SnmpEngine
-    ) -> None:
+    def __init__(self, hass, host, kind, snmp_engine):
         """Initialize."""
         self.brother = Brother(host, kind=kind, snmp_engine=snmp_engine)
 
@@ -73,7 +68,7 @@ class BrotherDataUpdateCoordinator(DataUpdateCoordinator):
             update_interval=SCAN_INTERVAL,
         )
 
-    async def _async_update_data(self) -> DictToObj:
+    async def _async_update_data(self):
         """Update data via library."""
         try:
             data = await self.brother.async_update()

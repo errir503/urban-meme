@@ -9,7 +9,7 @@
         "error": {
             "cannot_connect": "Ha fallat la connexi\u00f3"
         },
-        "flow_title": "{name} ({host})",
+        "flow_title": "iRobot {name} ({host})",
         "step": {
             "init": {
                 "data": {

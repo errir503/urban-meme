@@ -1,8 +1,7 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Konto wurde bereits konfiguriert",
-            "reauth_successful": "Die erneute Authentifizierung war erfolgreich"
+            "already_configured": "Konto wurde bereits konfiguriert"
         },
         "error": {
             "cannot_connect": "Verbindung fehlgeschlagen",
@@ -10,13 +9,6 @@
             "unknown": "Unerwarteter Fehler"
         },
         "step": {
-            "reauth_confirm": {
-                "data": {
-                    "password": "Passwort"
-                },
-                "description": "Das Passwort f\u00fcr {username} ist nicht mehr g\u00fcltig.",
-                "title": "Authentifizieren Sie Ihr Flume-Konto erneut"
-            },
             "user": {
                 "data": {
                     "client_id": "Client-ID",

@@ -5,6 +5,9 @@
         },
         "step": {
             "user": {
+                "data": {
+                    "name": "Ime tipala"
+                },
                 "title": "Lokalni IP naslov"
             }
         }

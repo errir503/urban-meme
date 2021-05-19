@@ -11,7 +11,7 @@
             "one": "jeden",
             "other": "inne"
         },
-        "flow_title": "{name}",
+        "flow_title": "UPnP/IGD: {name}",
         "step": {
             "init": {
                 "few": "kilka",

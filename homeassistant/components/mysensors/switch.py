@@ -1,4 +1,6 @@
 """Support for MySensors switches."""
+from typing import Callable
+
 import voluptuous as vol
 
 from homeassistant.components import mysensors
@@ -6,7 +8,6 @@ from homeassistant.components.switch import DOMAIN, SwitchEntity
 from homeassistant.const import ATTR_ENTITY_ID, STATE_OFF, STATE_ON
 from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import on_unload
 from ...config_entries import ConfigEntry
@@ -21,9 +22,7 @@ SEND_IR_CODE_SERVICE_SCHEMA = vol.Schema(
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities: Callable
 ):
     """Set up this platform for a specific ConfigEntry(==Gateway)."""
     device_class_map = {

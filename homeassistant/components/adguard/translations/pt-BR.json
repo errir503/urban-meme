@@ -1,7 +1,8 @@
 {
     "config": {
         "abort": {
-            "existing_instance_updated": "Configura\u00e7\u00e3o existente atualizada."
+            "existing_instance_updated": "Configura\u00e7\u00e3o existente atualizada.",
+            "single_instance_allowed": "Apenas uma \u00fanica configura\u00e7\u00e3o do AdGuard Home \u00e9 permitida."
         },
         "step": {
             "hassio_confirm": {

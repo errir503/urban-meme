@@ -395,6 +395,7 @@ def handle_entity_source(hass, connection, msg):
     connection.send_result(msg["id"], sources)
 
 
+@callback
 @decorators.websocket_command(
     {
         vol.Required("type"): "subscribe_trigger",

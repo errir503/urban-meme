@@ -1,6 +1,6 @@
 {
   "config": {
-    "flow_title": "{name} ({host})",
+    "flow_title": "iRobot {name} ({host})",
     "step": {
       "init": {
         "title": "Automatically connect to the device",

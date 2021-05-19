@@ -1,6 +1,8 @@
 """Support for Insteon Thermostats via ISY994 Platform."""
 from __future__ import annotations
 
+from typing import Callable
+
 from pyisy.constants import (
     CMD_CLIMATE_FAN_SETTING,
     CMD_CLIMATE_MODE,
@@ -33,7 +35,6 @@ from homeassistant.const import (
     TEMP_FAHRENHEIT,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     _LOGGER,
@@ -62,7 +63,7 @@ ISY_SUPPORTED_FEATURES = (
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[list], None],
 ) -> bool:
     """Set up the ISY994 thermostat platform."""
     entities = []
@@ -203,7 +204,7 @@ class ISYThermostatEntity(ISYNodeEntity, ClimateEntity):
             return None
         return UOM_TO_STATES[UOM_FAN_MODES].get(fan_mode.value)
 
-    async def async_set_temperature(self, **kwargs) -> None:
+    def set_temperature(self, **kwargs) -> None:
         """Set new target temperature."""
         target_temp = kwargs.get(ATTR_TEMPERATURE)
         target_temp_low = kwargs.get(ATTR_TARGET_TEMP_LOW)
@@ -214,27 +215,27 @@ class ISYThermostatEntity(ISYNodeEntity, ClimateEntity):
             if self.hvac_mode == HVAC_MODE_HEAT:
                 target_temp_low = target_temp
         if target_temp_low is not None:
-            await self._node.set_climate_setpoint_heat(int(target_temp_low))
+            self._node.set_climate_setpoint_heat(int(target_temp_low))
             # Presumptive setting--event stream will correct if cmd fails:
             self._target_temp_low = target_temp_low
         if target_temp_high is not None:
-            await self._node.set_climate_setpoint_cool(int(target_temp_high))
+            self._node.set_climate_setpoint_cool(int(target_temp_high))
             # Presumptive setting--event stream will correct if cmd fails:
             self._target_temp_high = target_temp_high
-        self.async_write_ha_state()
+        self.schedule_update_ha_state()
 
-    async def async_set_fan_mode(self, fan_mode: str) -> None:
+    def set_fan_mode(self, fan_mode: str) -> None:
         """Set new target fan mode."""
         _LOGGER.debug("Requested fan mode %s", fan_mode)
-        await self._node.set_fan_mode(HA_FAN_TO_ISY.get(fan_mode))
+        self._node.set_fan_mode(HA_FAN_TO_ISY.get(fan_mode))
         # Presumptive setting--event stream will correct if cmd fails:
         self._fan_mode = fan_mode
-        self.async_write_ha_state()
+        self.schedule_update_ha_state()
 
-    async def async_set_hvac_mode(self, hvac_mode: str) -> None:
+    def set_hvac_mode(self, hvac_mode: str) -> None:
         """Set new target hvac mode."""
         _LOGGER.debug("Requested operation mode %s", hvac_mode)
-        await self._node.set_climate_mode(HA_HVAC_TO_ISY.get(hvac_mode))
+        self._node.set_climate_mode(HA_HVAC_TO_ISY.get(hvac_mode))
         # Presumptive setting--event stream will correct if cmd fails:
         self._hvac_mode = hvac_mode
-        self.async_write_ha_state()
+        self.schedule_update_ha_state()

@@ -13,5 +13,6 @@
             "update_channel": "Posodobi kanal",
             "version_api": "API razli\u010dica"
         }
-    }
+    },
+    "title": "Home Assistant Supervisor"
 }

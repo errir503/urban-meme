@@ -11,6 +11,15 @@
             "location_not_found": "Locatie niet gevonden"
         },
         "step": {
+            "geography": {
+                "data": {
+                    "api_key": "API-sleutel",
+                    "latitude": "Breedtegraad",
+                    "longitude": "Lengtegraad"
+                },
+                "description": "Gebruik de AirVisual cloud API om een geografische locatie te bewaken.",
+                "title": "Configureer een geografie"
+            },
             "geography_by_coords": {
                 "data": {
                     "api_key": "API-sleutel",
@@ -45,6 +54,11 @@
                 "title": "Verifieer AirVisual opnieuw"
             },
             "user": {
+                "data": {
+                    "cloud_api": "Geografische ligging",
+                    "node_pro": "AirVisual Node Pro",
+                    "type": "Integratietype"
+                },
                 "description": "Kies welk type AirVisual-gegevens u wilt bewaken.",
                 "title": "Configureer AirVisual"
             }

@@ -106,7 +106,7 @@ async def test_methods(hass):
     assert call.data[light.ATTR_TRANSITION] == "transition_val"
 
 
-async def test_services(hass, mock_light_profiles, enable_custom_integrations):
+async def test_services(hass, mock_light_profiles):
     """Test the provided services."""
     platform = getattr(hass.components, "test.light")
 
@@ -491,12 +491,7 @@ async def test_services(hass, mock_light_profiles, enable_custom_integrations):
     ),
 )
 async def test_light_profiles(
-    hass,
-    mock_light_profiles,
-    profile_name,
-    expected_data,
-    last_call,
-    enable_custom_integrations,
+    hass, mock_light_profiles, profile_name, expected_data, last_call
 ):
     """Test light profiles."""
     platform = getattr(hass.components, "test.light")
@@ -540,9 +535,7 @@ async def test_light_profiles(
     assert data == expected_data
 
 
-async def test_default_profiles_group(
-    hass, mock_light_profiles, enable_custom_integrations
-):
+async def test_default_profiles_group(hass, mock_light_profiles):
     """Test default turn-on light profile for all lights."""
     platform = getattr(hass.components, "test.light")
     platform.init()
@@ -569,15 +562,10 @@ async def test_default_profiles_group(
 
 
 @pytest.mark.parametrize(
-    "extra_call_params, expected_params_state_was_off, expected_params_state_was_on",
+    "extra_call_params, expected_params",
     (
         (
             {},
-            {
-                light.ATTR_HS_COLOR: (50.353, 100),
-                light.ATTR_BRIGHTNESS: 100,
-                light.ATTR_TRANSITION: 3,
-            },
             {
                 light.ATTR_HS_COLOR: (50.353, 100),
                 light.ATTR_BRIGHTNESS: 100,
@@ -591,10 +579,6 @@ async def test_default_profiles_group(
                 light.ATTR_BRIGHTNESS: 22,
                 light.ATTR_TRANSITION: 3,
             },
-            {
-                light.ATTR_BRIGHTNESS: 22,
-                light.ATTR_TRANSITION: 3,
-            },
         ),
         (
             {light.ATTR_TRANSITION: 22},
@@ -603,18 +587,10 @@ async def test_default_profiles_group(
                 light.ATTR_BRIGHTNESS: 100,
                 light.ATTR_TRANSITION: 22,
             },
-            {
-                light.ATTR_TRANSITION: 22,
-            },
         ),
         (
             {
                 light.ATTR_XY_COLOR: [0.4448, 0.4066],
-                light.ATTR_BRIGHTNESS: 11,
-                light.ATTR_TRANSITION: 1,
-            },
-            {
-                light.ATTR_HS_COLOR: (38.88, 49.02),
                 light.ATTR_BRIGHTNESS: 11,
                 light.ATTR_TRANSITION: 1,
             },
@@ -631,20 +607,11 @@ async def test_default_profiles_group(
                 light.ATTR_BRIGHTNESS: 11,
                 light.ATTR_TRANSITION: 1,
             },
-            {
-                light.ATTR_BRIGHTNESS: 11,
-                light.ATTR_TRANSITION: 1,
-            },
         ),
     ),
 )
 async def test_default_profiles_light(
-    hass,
-    mock_light_profiles,
-    extra_call_params,
-    enable_custom_integrations,
-    expected_params_state_was_off,
-    expected_params_state_was_on,
+    hass, mock_light_profiles, extra_call_params, expected_params
 ):
     """Test default turn-on light profile for a specific light."""
     platform = getattr(hass.components, "test.light")
@@ -672,26 +639,14 @@ async def test_default_profiles_light(
     )
 
     _, data = dev.last_call("turn_on")
-    assert data == expected_params_state_was_off
+    assert data == expected_params
 
     await hass.services.async_call(
         light.DOMAIN,
         SERVICE_TURN_ON,
         {
             ATTR_ENTITY_ID: dev.entity_id,
-            **extra_call_params,
-        },
-        blocking=True,
-    )
-
-    _, data = dev.last_call("turn_on")
-    assert data == expected_params_state_was_on
-
-    await hass.services.async_call(
-        light.DOMAIN,
-        SERVICE_TURN_OFF,
-        {
-            ATTR_ENTITY_ID: dev.entity_id,
+            light.ATTR_BRIGHTNESS: 0,
         },
         blocking=True,
     )
@@ -702,7 +657,7 @@ async def test_default_profiles_light(
     }
 
 
-async def test_light_context(hass, hass_admin_user, enable_custom_integrations):
+async def test_light_context(hass, hass_admin_user):
     """Test that light context works."""
     platform = getattr(hass.components, "test.light")
     platform.init()
@@ -726,7 +681,7 @@ async def test_light_context(hass, hass_admin_user, enable_custom_integrations):
     assert state2.context.user_id == hass_admin_user.id
 
 
-async def test_light_turn_on_auth(hass, hass_admin_user, enable_custom_integrations):
+async def test_light_turn_on_auth(hass, hass_admin_user):
     """Test that light context works."""
     platform = getattr(hass.components, "test.light")
     platform.init()
@@ -748,7 +703,7 @@ async def test_light_turn_on_auth(hass, hass_admin_user, enable_custom_integrati
         )
 
 
-async def test_light_brightness_step(hass, enable_custom_integrations):
+async def test_light_brightness_step(hass):
     """Test that light context works."""
     platform = getattr(hass.components, "test.light")
     platform.init(empty=True)
@@ -797,20 +752,8 @@ async def test_light_brightness_step(hass, enable_custom_integrations):
     _, data = entity1.last_call("turn_on")
     assert data["brightness"] == 66  # 40 + (255 * 0.10)
 
-    await hass.services.async_call(
-        "light",
-        "turn_on",
-        {
-            "entity_id": entity0.entity_id,
-            "brightness_step": -126,
-        },
-        blocking=True,
-    )
 
-    assert entity0.state == "off"  # 126 - 126; brightness is 0, light should turn off
-
-
-async def test_light_brightness_pct_conversion(hass, enable_custom_integrations):
+async def test_light_brightness_pct_conversion(hass):
     """Test that light brightness percent conversion."""
     platform = getattr(hass.components, "test.light")
     platform.init()
@@ -975,9 +918,7 @@ invalid_no_brightness_no_color_no_transition,,,
 
 
 @pytest.mark.parametrize("light_state", (STATE_ON, STATE_OFF))
-async def test_light_backwards_compatibility_supported_color_modes(
-    hass, light_state, enable_custom_integrations
-):
+async def test_light_backwards_compatibility_supported_color_modes(hass, light_state):
     """Test supported_color_modes if not implemented by the entity."""
     platform = getattr(hass.components, "test.light")
     platform.init(empty=True)
@@ -1082,9 +1023,7 @@ async def test_light_backwards_compatibility_supported_color_modes(
         assert state.attributes["color_mode"] == light.COLOR_MODE_UNKNOWN
 
 
-async def test_light_backwards_compatibility_color_mode(
-    hass, enable_custom_integrations
-):
+async def test_light_backwards_compatibility_color_mode(hass):
     """Test color_mode if not implemented by the entity."""
     platform = getattr(hass.components, "test.light")
     platform.init(empty=True)
@@ -1160,7 +1099,7 @@ async def test_light_backwards_compatibility_color_mode(
     assert state.attributes["color_mode"] == light.COLOR_MODE_HS
 
 
-async def test_light_service_call_rgbw(hass, enable_custom_integrations):
+async def test_light_service_call_rgbw(hass):
     """Test backwards compatibility for rgbw functionality in service calls."""
     platform = getattr(hass.components, "test.light")
     platform.init(empty=True)
@@ -1205,7 +1144,7 @@ async def test_light_service_call_rgbw(hass, enable_custom_integrations):
     assert data == {"brightness": 255, "rgbw_color": (10, 20, 30, 40)}
 
 
-async def test_light_state_rgbw(hass, enable_custom_integrations):
+async def test_light_state_rgbw(hass):
     """Test rgbw color conversion in state updates."""
     platform = getattr(hass.components, "test.light")
     platform.init(empty=True)
@@ -1263,7 +1202,7 @@ async def test_light_state_rgbw(hass, enable_custom_integrations):
     }
 
 
-async def test_light_state_rgbww(hass, enable_custom_integrations):
+async def test_light_state_rgbww(hass):
     """Test rgbww color conversion in state updates."""
     platform = getattr(hass.components, "test.light")
     platform.init(empty=True)
@@ -1296,7 +1235,7 @@ async def test_light_state_rgbww(hass, enable_custom_integrations):
     }
 
 
-async def test_light_service_call_color_conversion(hass, enable_custom_integrations):
+async def test_light_service_call_color_conversion(hass):
     """Test color conversion in service calls."""
     platform = getattr(hass.components, "test.light")
     platform.init(empty=True)
@@ -1564,7 +1503,7 @@ async def test_light_service_call_color_conversion(hass, enable_custom_integrati
     assert data == {"brightness": 128, "rgbww_color": (0, 75, 140, 255, 255)}
 
 
-async def test_light_state_color_conversion(hass, enable_custom_integrations):
+async def test_light_state_color_conversion(hass):
     """Test color conversion in state updates."""
     platform = getattr(hass.components, "test.light")
     platform.init(empty=True)

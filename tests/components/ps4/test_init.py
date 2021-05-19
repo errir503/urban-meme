@@ -46,7 +46,6 @@ MOCK_FLOW_RESULT = {
     "type": data_entry_flow.RESULT_TYPE_CREATE_ENTRY,
     "title": "test_ps4",
     "data": MOCK_DATA,
-    "options": {},
 }
 
 MOCK_ENTRY_ID = "SomeID"

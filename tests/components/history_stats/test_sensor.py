@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import patch
 
 import pytest
+import pytz
 
 from homeassistant import config as hass_config
 from homeassistant.components.history_stats import DOMAIN
@@ -35,6 +36,7 @@ class TestHistoryStatsSensor(unittest.TestCase):
         """Test the history statistics sensor setup."""
         self.init_recorder()
         config = {
+            "history": {},
             "sensor": {
                 "platform": "history_stats",
                 "entity_id": "binary_sensor.test_id",
@@ -56,6 +58,7 @@ class TestHistoryStatsSensor(unittest.TestCase):
         """Test the history statistics sensor setup for multiple states."""
         self.init_recorder()
         config = {
+            "history": {},
             "sensor": {
                 "platform": "history_stats",
                 "entity_id": "binary_sensor.test_id",
@@ -79,7 +82,7 @@ class TestHistoryStatsSensor(unittest.TestCase):
     )
     def test_period_parsing(self, mock):
         """Test the conversion from templates to period."""
-        now = datetime(2019, 1, 1, 23, 30, 0, tzinfo=dt_util.UTC)
+        now = datetime(2019, 1, 1, 23, 30, 0, tzinfo=pytz.utc)
         with patch("homeassistant.util.dt.now", return_value=now):
             today = Template(
                 "{{ now().replace(hour=0).replace(minute=0).replace(second=0) }}",
@@ -144,6 +147,7 @@ class TestHistoryStatsSensor(unittest.TestCase):
         """Test when duration value is not a timedelta."""
         self.init_recorder()
         config = {
+            "history": {},
             "sensor": {
                 "platform": "history_stats",
                 "entity_id": "binary_sensor.test_id",
@@ -184,6 +188,7 @@ class TestHistoryStatsSensor(unittest.TestCase):
         """Test config when not enough arguments provided."""
         self.init_recorder()
         config = {
+            "history": {},
             "sensor": {
                 "platform": "history_stats",
                 "entity_id": "binary_sensor.test_id",
@@ -202,6 +207,7 @@ class TestHistoryStatsSensor(unittest.TestCase):
         """Test config when too many arguments provided."""
         self.init_recorder()
         config = {
+            "history": {},
             "sensor": {
                 "platform": "history_stats",
                 "entity_id": "binary_sensor.test_id",
@@ -339,9 +345,9 @@ async def test_measure_multiple(hass):
     )
 
     with patch(
-        "homeassistant.components.recorder.history.state_changes_during_period",
+        "homeassistant.components.history.state_changes_during_period",
         return_value=fake_states,
-    ), patch("homeassistant.components.recorder.history.get_state", return_value=None):
+    ), patch("homeassistant.components.history.get_state", return_value=None):
         for i in range(1, 5):
             await hass.helpers.entity_component.async_update_entity(f"sensor.sensor{i}")
         await hass.async_block_till_done()
@@ -416,9 +422,9 @@ async def async_test_measure(hass):
     )
 
     with patch(
-        "homeassistant.components.recorder.history.state_changes_during_period",
+        "homeassistant.components.history.state_changes_during_period",
         return_value=fake_states,
-    ), patch("homeassistant.components.recorder.history.get_state", return_value=None):
+    ), patch("homeassistant.components.history.get_state", return_value=None):
         for i in range(1, 5):
             await hass.helpers.entity_component.async_update_entity(f"sensor.sensor{i}")
         await hass.async_block_till_done()

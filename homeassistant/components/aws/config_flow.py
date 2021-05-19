@@ -5,10 +5,12 @@ from homeassistant import config_entries
 from .const import DOMAIN
 
 
-class AWSFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+@config_entries.HANDLERS.register(DOMAIN)
+class AWSFlowHandler(config_entries.ConfigFlow):
     """Handle a config flow."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_PUSH
 
     async def async_step_import(self, user_input):
         """Import a config entry."""

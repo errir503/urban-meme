@@ -87,8 +87,6 @@ from .trace import (
     trace_stack_cv,
     trace_stack_pop,
     trace_stack_push,
-    trace_stack_top,
-    trace_update_result,
 )
 
 # mypy: allow-untyped-calls, allow-untyped-defs, no-check-untyped-defs
@@ -621,16 +619,14 @@ class _ScriptRun:
         )
         cond = await self._async_get_condition(self._action)
         try:
-            trace_element = trace_stack_top(trace_stack_cv)
-            if trace_element:
-                trace_element.reuse_by_child = True
-            check = cond(self._hass, self._variables)
+            with trace_path("condition"):
+                check = cond(self._hass, self._variables)
         except exceptions.ConditionError as ex:
             _LOGGER.warning("Error in 'condition' evaluation:\n%s", ex)
             check = False
 
         self._log("Test condition %s: %s", self._script.last_action, check)
-        trace_update_result(result=check)
+        trace_set_result(result=check)
         if not check:
             raise _StopScript
 

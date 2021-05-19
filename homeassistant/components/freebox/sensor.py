@@ -9,7 +9,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import DATA_RATE_KILOBYTES_PER_SECOND
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.entity import DeviceInfo
 import homeassistant.util.dt as dt_util
 
 from .const import (
@@ -131,7 +130,7 @@ class FreeboxSensor(SensorEntity):
         return self._device_class
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> dict[str, Any]:
         """Return the device information."""
         return self._router.device_info
 
@@ -209,7 +208,7 @@ class FreeboxDiskSensor(FreeboxSensor):
         self._unique_id = f"{self._router.mac} {sensor_type} {self._disk['id']} {self._partition['id']}"
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> dict[str, Any]:
         """Return the device information."""
         return {
             "identifiers": {(DOMAIN, self._disk["id"])},

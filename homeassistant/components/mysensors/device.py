@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from functools import partial
 import logging
+from typing import Any
 
 from mysensors import BaseAsyncGateway, Sensor
 from mysensors.sensor import ChildSensor
@@ -10,7 +11,7 @@ from mysensors.sensor import ChildSensor
 from homeassistant.const import ATTR_BATTERY_LEVEL, STATE_OFF, STATE_ON
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.entity import DeviceInfo, Entity
+from homeassistant.helpers.entity import Entity
 
 from .const import (
     CHILD_CALLBACK,
@@ -108,7 +109,7 @@ class MySensorsDevice:
         return f"{self.gateway_id}-{self.node_id}-{self.child_id}-{self.value_type}"
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> dict[str, Any] | None:
         """Return a dict that allows home assistant to puzzle all entities belonging to a node together."""
         return {
             "identifiers": {(DOMAIN, f"{self.gateway_id}-{self.node_id}")},

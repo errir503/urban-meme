@@ -11,6 +11,15 @@
             "location_not_found": "Lokasi tidak ditemukan"
         },
         "step": {
+            "geography": {
+                "data": {
+                    "api_key": "Kunci API",
+                    "latitude": "Lintang",
+                    "longitude": "Bujur"
+                },
+                "description": "Gunakan API cloud AirVisual untuk memantau lokasi geografis.",
+                "title": "Konfigurasikan Lokasi Geografi"
+            },
             "geography_by_coords": {
                 "data": {
                     "api_key": "Kunci API",
@@ -45,6 +54,11 @@
                 "title": "Autentikasi Ulang AirVisual"
             },
             "user": {
+                "data": {
+                    "cloud_api": "Lokasi Geografis",
+                    "node_pro": "AirVisual Node Pro",
+                    "type": "Jenis Integrasi"
+                },
                 "description": "Pilih jenis data AirVisual yang ingin dipantau.",
                 "title": "Konfigurasikan AirVisual"
             }

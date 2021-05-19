@@ -1,13 +1,14 @@
 """Support for ISY994 sensors."""
 from __future__ import annotations
 
+from typing import Callable
+
 from pyisy.constants import ISY_VALUE_UNKNOWN
 
 from homeassistant.components.sensor import DOMAIN as SENSOR, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import TEMP_CELSIUS, TEMP_FAHRENHEIT
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     _LOGGER,
@@ -27,7 +28,7 @@ from .helpers import convert_isy_value_to_hass, migrate_old_unique_ids
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[list], None],
 ) -> bool:
     """Set up the ISY994 sensor platform."""
     hass_isy_data = hass.data[ISY994_DOMAIN][entry.entry_id]
@@ -83,10 +84,6 @@ class ISYSensorEntity(ISYNodeEntity, SensorEntity):
         if uom in [UOM_INDEX, UOM_ON_OFF]:
             return self._node.formatted
 
-        # Check if this is an index type and get formatted value
-        if uom == UOM_INDEX and hasattr(self._node, "formatted"):
-            return self._node.formatted
-
         # Handle ISY precision and rounding
         value = convert_isy_value_to_hass(value, uom, self._node.prec)
 
@@ -127,8 +124,7 @@ class ISYSensorVariableEntity(ISYEntity, SensorEntity):
         return {
             "init_value": convert_isy_value_to_hass(
                 self._node.init, "", self._node.prec
-            ),
-            "last_edited": self._node.last_edited,
+            )
         }
 
     @property

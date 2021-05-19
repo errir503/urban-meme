@@ -12,7 +12,7 @@
         "error": {
             "already_configured": "Konto on juba seadistatud"
         },
-        "flow_title": "{profile}",
+        "flow_title": "",
         "step": {
             "pick_implementation": {
                 "title": "Vali tuvastusmeetod"

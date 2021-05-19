@@ -3,7 +3,8 @@
         "step": {
             "init": {
                 "data": {
-                    "floor_temperature": "Gr\u012bdas temperat\u016bra"
+                    "floor_temperature": "Gr\u012bdas temperat\u016bra",
+                    "precision": "Precizit\u0101te"
                 }
             }
         }

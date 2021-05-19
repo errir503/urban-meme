@@ -7,7 +7,7 @@
             "cannot_connect": "\u00dchenduse loomine nurjus. Proovi uuesti",
             "unknown": "Ootamatu t\u00f5rge"
         },
-        "flow_title": "{name}",
+        "flow_title": "",
         "step": {
             "link": {
                 "description": "Kas soovid seadistada {name}({host})?",

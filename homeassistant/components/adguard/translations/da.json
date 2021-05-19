@@ -1,7 +1,8 @@
 {
     "config": {
         "abort": {
-            "existing_instance_updated": "Opdaterede eksisterende konfiguration."
+            "existing_instance_updated": "Opdaterede eksisterende konfiguration.",
+            "single_instance_allowed": "Kun en enkelt konfiguration af AdGuard Home er tilladt."
         },
         "step": {
             "hassio_confirm": {

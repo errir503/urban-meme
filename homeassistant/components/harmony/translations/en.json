@@ -7,7 +7,7 @@
             "cannot_connect": "Failed to connect",
             "unknown": "Unexpected error"
         },
-        "flow_title": "{name}",
+        "flow_title": "Logitech Harmony Hub {name}",
         "step": {
             "link": {
                 "description": "Do you want to setup {name} ({host})?",

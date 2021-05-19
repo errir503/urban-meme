@@ -1,6 +1,6 @@
 {
   "config": {
-    "flow_title": "{name} ({host})",
+    "flow_title": "Synology DSM {name} ({host})",
     "step": {
       "user": {
         "title": "Synology DSM",

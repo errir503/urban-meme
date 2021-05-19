@@ -5,7 +5,9 @@
         },
         "error": {
             "cannot_connect": "Verbindung fehlgeschlagen",
+            "connection_exception": "Verbindung fehlgeschlagen",
             "invalid_auth": "Ung\u00fcltige Authentifizierung",
+            "unauthenticated_exception": "Ung\u00fcltige Authentifizierung",
             "unknown": "Unerwarteter Fehler"
         },
         "step": {

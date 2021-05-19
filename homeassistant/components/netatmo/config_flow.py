@@ -29,6 +29,7 @@ class NetatmoFlowHandler(
     """Config flow to handle Netatmo OAuth2 authentication."""
 
     DOMAIN = DOMAIN
+    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     @staticmethod
     @callback

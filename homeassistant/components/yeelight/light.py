@@ -375,7 +375,7 @@ def _async_setup_services(hass: HomeAssistant):
             )
         )
 
-    platform = entity_platform.async_get_current_platform()
+    platform = entity_platform.current_platform.get()
 
     platform.async_register_entity_service(
         SERVICE_SET_MODE,

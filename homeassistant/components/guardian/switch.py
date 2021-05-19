@@ -1,6 +1,8 @@
 """Switches for the Elexa Guardian integration."""
 from __future__ import annotations
 
+from typing import Callable
+
 from aioguardian import Client
 from aioguardian.errors import GuardianError
 import voluptuous as vol
@@ -10,7 +12,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_FILENAME, CONF_PORT, CONF_URL
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv, entity_platform
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from . import ValveControllerEntity
@@ -39,10 +40,10 @@ SERVICE_UPGRADE_FIRMWARE = "upgrade_firmware"
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: Callable
 ) -> None:
     """Set up Guardian switches based on a config entry."""
-    platform = entity_platform.async_get_current_platform()
+    platform = entity_platform.current_platform.get()
 
     for service_name, schema, method in [
         (SERVICE_DISABLE_AP, {}, "async_disable_ap"),

@@ -9,7 +9,7 @@
             "one": "Een",
             "other": "Ander"
         },
-        "flow_title": "{name}",
+        "flow_title": "UPnP/IGD: {name}",
         "step": {
             "init": {
                 "one": "Leeg",
@@ -21,17 +21,7 @@
             "user": {
                 "data": {
                     "scan_interval": "Update-interval (seconden, minimaal 30)",
-                    "unique_id": "Apparaat",
                     "usn": "Apparaat"
-                }
-            }
-        }
-    },
-    "options": {
-        "step": {
-            "init": {
-                "data": {
-                    "scan_interval": "Update-interval (seconden, minimaal 30)"
                 }
             }
         }

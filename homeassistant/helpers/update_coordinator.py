@@ -6,7 +6,7 @@ from collections.abc import Awaitable
 from datetime import datetime, timedelta
 import logging
 from time import monotonic
-from typing import Callable, Generic, TypeVar
+from typing import Any, Callable, Generic, TypeVar
 import urllib.error
 
 import aiohttp
@@ -24,6 +24,8 @@ REQUEST_REFRESH_DEFAULT_COOLDOWN = 10
 REQUEST_REFRESH_DEFAULT_IMMEDIATE = True
 
 T = TypeVar("T")
+
+# mypy: disallow-any-generics
 
 
 class UpdateFailed(Exception):
@@ -50,12 +52,7 @@ class DataUpdateCoordinator(Generic[T]):
         self.update_method = update_method
         self.update_interval = update_interval
 
-        # It's None before the first successful update.
-        # Components should call async_config_entry_first_refresh
-        # to make sure the first update was successful.
-        # Set type to just T to remove annoying checks that data is not None
-        # when it was already checked during setup.
-        self.data: T = None  # type: ignore[assignment]
+        self.data: T | None = None
 
         self._listeners: list[CALLBACK_TYPE] = []
         self._job = HassJob(self._handle_refresh_interval)
@@ -136,7 +133,7 @@ class DataUpdateCoordinator(Generic[T]):
         """
         await self._debounced_refresh.async_call()
 
-    async def _async_update_data(self) -> T:
+    async def _async_update_data(self) -> T | None:
         """Fetch the latest data from the source."""
         if self.update_method is None:
             raise NotImplementedError("Update method not implemented")
@@ -292,10 +289,10 @@ class DataUpdateCoordinator(Generic[T]):
             self._unsub_refresh = None
 
 
-class CoordinatorEntity(Generic[T], entity.Entity):
+class CoordinatorEntity(entity.Entity):
     """A class for entities using DataUpdateCoordinator."""
 
-    def __init__(self, coordinator: DataUpdateCoordinator[T]) -> None:
+    def __init__(self, coordinator: DataUpdateCoordinator[Any]) -> None:
         """Create the entity with a DataUpdateCoordinator."""
         self.coordinator = coordinator
 

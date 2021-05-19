@@ -9,7 +9,7 @@ import logging
 import os
 import socket
 import sys
-from typing import Any, cast
+from typing import Any, Callable, cast
 
 import psutil
 import voluptuous as vol
@@ -36,7 +36,6 @@ from homeassistant.helpers.dispatcher import (
     async_dispatcher_send,
 )
 from homeassistant.helpers.entity_component import DEFAULT_SCAN_INTERVAL
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import slugify
@@ -199,7 +198,7 @@ class SensorData:
 async def async_setup_platform(
     hass: HomeAssistant,
     config: ConfigType,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable,
     discovery_info: Any | None = None,
 ) -> None:
     """Set up the system monitor sensors."""

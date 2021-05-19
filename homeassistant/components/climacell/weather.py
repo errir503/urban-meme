@@ -5,7 +5,7 @@ from abc import abstractmethod
 from collections.abc import Mapping
 from datetime import datetime
 import logging
-from typing import Any
+from typing import Any, Callable
 
 from pyclimacell.const import (
     CURRENT,
@@ -41,7 +41,7 @@ from homeassistant.const import (
     TEMP_FAHRENHEIT,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.sun import is_up
 from homeassistant.util import dt as dt_util
 from homeassistant.util.distance import convert as distance_convert
@@ -100,7 +100,7 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[list[Entity], bool], None],
 ) -> None:
     """Set up a config entry."""
     coordinator = hass.data[DOMAIN][config_entry.entry_id]

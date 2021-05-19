@@ -29,17 +29,14 @@ PLATFORMS = ["climate", "sensor", "water_heater"]
 
 CONF_LANGUAGE = "language"
 CONFIG_SCHEMA = vol.Schema(
-    vol.All(
-        cv.deprecated(DOMAIN),
-        {
-            DOMAIN: vol.Schema(
-                {
-                    vol.Required(CONF_USERNAME): cv.string,
-                    vol.Required(CONF_TOKEN): cv.string,
-                }
-            )
-        },
-    ),
+    {
+        DOMAIN: vol.Schema(
+            {
+                vol.Required(CONF_USERNAME): cv.string,
+                vol.Required(CONF_TOKEN): cv.string,
+            }
+        )
+    },
     extra=vol.ALLOW_EXTRA,
 )
 

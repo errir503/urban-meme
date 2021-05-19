@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from typing import Any
+from typing import Any, Callable
 
 from homeassistant.components.sensor import DEVICE_CLASS_CURRENT, SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -14,7 +14,7 @@ from homeassistant.const import (
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import Entity
 from homeassistant.util.dt import utcnow
 
 from . import WLEDDataUpdateCoordinator, WLEDDeviceEntity
@@ -24,7 +24,7 @@ from .const import ATTR_LED_COUNT, ATTR_MAX_POWER, CURRENT_MA, DOMAIN
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: Callable[[list[Entity], bool], None],
 ) -> None:
     """Set up WLED sensor based on a config entry."""
     coordinator: WLEDDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
@@ -74,7 +74,7 @@ class WLEDSensor(WLEDDeviceEntity, SensorEntity):
         return f"{self.coordinator.data.info.mac_address}_{self._key}"
 
     @property
-    def unit_of_measurement(self) -> str | None:
+    def unit_of_measurement(self) -> str:
         """Return the unit this state is expressed in."""
         return self._unit_of_measurement
 

@@ -189,7 +189,7 @@ async def test_duplicate_bridge_import(hass):
         )
 
     assert result["type"] == data_entry_flow.RESULT_TYPE_ABORT
-    assert result["reason"] == "already_configured"
+    assert result["reason"] == CasetaConfigFlow.ABORT_REASON_ALREADY_CONFIGURED
     assert len(mock_setup_entry.mock_calls) == 0
 
 

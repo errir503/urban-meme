@@ -19,6 +19,7 @@ class SyncThruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Samsung SyncThru config flow."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
     url: str
     name: str

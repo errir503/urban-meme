@@ -1,23 +1,15 @@
 """Support for 1-Wire environment switches."""
-from __future__ import annotations
-
 import logging
 import os
-from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_TYPE
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import CONF_TYPE_OWSERVER, DOMAIN, SWITCH_TYPE_LATCH, SWITCH_TYPE_PIO
-from .model import DeviceComponentDescription
-from .onewire_entities import OneWireBaseEntity, OneWireProxyEntity
+from .onewire_entities import OneWireProxyEntity
 from .onewirehub import OneWireHub
 
-DEVICE_SWITCHES: dict[str, list[DeviceComponentDescription]] = {
+DEVICE_SWITCHES = {
     # Family : { owfs path }
     "12": [
         {
@@ -148,11 +140,7 @@ DEVICE_SWITCHES: dict[str, list[DeviceComponentDescription]] = {
 LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
+async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up 1-Wire platform."""
     # Only OWServer implementation works with switches
     if config_entry.data[CONF_TYPE] == CONF_TYPE_OWSERVER:
@@ -162,12 +150,9 @@ async def async_setup_entry(
         async_add_entities(entities, True)
 
 
-def get_entities(onewirehub: OneWireHub) -> list[OneWireBaseEntity]:
+def get_entities(onewirehub: OneWireHub):
     """Get a list of entities."""
-    if not onewirehub.devices:
-        return []
-
-    entities: list[OneWireBaseEntity] = []
+    entities = []
 
     for device in onewirehub.devices:
         family = device["family"]
@@ -177,7 +162,7 @@ def get_entities(onewirehub: OneWireHub) -> list[OneWireBaseEntity]:
         if family not in DEVICE_SWITCHES:
             continue
 
-        device_info: DeviceInfo = {
+        device_info = {
             "identifiers": {(DOMAIN, device_id)},
             "manufacturer": "Maxim Integrated",
             "model": device_type,
@@ -205,14 +190,14 @@ class OneWireProxySwitch(OneWireProxyEntity, SwitchEntity):
     """Implementation of a 1-Wire switch."""
 
     @property
-    def is_on(self) -> bool:
+    def is_on(self):
         """Return true if sensor is on."""
-        return bool(self._state)
+        return self._state
 
-    def turn_on(self, **kwargs: Any) -> None:
+    def turn_on(self, **kwargs) -> None:
         """Turn the entity on."""
         self._write_value_ownet(b"1")
 
-    def turn_off(self, **kwargs: Any) -> None:
+    def turn_off(self, **kwargs) -> None:
         """Turn the entity off."""
         self._write_value_ownet(b"0")

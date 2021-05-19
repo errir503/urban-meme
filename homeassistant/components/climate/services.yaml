@@ -4,8 +4,6 @@ set_aux_heat:
   name: Turn on/off auxiliary heater
   description: Turn auxiliary heater on/off for climate device.
   target:
-    entity:
-      domain: climate
   fields:
     aux_heat:
       name: Auxiliary heating
@@ -19,8 +17,6 @@ set_preset_mode:
   name: Set preset mode
   description: Set preset mode for climate device.
   target:
-    entity:
-      domain: climate
   fields:
     preset_mode:
       name: Preset mode
@@ -34,8 +30,6 @@ set_temperature:
   name: Set temperature
   description: Set target temperature of climate device.
   target:
-    entity:
-      domain: climate
   fields:
     temperature:
       name: Temperature
@@ -88,8 +82,6 @@ set_humidity:
   name: Set target humidity
   description: Set target humidity of climate device.
   target:
-    entity:
-      domain: climate
   fields:
     humidity:
       name: Humidity
@@ -108,8 +100,6 @@ set_fan_mode:
   name: Set fan mode
   description: Set fan operation for climate device.
   target:
-    entity:
-      domain: climate
   fields:
     fan_mode:
       name: Fan mode
@@ -123,8 +113,6 @@ set_hvac_mode:
   name: Set HVAC mode
   description: Set HVAC operation mode for climate device.
   target:
-    entity:
-      domain: climate
   fields:
     hvac_mode:
       name: HVAC mode
@@ -145,8 +133,6 @@ set_swing_mode:
   name: Set swing mode
   description: Set swing operation for climate device.
   target:
-    entity:
-      domain: climate
   fields:
     swing_mode:
       name: Swing mode
@@ -160,12 +146,8 @@ turn_on:
   name: Turn on
   description: Turn climate device on.
   target:
-    entity:
-      domain: climate
 
 turn_off:
   name: Turn off
   description: Turn climate device off.
   target:
-    entity:
-      domain: climate

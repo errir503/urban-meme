@@ -8,7 +8,7 @@
         "error": {
             "invalid_auth": "Vigane autentimine"
         },
-        "flow_title": "{name}",
+        "flow_title": "AVM FRITZ! K\u00f5nekontroll: {name}",
         "step": {
             "phonebook": {
                 "data": {

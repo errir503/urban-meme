@@ -6,7 +6,6 @@
         "error": {
             "invalid_auth": "Niepoprawne uwierzytelnienie"
         },
-        "flow_title": "{ip}",
         "step": {
             "user": {
                 "data": {

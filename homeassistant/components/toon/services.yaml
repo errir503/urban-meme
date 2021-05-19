@@ -4,7 +4,7 @@ update:
   fields:
     display:
       name: Display
-      description: Toon display to update.
+      description: Toon display to update (optional)
       advanced: true
       example: eneco-001-123456
       selector:

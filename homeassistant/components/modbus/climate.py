@@ -28,7 +28,7 @@ from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from .const import (
     ATTR_TEMPERATURE,
     CALL_TYPE_REGISTER_HOLDING,
-    CALL_TYPE_WRITE_REGISTERS,
+    CALL_TYPE_REGISTER_INPUT,
     CONF_CLIMATES,
     CONF_CURRENT_TEMP,
     CONF_CURRENT_TEMP_REGISTER_TYPE,
@@ -46,7 +46,6 @@ from .const import (
 )
 from .modbus import ModbusHub
 
-PARALLEL_UPDATES = 1
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -133,7 +132,9 @@ class ModbusThermostat(ClimateEntity):
 
     async def async_added_to_hass(self):
         """Handle entity which will be added."""
-        async_track_time_interval(self.hass, self.async_update, self._scan_interval)
+        async_track_time_interval(
+            self.hass, lambda arg: self._update(), self._scan_interval
+        )
 
     @property
     def should_poll(self):
@@ -159,7 +160,7 @@ class ModbusThermostat(ClimateEntity):
         """Return the possible HVAC modes."""
         return [HVAC_MODE_AUTO]
 
-    async def async_set_hvac_mode(self, hvac_mode: str) -> None:
+    def set_hvac_mode(self, hvac_mode: str) -> None:
         """Set new target hvac mode."""
         # Home Assistant expects this method.
         # We'll keep it here to avoid getting exceptions.
@@ -199,7 +200,7 @@ class ModbusThermostat(ClimateEntity):
         """Return the supported step of target temperature."""
         return self._temp_step
 
-    async def async_set_temperature(self, **kwargs):
+    def set_temperature(self, **kwargs):
         """Set new target temperature."""
         if ATTR_TEMPERATURE not in kwargs:
             return
@@ -208,41 +209,40 @@ class ModbusThermostat(ClimateEntity):
         )
         byte_string = struct.pack(self._structure, target_temperature)
         register_value = struct.unpack(">h", byte_string[0:2])[0]
-        result = await self._hub.async_pymodbus_call(
+        self._available = self._hub.write_registers(
             self._slave,
             self._target_temperature_register,
             register_value,
-            CALL_TYPE_WRITE_REGISTERS,
         )
-        self._available = result is not None
-        await self.async_update()
+        self._update()
 
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
         return self._available
 
-    async def async_update(self, now=None):
+    def _update(self):
         """Update Target & Current Temperature."""
-        # remark "now" is a dummy parameter to avoid problems with
-        # async_track_time_interval
-        self._target_temperature = await self._async_read_register(
+        self._target_temperature = self._read_register(
             CALL_TYPE_REGISTER_HOLDING, self._target_temperature_register
         )
-        self._current_temperature = await self._async_read_register(
+        self._current_temperature = self._read_register(
             self._current_temperature_register_type, self._current_temperature_register
         )
 
-        self.async_write_ha_state()
+        self.schedule_update_ha_state()
 
-    async def _async_read_register(self, register_type, register) -> float | None:
+    def _read_register(self, register_type, register) -> float | None:
         """Read register using the Modbus hub slave."""
-        result = await self._hub.async_pymodbus_call(
-            self._slave, register, self._count, register_type
-        )
+        if register_type == CALL_TYPE_REGISTER_INPUT:
+            result = self._hub.read_input_registers(self._slave, register, self._count)
+        else:
+            result = self._hub.read_holding_registers(
+                self._slave, register, self._count
+            )
         if result is None:
             self._available = False
-            return -1
+            return
 
         byte_string = b"".join(
             [x.to_bytes(2, byteorder="big") for x in result.registers]
@@ -255,11 +255,11 @@ class ModbusThermostat(ClimateEntity):
             )
             return -1
 
-        val2 = val[0]
+        val = val[0]
         register_value = format(
-            (self._scale * val2) + self._offset, f".{self._precision}f"
+            (self._scale * val) + self._offset, f".{self._precision}f"
         )
-        register_value2 = float(register_value)
+        register_value = float(register_value)
         self._available = True
 
-        return register_value2
+        return register_value

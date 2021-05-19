@@ -1,39 +1,28 @@
 """Support for Ampio Air Quality data."""
-from __future__ import annotations
-
+from datetime import timedelta
 import logging
-from typing import Final
 
 from asmog import AmpioSmog
 import voluptuous as vol
 
-from homeassistant.components.air_quality import (
-    PLATFORM_SCHEMA as BASE_PLATFORM_SCHEMA,
-    AirQualityEntity,
-)
+from homeassistant.components.air_quality import PLATFORM_SCHEMA, AirQualityEntity
 from homeassistant.const import CONF_NAME
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.util import Throttle
 
-from .const import ATTRIBUTION, CONF_STATION_ID, SCAN_INTERVAL
+_LOGGER = logging.getLogger(__name__)
 
-_LOGGER: Final = logging.getLogger(__name__)
+ATTRIBUTION = "Data provided by Ampio"
+CONF_STATION_ID = "station_id"
+SCAN_INTERVAL = timedelta(minutes=10)
 
-PLATFORM_SCHEMA: Final = BASE_PLATFORM_SCHEMA.extend(
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {vol.Required(CONF_STATION_ID): cv.string, vol.Optional(CONF_NAME): cv.string}
 )
 
 
-async def async_setup_platform(
-    hass: HomeAssistant,
-    config: ConfigType,
-    async_add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
-) -> None:
+async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the Ampio Smog air quality platform."""
 
     name = config.get(CONF_NAME)
@@ -54,40 +43,38 @@ async def async_setup_platform(
 class AmpioSmogQuality(AirQualityEntity):
     """Implementation of an Ampio Smog air quality entity."""
 
-    def __init__(
-        self, api: AmpioSmogMapData, station_id: str, name: str | None
-    ) -> None:
+    def __init__(self, api, station_id, name):
         """Initialize the air quality entity."""
         self._ampio = api
         self._station_id = station_id
         self._name = name or api.api.name
 
     @property
-    def name(self) -> str:
+    def name(self):
         """Return the name of the air quality entity."""
         return self._name
 
     @property
-    def unique_id(self) -> str:
+    def unique_id(self):
         """Return unique_name."""
         return f"ampio_smog_{self._station_id}"
 
     @property
-    def particulate_matter_2_5(self) -> str | None:
+    def particulate_matter_2_5(self):
         """Return the particulate matter 2.5 level."""
-        return self._ampio.api.pm2_5  # type: ignore[no-any-return]
+        return self._ampio.api.pm2_5
 
     @property
-    def particulate_matter_10(self) -> str | None:
+    def particulate_matter_10(self):
         """Return the particulate matter 10 level."""
-        return self._ampio.api.pm10  # type: ignore[no-any-return]
+        return self._ampio.api.pm10
 
     @property
-    def attribution(self) -> str:
+    def attribution(self):
         """Return the attribution."""
         return ATTRIBUTION
 
-    async def async_update(self) -> None:
+    async def async_update(self):
         """Get the latest data from the AmpioMap API."""
         await self._ampio.async_update()
 
@@ -95,11 +82,11 @@ class AmpioSmogQuality(AirQualityEntity):
 class AmpioSmogMapData:
     """Get the latest data and update the states."""
 
-    def __init__(self, api: AmpioSmog) -> None:
+    def __init__(self, api):
         """Initialize the data object."""
         self.api = api
 
     @Throttle(SCAN_INTERVAL)
-    async def async_update(self) -> None:
+    async def async_update(self):
         """Get the latest data from AmpioMap."""
         await self.api.get_data()

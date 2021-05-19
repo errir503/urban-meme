@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from aioazuredevops.client import DevOpsClient
 import aiohttp
@@ -16,7 +17,7 @@ from homeassistant.components.azure_devops.const import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
-from homeassistant.helpers.entity import DeviceInfo, Entity
+from homeassistant.helpers.entity import Entity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -102,7 +103,7 @@ class AzureDevOpsDeviceEntity(AzureDevOpsEntity):
     """Defines a Azure DevOps device entity."""
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> dict[str, Any]:
         """Return device information about this Azure DevOps instance."""
         return {
             "identifiers": {

@@ -7,7 +7,6 @@ import os
 import threading
 
 import av
-from av.container import OutputContainer
 
 from homeassistant.core import HomeAssistant, callback
 
@@ -32,8 +31,8 @@ def recorder_save_worker(file_out: str, segments: deque[Segment]):
     if not os.path.exists(os.path.dirname(file_out)):
         os.makedirs(os.path.dirname(file_out), exist_ok=True)
 
-    pts_adjuster: dict[str, int | None] = {"video": None, "audio": None}
-    output: OutputContainer | None = None
+    pts_adjuster = {"video": None, "audio": None}
+    output = None
     output_v = None
     output_a = None
 
@@ -101,8 +100,7 @@ def recorder_save_worker(file_out: str, segments: deque[Segment]):
 
         source.close()
 
-    if output is not None:
-        output.close()
+    output.close()
 
 
 @PROVIDERS.register("recorder")
