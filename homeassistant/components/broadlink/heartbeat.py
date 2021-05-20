@@ -44,15 +44,11 @@ class BroadlinkHeartbeat:
         """Send packets to feed watchdog timers."""
         hass = self._hass
         config_entries = hass.config_entries.async_entries(DOMAIN)
-        hosts = {entry.data[CONF_HOST] for entry in config_entries}
-        await hass.async_add_executor_job(self.heartbeat, hosts)
 
-    @staticmethod
-    def heartbeat(hosts):
-        """Send packets to feed watchdog timers."""
-        for host in hosts:
+        for entry in config_entries:
+            host = entry.data[CONF_HOST]
             try:
-                blk.ping(host)
+                await hass.async_add_executor_job(blk.ping, host)
             except OSError as err:
                 _LOGGER.debug("Failed to send heartbeat to %s: %s", host, err)
             else:
