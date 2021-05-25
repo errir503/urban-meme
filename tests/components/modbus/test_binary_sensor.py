@@ -6,6 +6,7 @@ from homeassistant.components.modbus.const import (
     CALL_TYPE_COIL,
     CALL_TYPE_DISCRETE,
     CONF_INPUT_TYPE,
+    CONF_INPUTS,
 )
 from homeassistant.const import (
     CONF_ADDRESS,
@@ -24,6 +25,7 @@ from .conftest import ReadResult, base_config_test, base_test, prepare_service_u
 from tests.common import mock_restore_cache
 
 
+@pytest.mark.parametrize("do_discovery", [False, True])
 @pytest.mark.parametrize(
     "do_options",
     [
@@ -35,7 +37,7 @@ from tests.common import mock_restore_cache
         },
     ],
 )
-async def test_config_binary_sensor(hass, do_options):
+async def test_config_binary_sensor(hass, do_discovery, do_options):
     """Run test for binary sensor."""
     sensor_name = "test_sensor"
     config_sensor = {
@@ -49,8 +51,8 @@ async def test_config_binary_sensor(hass, do_options):
         sensor_name,
         SENSOR_DOMAIN,
         CONF_BINARY_SENSORS,
-        None,
-        method_discovery=True,
+        CONF_INPUTS,
+        method_discovery=do_discovery,
     )
 
 
@@ -93,7 +95,7 @@ async def test_all_binary_sensor(hass, do_type, regs, expected):
         sensor_name,
         SENSOR_DOMAIN,
         CONF_BINARY_SENSORS,
-        None,
+        CONF_INPUTS,
         regs,
         expected,
         method_discovery=True,

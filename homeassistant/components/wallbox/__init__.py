@@ -89,7 +89,7 @@ class WallboxHub:
         return self._coordinator
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up Wallbox from a config entry."""
     wallbox = WallboxHub(
         entry.data[CONF_STATION],

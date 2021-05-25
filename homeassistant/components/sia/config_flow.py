@@ -18,7 +18,6 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_PORT, CONF_PROTOCOL
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
@@ -105,7 +104,7 @@ class SIAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._data: ConfigType = {}
         self._options: Mapping[str, Any] = {CONF_ACCOUNTS: {}}
 
-    async def async_step_user(self, user_input: ConfigType = None) -> FlowResult:
+    async def async_step_user(self, user_input: ConfigType = None):
         """Handle the initial user step."""
         errors: dict[str, str] | None = None
         if user_input is not None:
@@ -116,7 +115,7 @@ class SIAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
         return await self.async_handle_data_and_route(user_input)
 
-    async def async_step_add_account(self, user_input: ConfigType = None) -> FlowResult:
+    async def async_step_add_account(self, user_input: ConfigType = None):
         """Handle the additional accounts steps."""
         errors: dict[str, str] | None = None
         if user_input is not None:
@@ -127,11 +126,11 @@ class SIAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
         return await self.async_handle_data_and_route(user_input)
 
-    async def async_handle_data_and_route(self, user_input: ConfigType) -> FlowResult:
+    async def async_handle_data_and_route(self, user_input: ConfigType):
         """Handle the user_input, check if configured and route to the right next step or create entry."""
         self._update_data(user_input)
-
-        self._async_abort_entries_match({CONF_PORT: self._data[CONF_PORT]})
+        if self._data and self._port_already_configured():
+            return self.async_abort(reason="already_configured")
 
         if user_input[CONF_ADDITIONAL_ACCOUNTS]:
             return await self.async_step_add_account()
@@ -164,6 +163,13 @@ class SIAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._options[CONF_ACCOUNTS].setdefault(account, deepcopy(DEFAULT_OPTIONS))
         self._options[CONF_ACCOUNTS][account][CONF_ZONES] = user_input[CONF_ZONES]
 
+    def _port_already_configured(self):
+        """See if we already have a SIA entry matching the port."""
+        for entry in self._async_current_entries(include_ignore=False):
+            if entry.data[CONF_PORT] == self._data[CONF_PORT]:
+                return True
+        return False
+
 
 class SIAOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle SIA options."""
@@ -175,15 +181,14 @@ class SIAOptionsFlowHandler(config_entries.OptionsFlow):
         self.hub: SIAHub | None = None
         self.accounts_todo: list = []
 
-    async def async_step_init(self, user_input: ConfigType = None) -> FlowResult:
+    async def async_step_init(self, user_input: ConfigType = None):
         """Manage the SIA options."""
         self.hub = self.hass.data[DOMAIN][self.config_entry.entry_id]
-        assert self.hub is not None
-        assert self.hub.sia_accounts is not None
-        self.accounts_todo = [a.account_id for a in self.hub.sia_accounts]
-        return await self.async_step_options()
+        if self.hub is not None and self.hub.sia_accounts is not None:
+            self.accounts_todo = [a.account_id for a in self.hub.sia_accounts]
+            return await self.async_step_options()
 
-    async def async_step_options(self, user_input: ConfigType = None) -> FlowResult:
+    async def async_step_options(self, user_input: ConfigType = None):
         """Create the options step for a account."""
         errors: dict[str, str] | None = None
         if user_input is not None:
@@ -218,6 +223,7 @@ class SIAOptionsFlowHandler(config_entries.OptionsFlow):
         self.options[CONF_ACCOUNTS][account][CONF_ZONES] = user_input[CONF_ZONES]
         if self.accounts_todo:
             return await self.async_step_options()
+        _LOGGER.warning("Updating SIA Options with %s", self.options)
         return self.async_create_entry(title="", data=self.options)
 
     @property
