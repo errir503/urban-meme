@@ -8,6 +8,7 @@ from homeassistant.core import HomeAssistant, callback
 from .const import (
     ATTR_CONFIGURED_ADAPTERS,
     DEFAULT_CONFIGURED_ADAPTERS,
+    NETWORK_CONFIG_SCHEMA,
     STORAGE_KEY,
     STORAGE_VERSION,
 )
@@ -62,6 +63,7 @@ class Network:
 
     async def async_reconfig(self, config: dict[str, Any]) -> None:
         """Reconfigure network."""
+        config = NETWORK_CONFIG_SCHEMA(config)
         self._data[ATTR_CONFIGURED_ADAPTERS] = config[ATTR_CONFIGURED_ADAPTERS]
         self.async_configure()
         await self._async_save()
