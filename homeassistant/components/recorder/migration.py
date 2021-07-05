@@ -11,7 +11,14 @@ from sqlalchemy.exc import (
 )
 from sqlalchemy.schema import AddConstraint, DropConstraint
 
-from .models import SCHEMA_VERSION, TABLE_STATES, Base, SchemaChanges, Statistics
+from .models import (
+    SCHEMA_VERSION,
+    TABLE_STATES,
+    Base,
+    SchemaChanges,
+    Statistics,
+    StatisticsMeta,
+)
 from .util import session_scope
 
 _LOGGER = logging.getLogger(__name__)
@@ -280,10 +287,10 @@ def _update_states_table_with_foreign_key_options(connection, engine):
     for foreign_key in inspector.get_foreign_keys(TABLE_STATES):
         if foreign_key["name"] and (
             # MySQL/MariaDB will have empty options
-            not foreign_key["options"]
+            not foreign_key.get("options")
             or
             # Postgres will have ondelete set to None
-            foreign_key["options"].get("ondelete") is None
+            foreign_key.get("options", {}).get("ondelete") is None
         ):
             alters.append(
                 {
@@ -319,7 +326,7 @@ def _drop_foreign_key_constraints(connection, engine, table, columns):
     for foreign_key in inspector.get_foreign_keys(table):
         if (
             foreign_key["name"]
-            and foreign_key["options"].get("ondelete")
+            and foreign_key.get("options", {}).get("ondelete")
             and foreign_key["constrained_columns"] == columns
         ):
             drops.append(ForeignKeyConstraint((), (), name=foreign_key["name"]))
@@ -340,7 +347,7 @@ def _drop_foreign_key_constraints(connection, engine, table, columns):
             )
 
 
-def _apply_update(engine, session, new_version, old_version):
+def _apply_update(engine, session, new_version, old_version):  # noqa: C901
     """Perform operations to bring schema up to date."""
     connection = session.connection()
     if new_version == 1:
@@ -452,6 +459,19 @@ def _apply_update(engine, session, new_version, old_version):
         _drop_foreign_key_constraints(
             connection, engine, TABLE_STATES, ["old_state_id"]
         )
+    elif new_version == 17:
+        # This dropped the statistics table, done again in version 18.
+        pass
+    elif new_version == 18:
+        # Recreate the statisticsmeta tables
+        if sqlalchemy.inspect(engine).has_table(StatisticsMeta.__tablename__):
+            StatisticsMeta.__table__.drop(engine)
+        StatisticsMeta.__table__.create(engine)
+
+        # Recreate the statistics table
+        if sqlalchemy.inspect(engine).has_table(Statistics.__tablename__):
+            Statistics.__table__.drop(engine)
+        Statistics.__table__.create(engine)
     else:
         raise ValueError(f"No schema migration defined for version {new_version}")
 
