@@ -4,25 +4,16 @@ import logging
 from pyezviz.constants import BinarySensorType
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DATA_COORDINATOR, DOMAIN, MANUFACTURER
-from .coordinator import EzvizDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
-) -> None:
+async def async_setup_entry(hass, entry, async_add_entities):
     """Set up Ezviz sensors based on a config entry."""
-    coordinator: EzvizDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id][
-        DATA_COORDINATOR
-    ]
+    coordinator = hass.data[DOMAIN][entry.entry_id][DATA_COORDINATOR]
     sensors = []
 
     for idx, camera in enumerate(coordinator.data):
@@ -43,15 +34,7 @@ async def async_setup_entry(
 class EzvizBinarySensor(CoordinatorEntity, BinarySensorEntity):
     """Representation of a Ezviz sensor."""
 
-    coordinator: EzvizDataUpdateCoordinator
-
-    def __init__(
-        self,
-        coordinator: EzvizDataUpdateCoordinator,
-        idx: int,
-        name: str,
-        sensor_type_name: str,
-    ) -> None:
+    def __init__(self, coordinator, idx, name, sensor_type_name):
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._idx = idx
@@ -62,22 +45,22 @@ class EzvizBinarySensor(CoordinatorEntity, BinarySensorEntity):
         self._serial = self.coordinator.data[self._idx]["serial"]
 
     @property
-    def name(self) -> str:
+    def name(self):
         """Return the name of the Ezviz sensor."""
-        return self._name
+        return self._sensor_name
 
     @property
-    def is_on(self) -> bool:
+    def is_on(self):
         """Return the state of the sensor."""
         return self.coordinator.data[self._idx][self._name]
 
     @property
-    def unique_id(self) -> str:
+    def unique_id(self):
         """Return the unique ID of this sensor."""
         return f"{self._serial}_{self._sensor_name}"
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self):
         """Return the device_info of the device."""
         return {
             "identifiers": {(DOMAIN, self._serial)},
@@ -88,6 +71,6 @@ class EzvizBinarySensor(CoordinatorEntity, BinarySensorEntity):
         }
 
     @property
-    def device_class(self) -> str:
+    def device_class(self):
         """Device class for the sensor."""
         return self.sensor_type_name

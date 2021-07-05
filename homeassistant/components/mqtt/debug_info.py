@@ -1,7 +1,7 @@
 """Helper to handle a set of topics to subscribe to."""
 from collections import deque
 from functools import wraps
-from typing import Any, Callable
+from typing import Any
 
 from homeassistant.core import HomeAssistant
 
@@ -12,9 +12,7 @@ DATA_MQTT_DEBUG_INFO = "mqtt_debug_info"
 STORED_MESSAGES = 10
 
 
-def log_messages(
-    hass: HomeAssistant, entity_id: str
-) -> Callable[[MessageCallbackType], MessageCallbackType]:
+def log_messages(hass: HomeAssistant, entity_id: str) -> MessageCallbackType:
     """Wrap an MQTT message callback to support message logging."""
 
     def _log_message(msg):
@@ -26,7 +24,7 @@ def log_messages(
         if msg not in messages:
             messages.append(msg)
 
-    def _decorator(msg_callback: MessageCallbackType) -> MessageCallbackType:
+    def _decorator(msg_callback: MessageCallbackType):
         @wraps(msg_callback)
         def wrapper(msg: Any) -> None:
             """Log message."""

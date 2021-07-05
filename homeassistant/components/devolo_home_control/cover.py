@@ -1,8 +1,4 @@
 """Platform for cover integration."""
-from __future__ import annotations
-
-from typing import Any
-
 from homeassistant.components.cover import (
     DEVICE_CLASS_BLIND,
     SUPPORT_CLOSE,
@@ -12,14 +8,13 @@ from homeassistant.components.cover import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
 from .devolo_multi_level_switch import DevoloMultiLevelSwitchDeviceEntity
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities
 ) -> None:
     """Get all cover devices and setup them via config entry."""
     entities = []
@@ -43,33 +38,33 @@ class DevoloCoverDeviceEntity(DevoloMultiLevelSwitchDeviceEntity, CoverEntity):
     """Representation of a cover device within devolo Home Control."""
 
     @property
-    def current_cover_position(self) -> int:
+    def current_cover_position(self):
         """Return the current position. 0 is closed. 100 is open."""
         return self._value
 
     @property
-    def device_class(self) -> str:
+    def device_class(self):
         """Return the class of the device."""
         return DEVICE_CLASS_BLIND
 
     @property
-    def is_closed(self) -> bool:
+    def is_closed(self):
         """Return if the blind is closed or not."""
         return not bool(self._value)
 
     @property
-    def supported_features(self) -> int:
+    def supported_features(self):
         """Flag supported features."""
         return SUPPORT_OPEN | SUPPORT_CLOSE | SUPPORT_SET_POSITION
 
-    def open_cover(self, **kwargs: Any) -> None:
+    def open_cover(self, **kwargs):
         """Open the blind."""
         self._multi_level_switch_property.set(100)
 
-    def close_cover(self, **kwargs: Any) -> None:
+    def close_cover(self, **kwargs):
         """Close the blind."""
         self._multi_level_switch_property.set(0)
 
-    def set_cover_position(self, **kwargs: Any) -> None:
+    def set_cover_position(self, **kwargs):
         """Set the blind to the given position."""
         self._multi_level_switch_property.set(kwargs["position"])

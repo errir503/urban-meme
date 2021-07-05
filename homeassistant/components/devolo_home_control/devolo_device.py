@@ -1,12 +1,7 @@
 """Base class for a device entity integrated in devolo Home Control."""
-from __future__ import annotations
-
 import logging
 
-from devolo_home_control_api.devices.zwave import Zwave
-from devolo_home_control_api.homecontrol import HomeControl
-
-from homeassistant.helpers.entity import DeviceInfo, Entity
+from homeassistant.helpers.entity import Entity
 
 from .const import DOMAIN
 from .subscriber import Subscriber
@@ -17,30 +12,26 @@ _LOGGER = logging.getLogger(__name__)
 class DevoloDeviceEntity(Entity):
     """Abstract representation of a device within devolo Home Control."""
 
-    def __init__(
-        self, homecontrol: HomeControl, device_instance: Zwave, element_uid: str
-    ) -> None:
+    def __init__(self, homecontrol, device_instance, element_uid):
         """Initialize a devolo device entity."""
         self._device_instance = device_instance
         self._unique_id = element_uid
         self._homecontrol = homecontrol
-        self._name: str = device_instance.settings_property[
-            "general_device_settings"
-        ].name
+        self._name = device_instance.settings_property["general_device_settings"].name
         self._area = device_instance.settings_property["general_device_settings"].zone
-        self._device_class: str | None = None
-        self._value: int
-        self._unit = ""
+        self._device_class = None
+        self._value = None
+        self._unit = None
         self._enabled_default = True
 
         # This is not doing I/O. It fetches an internal state of the API
-        self._available: bool = device_instance.is_online()
+        self._available = device_instance.is_online()
 
         # Get the brand and model information
         self._brand = device_instance.brand
         self._model = device_instance.name
 
-        self.subscriber: Subscriber | None = None
+        self.subscriber = None
         self.sync_callback = self._sync
 
     async def async_added_to_hass(self) -> None:
@@ -57,12 +48,12 @@ class DevoloDeviceEntity(Entity):
         )
 
     @property
-    def unique_id(self) -> str:
+    def unique_id(self):
         """Return the unique ID of the entity."""
         return self._unique_id
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self):
         """Return the device info."""
         return {
             "identifiers": {(DOMAIN, self._device_instance.uid)},
@@ -78,12 +69,12 @@ class DevoloDeviceEntity(Entity):
         return self._enabled_default
 
     @property
-    def should_poll(self) -> bool:
+    def should_poll(self):
         """Return the polling state."""
         return False
 
     @property
-    def name(self) -> str:
+    def name(self):
         """Return the display name of this entity."""
         return self._name
 
@@ -92,7 +83,7 @@ class DevoloDeviceEntity(Entity):
         """Return the online state."""
         return self._available
 
-    def _sync(self, message: tuple) -> None:
+    def _sync(self, message):
         """Update the state."""
         if message[0] == self._unique_id:
             self._value = message[1]
@@ -100,7 +91,7 @@ class DevoloDeviceEntity(Entity):
             self._generic_message(message)
         self.schedule_update_ha_state()
 
-    def _generic_message(self, message: tuple) -> None:
+    def _generic_message(self, message):
         """Handle generic messages."""
         if len(message) == 3 and message[2] == "battery_level":
             self._value = message[1]

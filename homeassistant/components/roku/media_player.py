@@ -1,7 +1,6 @@
 """Support for the Roku media player."""
 from __future__ import annotations
 
-import datetime as dt
 import logging
 
 import voluptuous as vol
@@ -9,7 +8,6 @@ import voluptuous as vol
 from homeassistant.components.media_player import (
     DEVICE_CLASS_RECEIVER,
     DEVICE_CLASS_TV,
-    BrowseMedia,
     MediaPlayerEntity,
 )
 from homeassistant.components.media_player.const import (
@@ -39,10 +37,9 @@ from homeassistant.const import (
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.network import is_internal_request
 
-from . import roku_exception_handler
+from . import RokuDataUpdateCoordinator, roku_exception_handler
 from .browse_media import build_item_response, library_payload
 from .const import ATTR_KEYWORD, DOMAIN, SERVICE_SEARCH
-from .coordinator import RokuDataUpdateCoordinator
 from .entity import RokuEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -66,7 +63,7 @@ SEARCH_SCHEMA = {vol.Required(ATTR_KEYWORD): str}
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the Roku config entry."""
-    coordinator: RokuDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = hass.data[DOMAIN][entry.entry_id]
     unique_id = coordinator.data.info.serial_number
     async_add_entities([RokuMediaPlayer(unique_id, coordinator)], True)
 
@@ -91,7 +88,6 @@ class RokuMediaPlayer(RokuEntity, MediaPlayerEntity):
 
         self._attr_name = coordinator.data.info.name
         self._attr_unique_id = unique_id
-        self._attr_supported_features = SUPPORT_ROKU
 
     def _media_playback_trackable(self) -> bool:
         """Detect if we have enough media data to track playback."""
@@ -109,7 +105,7 @@ class RokuMediaPlayer(RokuEntity, MediaPlayerEntity):
         return DEVICE_CLASS_RECEIVER
 
     @property
-    def state(self) -> str | None:
+    def state(self) -> str:
         """Return the state of the device."""
         if self.coordinator.data.state.standby:
             return STATE_STANDBY
@@ -137,7 +133,12 @@ class RokuMediaPlayer(RokuEntity, MediaPlayerEntity):
         return None
 
     @property
-    def media_content_type(self) -> str | None:
+    def supported_features(self):
+        """Flag media player features that are supported."""
+        return SUPPORT_ROKU
+
+    @property
+    def media_content_type(self) -> str:
         """Content type of current playing media."""
         if self.app_id is None or self.app_name in ("Power Saver", "Roku"):
             return None
@@ -148,7 +149,7 @@ class RokuMediaPlayer(RokuEntity, MediaPlayerEntity):
         return MEDIA_TYPE_APP
 
     @property
-    def media_image_url(self) -> str | None:
+    def media_image_url(self) -> str:
         """Image url of current playing media."""
         if self.app_id is None or self.app_name in ("Power Saver", "Roku"):
             return None
@@ -156,7 +157,7 @@ class RokuMediaPlayer(RokuEntity, MediaPlayerEntity):
         return self.coordinator.roku.app_icon_url(self.app_id)
 
     @property
-    def app_name(self) -> str | None:
+    def app_name(self) -> str:
         """Name of the current running app."""
         if self.coordinator.data.app is not None:
             return self.coordinator.data.app.name
@@ -164,7 +165,7 @@ class RokuMediaPlayer(RokuEntity, MediaPlayerEntity):
         return None
 
     @property
-    def app_id(self) -> str | None:
+    def app_id(self) -> str:
         """Return the ID of the current running app."""
         if self.coordinator.data.app is not None:
             return self.coordinator.data.app.app_id
@@ -172,7 +173,7 @@ class RokuMediaPlayer(RokuEntity, MediaPlayerEntity):
         return None
 
     @property
-    def media_channel(self) -> str | None:
+    def media_channel(self):
         """Return the TV channel currently tuned."""
         if self.app_id != "tvinput.dtv" or self.coordinator.data.channel is None:
             return None
@@ -183,7 +184,7 @@ class RokuMediaPlayer(RokuEntity, MediaPlayerEntity):
         return self.coordinator.data.channel.number
 
     @property
-    def media_title(self) -> str | None:
+    def media_title(self):
         """Return the title of current playing media."""
         if self.app_id != "tvinput.dtv" or self.coordinator.data.channel is None:
             return None
@@ -194,7 +195,7 @@ class RokuMediaPlayer(RokuEntity, MediaPlayerEntity):
         return None
 
     @property
-    def media_duration(self) -> int | None:
+    def media_duration(self):
         """Duration of current playing media in seconds."""
         if self._media_playback_trackable():
             return self.coordinator.data.media.duration
@@ -202,7 +203,7 @@ class RokuMediaPlayer(RokuEntity, MediaPlayerEntity):
         return None
 
     @property
-    def media_position(self) -> int | None:
+    def media_position(self):
         """Position of current playing media in seconds."""
         if self._media_playback_trackable():
             return self.coordinator.data.media.position
@@ -210,7 +211,7 @@ class RokuMediaPlayer(RokuEntity, MediaPlayerEntity):
         return None
 
     @property
-    def media_position_updated_at(self) -> dt.datetime | None:
+    def media_position_updated_at(self):
         """When was the position of the current playing media valid."""
         if self._media_playback_trackable():
             return self.coordinator.data.media.at
@@ -218,7 +219,7 @@ class RokuMediaPlayer(RokuEntity, MediaPlayerEntity):
         return None
 
     @property
-    def source(self) -> str | None:
+    def source(self) -> str:
         """Return the current input source."""
         if self.coordinator.data.app is not None:
             return self.coordinator.data.app.name
@@ -236,11 +237,8 @@ class RokuMediaPlayer(RokuEntity, MediaPlayerEntity):
         await self.coordinator.roku.search(keyword)
 
     async def async_get_browse_image(
-        self,
-        media_content_type: str,
-        media_content_id: str,
-        media_image_id: str | None = None,
-    ) -> tuple[str | None, str | None]:
+        self, media_content_type, media_content_id, media_image_id=None
+    ):
         """Fetch media browser image to serve via proxy."""
         if media_content_type == MEDIA_TYPE_APP and media_content_id:
             image_url = self.coordinator.roku.app_icon_url(media_content_id)
@@ -248,11 +246,7 @@ class RokuMediaPlayer(RokuEntity, MediaPlayerEntity):
 
         return (None, None)
 
-    async def async_browse_media(
-        self,
-        media_content_type: str | None = None,
-        media_content_id: str | None = None,
-    ) -> BrowseMedia:
+    async def async_browse_media(self, media_content_type=None, media_content_id=None):
         """Implement the websocket media browsing helper."""
         is_internal = is_internal_request(self.hass)
 
