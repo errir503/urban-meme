@@ -246,7 +246,7 @@ class FanEntity(ToggleEntity):
             await self.async_turn_off()
             return
 
-        if self.preset_modes and speed in self.preset_modes:
+        if speed in self.preset_modes:
             if not hasattr(self.async_set_preset_mode, _FAN_NATIVE):
                 await self.async_set_preset_mode(speed)
                 return
@@ -375,7 +375,7 @@ class FanEntity(ToggleEntity):
             _LOGGER.warning(
                 "Calling fan.turn_on with the speed argument is deprecated, use percentage or preset_mode instead"
             )
-            if self.preset_modes and speed in self.preset_modes:
+            if speed in self.preset_modes:
                 preset_mode = speed
                 percentage = None
             else:
@@ -463,13 +463,9 @@ class FanEntity(ToggleEntity):
     @property
     def percentage(self) -> int | None:
         """Return the current speed as a percentage."""
-        if (
-            not self._implemented_preset_mode
-            and self.preset_modes
-            and self.speed in self.preset_modes
-        ):
+        if not self._implemented_preset_mode and self.speed in self.preset_modes:
             return None
-        if self.speed is not None and not self._implemented_percentage:
+        if not self._implemented_percentage:
             return self.speed_to_percentage(self.speed)
         return 0
 
@@ -492,7 +488,7 @@ class FanEntity(ToggleEntity):
         speeds = []
         if self._implemented_percentage:
             speeds += [SPEED_OFF, *LEGACY_SPEED_LIST]
-        if self._implemented_preset_mode and self.preset_modes:
+        if self._implemented_preset_mode:
             speeds += self.preset_modes
         return speeds
 
@@ -598,7 +594,7 @@ class FanEntity(ToggleEntity):
     @property
     def state_attributes(self) -> dict:
         """Return optional state attributes."""
-        data: dict[str, float | str | None] = {}
+        data = {}
         supported_features = self.supported_features
 
         if supported_features & SUPPORT_DIRECTION:
@@ -632,7 +628,7 @@ class FanEntity(ToggleEntity):
         Requires SUPPORT_SET_SPEED.
         """
         speed = self.speed
-        if self.preset_modes and speed in self.preset_modes:
+        if speed in self.preset_modes:
             return speed
         return None
 

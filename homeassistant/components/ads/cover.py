@@ -105,12 +105,7 @@ class AdsCover(AdsEntity, CoverEntity):
         self._ads_var_open = ads_var_open
         self._ads_var_close = ads_var_close
         self._ads_var_stop = ads_var_stop
-        self._attr_device_class = device_class
-        self._attr_supported_features = SUPPORT_OPEN | SUPPORT_CLOSE
-        if ads_var_stop is not None:
-            self._attr_supported_features |= SUPPORT_STOP
-        if ads_var_pos_set is not None:
-            self._attr_supported_features |= SUPPORT_SET_POSITION
+        self._device_class = device_class
 
     async def async_added_to_hass(self):
         """Register device notification."""
@@ -125,6 +120,11 @@ class AdsCover(AdsEntity, CoverEntity):
             )
 
     @property
+    def device_class(self):
+        """Return the class of this cover."""
+        return self._device_class
+
+    @property
     def is_closed(self):
         """Return if the cover is closed."""
         if self._ads_var is not None:
@@ -137,6 +137,19 @@ class AdsCover(AdsEntity, CoverEntity):
     def current_cover_position(self):
         """Return current position of cover."""
         return self._state_dict[STATE_KEY_POSITION]
+
+    @property
+    def supported_features(self):
+        """Flag supported features."""
+        supported_features = SUPPORT_OPEN | SUPPORT_CLOSE
+
+        if self._ads_var_stop is not None:
+            supported_features |= SUPPORT_STOP
+
+        if self._ads_var_pos_set is not None:
+            supported_features |= SUPPORT_SET_POSITION
+
+        return supported_features
 
     def stop_cover(self, **kwargs):
         """Fire the stop action."""
@@ -172,7 +185,7 @@ class AdsCover(AdsEntity, CoverEntity):
             self.set_cover_position(position=0)
 
     @property
-    def available(self) -> bool:
+    def available(self):
         """Return False if state has not been updated yet."""
         if self._ads_var is not None or self._ads_var_position is not None:
             return (

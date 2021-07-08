@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import asyncio
 from collections import deque
-from dataclasses import dataclass
 from datetime import timedelta
 from itertools import islice
 import logging
@@ -35,6 +34,8 @@ HOMEDATA_DATA_CLASS_NAME = "AsyncHomeData"
 HOMESTATUS_DATA_CLASS_NAME = "AsyncHomeStatus"
 PUBLICDATA_DATA_CLASS_NAME = "AsyncPublicData"
 
+NEXT_SCAN = "next_scan"
+
 DATA_CLASSES = {
     WEATHERSTATION_DATA_CLASS_NAME: pyatmo.AsyncWeatherStationData,
     HOMECOACH_DATA_CLASS_NAME: pyatmo.AsyncHomeCoachData,
@@ -54,16 +55,6 @@ DEFAULT_INTERVALS = {
     PUBLICDATA_DATA_CLASS_NAME: 600,
 }
 SCAN_INTERVAL = 60
-
-
-@dataclass
-class NetatmoDataClass:
-    """Class for keeping track of Netatmo data class metadata."""
-
-    name: str
-    interval: int
-    next_scan: float
-    subscriptions: list[CALLBACK_TYPE]
 
 
 class NetatmoDataHandler:
@@ -102,12 +93,12 @@ class NetatmoDataHandler:
         to minimize the calls on the api service.
         """
         for data_class in islice(self._queue, 0, BATCH_SIZE):
-            if data_class.next_scan > time():
+            if data_class[NEXT_SCAN] > time():
                 continue
 
-            if data_class_name := data_class.name:
-                self.data_classes[data_class_name].next_scan = (
-                    time() + data_class.interval
+            if data_class_name := data_class["name"]:
+                self.data_classes[data_class_name][NEXT_SCAN] = (
+                    time() + data_class["interval"]
                 )
 
                 await self.async_fetch_data(data_class_name)
@@ -117,7 +108,7 @@ class NetatmoDataHandler:
     @callback
     def async_force_update(self, data_class_entry):
         """Prioritize data retrieval for given data class entry."""
-        self.data_classes[data_class_entry].next_scan = time()
+        self.data_classes[data_class_entry][NEXT_SCAN] = time()
         self._queue.rotate(-(self._queue.index(self.data_classes[data_class_entry])))
 
     async def async_cleanup(self):
@@ -158,7 +149,7 @@ class NetatmoDataHandler:
             _LOGGER.debug(err)
             return
 
-        for update_callback in self.data_classes[data_class_entry].subscriptions:
+        for update_callback in self.data_classes[data_class_entry]["subscriptions"]:
             if update_callback:
                 update_callback()
 
@@ -167,18 +158,21 @@ class NetatmoDataHandler:
     ):
         """Register data class."""
         if data_class_entry in self.data_classes:
-            if update_callback not in self.data_classes[data_class_entry].subscriptions:
-                self.data_classes[data_class_entry].subscriptions.append(
+            if (
+                update_callback
+                not in self.data_classes[data_class_entry]["subscriptions"]
+            ):
+                self.data_classes[data_class_entry]["subscriptions"].append(
                     update_callback
                 )
             return
 
-        self.data_classes[data_class_entry] = NetatmoDataClass(
-            name=data_class_entry,
-            interval=DEFAULT_INTERVALS[data_class_name],
-            next_scan=time() + DEFAULT_INTERVALS[data_class_name],
-            subscriptions=[update_callback],
-        )
+        self.data_classes[data_class_entry] = {
+            "name": data_class_entry,
+            "interval": DEFAULT_INTERVALS[data_class_name],
+            NEXT_SCAN: time() + DEFAULT_INTERVALS[data_class_name],
+            "subscriptions": [update_callback],
+        }
 
         self.data[data_class_entry] = DATA_CLASSES[data_class_name](
             self._auth, **kwargs
@@ -191,9 +185,9 @@ class NetatmoDataHandler:
 
     async def unregister_data_class(self, data_class_entry, update_callback):
         """Unregister data class."""
-        self.data_classes[data_class_entry].subscriptions.remove(update_callback)
+        self.data_classes[data_class_entry]["subscriptions"].remove(update_callback)
 
-        if not self.data_classes[data_class_entry].subscriptions:
+        if not self.data_classes[data_class_entry].get("subscriptions"):
             self._queue.remove(self.data_classes[data_class_entry])
             self.data_classes.pop(data_class_entry)
             self.data.pop(data_class_entry)

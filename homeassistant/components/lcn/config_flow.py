@@ -1,6 +1,4 @@
 """Config flow to configure the LCN integration."""
-from __future__ import annotations
-
 import logging
 
 import pypck
@@ -13,17 +11,13 @@ from homeassistant.const import (
     CONF_PORT,
     CONF_USERNAME,
 )
-from homeassistant.data_entry_flow import FlowResult
-from homeassistant.helpers.typing import ConfigType, HomeAssistantType
 
 from .const import CONF_DIM_MODE, CONF_SK_NUM_TRIES, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
 
-def get_config_entry(
-    hass: HomeAssistantType, data: ConfigType
-) -> config_entries.ConfigEntry | None:
+def get_config_entry(hass, data):
     """Check config entries for already configured entries based on the ip address/port."""
     return next(
         (
@@ -36,7 +30,7 @@ def get_config_entry(
     )
 
 
-async def validate_connection(host_name: str, data: ConfigType) -> ConfigType:
+async def validate_connection(host_name, data):
     """Validate if a connection to LCN can be established."""
     host = data[CONF_IP_ADDRESS]
     port = data[CONF_PORT]
@@ -68,7 +62,7 @@ class LcnFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    async def async_step_import(self, data: ConfigType) -> FlowResult:
+    async def async_step_import(self, data):
         """Import existing configuration from LCN."""
         host_name = data[CONF_HOST]
         # validate the imported connection parameters
