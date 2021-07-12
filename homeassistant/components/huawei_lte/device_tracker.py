@@ -14,6 +14,7 @@ from homeassistant.components.device_tracker.const import (
     SOURCE_TYPE_ROUTER,
 )
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_URL
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
@@ -60,7 +61,7 @@ async def async_setup_entry(
     # Grab hosts list once to examine whether the initial fetch has got some data for
     # us, i.e. if wlan host list is supported. Only set up a subscription and proceed
     # with adding and tracking entities if it is.
-    router = hass.data[DOMAIN].routers[config_entry.unique_id]
+    router = hass.data[DOMAIN].routers[config_entry.data[CONF_URL]]
     if (hosts := _get_hosts(router, True)) is None:
         return
 
@@ -93,10 +94,10 @@ async def async_setup_entry(
     router.subscriptions[KEY_LAN_HOST_INFO].add(_DEVICE_SCAN)
     router.subscriptions[KEY_WLAN_HOST_LIST].add(_DEVICE_SCAN)
 
-    async def _async_maybe_add_new_entities(unique_id: str) -> None:
+    async def _async_maybe_add_new_entities(url: str) -> None:
         """Add new entities if the update signal comes from our router."""
-        if config_entry.unique_id == unique_id:
-            async_add_new_entities(router, async_add_entities, tracked)
+        if url == router.url:
+            async_add_new_entities(hass, url, async_add_entities, tracked)
 
     # Register to handle router data updates
     disconnect_dispatcher = async_dispatcher_connect(
@@ -105,7 +106,7 @@ async def async_setup_entry(
     config_entry.async_on_unload(disconnect_dispatcher)
 
     # Add new entities from initial scan
-    async_add_new_entities(router, async_add_entities, tracked)
+    async_add_new_entities(hass, router.url, async_add_entities, tracked)
 
 
 def _is_wireless(host: _HostType) -> bool:
@@ -128,11 +129,13 @@ def _is_us(host: _HostType) -> bool:
 
 @callback
 def async_add_new_entities(
-    router: Router,
+    hass: HomeAssistant,
+    router_url: str,
     async_add_entities: AddEntitiesCallback,
     tracked: set[str],
 ) -> None:
     """Add new entities that are not already being tracked."""
+    router = hass.data[DOMAIN].routers[router_url]
     hosts = _get_hosts(router)
     if not hosts:
         return

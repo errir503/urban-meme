@@ -1,14 +1,10 @@
 """Support for Ambient Weather Station binary sensors."""
-from __future__ import annotations
-
 from homeassistant.components.binary_sensor import (
     DOMAIN as BINARY_SENSOR,
     BinarySensorEntity,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_NAME
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.core import callback
 
 from . import (
     SENSOR_TYPES,
@@ -31,9 +27,7 @@ from . import (
 from .const import ATTR_LAST_DATA, ATTR_MONITORED_CONDITIONS, DATA_CLIENT, DOMAIN
 
 
-async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
-) -> None:
+async def async_setup_entry(hass, entry, async_add_entities):
     """Set up Ambient PWS binary sensors based on a config entry."""
     ambient = hass.data[DOMAIN][DATA_CLIENT][entry.entry_id]
 
@@ -53,19 +47,15 @@ async def async_setup_entry(
                     )
                 )
 
-    async_add_entities(binary_sensor_list)
+    async_add_entities(binary_sensor_list, True)
 
 
 class AmbientWeatherBinarySensor(AmbientWeatherEntity, BinarySensorEntity):
     """Define an Ambient binary sensor."""
 
-    @callback
-    def update_from_latest_data(self) -> None:
-        """Fetch new state data for the entity."""
-        state = self._ambient.stations[self._mac_address][ATTR_LAST_DATA].get(
-            self._sensor_type
-        )
-
+    @property
+    def is_on(self):
+        """Return the status of the sensor."""
         if self._sensor_type in (
             TYPE_BATT1,
             TYPE_BATT10,
@@ -82,6 +72,13 @@ class AmbientWeatherBinarySensor(AmbientWeatherEntity, BinarySensorEntity):
             TYPE_PM25_BATT,
             TYPE_PM25IN_BATT,
         ):
-            self._attr_is_on = state == 0
-        else:
-            self._attr_is_on = state == 1
+            return self._state == 0
+
+        return self._state == 1
+
+    @callback
+    def update_from_latest_data(self):
+        """Fetch new state data for the entity."""
+        self._state = self._ambient.stations[self._mac_address][ATTR_LAST_DATA].get(
+            self._sensor_type
+        )

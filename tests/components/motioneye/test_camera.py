@@ -1,7 +1,7 @@
 """Test the motionEye camera."""
 import copy
 import logging
-from typing import Any, cast
+from typing import Any
 from unittest.mock import AsyncMock, Mock
 
 from aiohttp import web
@@ -235,7 +235,7 @@ async def test_get_still_image_from_camera(
     # It won't actually get a stream from the dummy handler, so just catch
     # the expected exception, then verify the right handler was called.
     with pytest.raises(HomeAssistantError):
-        await async_get_image(hass, TEST_CAMERA_ENTITY_ID, timeout=1)
+        await async_get_image(hass, TEST_CAMERA_ENTITY_ID, timeout=None)  # type: ignore[no-untyped-call]
     assert image_handler.called
 
 
@@ -269,9 +269,7 @@ async def test_get_stream_from_camera(aiohttp_server: Any, hass: HomeAssistant) 
     # It won't actually get a stream from the dummy handler, so just catch
     # the expected exception, then verify the right handler was called.
     with pytest.raises(HTTPBadGateway):
-        await async_get_mjpeg_stream(
-            hass, cast(web.Request, None), TEST_CAMERA_ENTITY_ID
-        )
+        await async_get_mjpeg_stream(hass, None, TEST_CAMERA_ENTITY_ID)  # type: ignore[no-untyped-call]
     assert stream_handler.called
 
 

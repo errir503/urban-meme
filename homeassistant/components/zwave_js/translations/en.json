@@ -101,15 +101,5 @@
             }
         }
     },
-    "device_automation": {
-        "condition_type": {
-            "alive": "Node is alive",
-            "asleep": "Node is asleep",
-            "awake": "Node is awake",
-            "config_parameter": "Config parameter {subtype} value",
-            "dead": "Node is dead",
-            "value": "Current value of a Z-Wave Value"
-        }
-    },
     "title": "Z-Wave JS"
 }

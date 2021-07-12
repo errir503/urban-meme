@@ -19,14 +19,14 @@
                     "one": "eins",
                     "other": "andere"
                 },
-                "description": "M\u00f6chtest du {name} einrichten?",
+                "description": "M\u00f6chten Sie {name} einrichten?",
                 "title": "Roku"
             },
             "user": {
                 "data": {
                     "host": "Host"
                 },
-                "description": "Gib deine Roku-Informationen ein."
+                "description": "Geben Sie Ihre Roku-Informationen ein."
             }
         }
     }

@@ -25,9 +25,20 @@ class OnlineStatus(BinarySensorEntity):
 
     def __init__(self, config, data):
         """Initialize the APCUPSd binary device."""
+        self._config = config
         self._data = data
-        self._attr_name = config[CONF_NAME]
+        self._state = None
+
+    @property
+    def name(self):
+        """Return the name of the UPS online status sensor."""
+        return self._config[CONF_NAME]
+
+    @property
+    def is_on(self):
+        """Return true if the UPS is online, else false."""
+        return self._state & VALUE_ONLINE > 0
 
     def update(self):
         """Get the status report from APCUPSd and set this entity's state."""
-        self._attr_is_on = int(self._data.status[KEY_STATUS], 16) & VALUE_ONLINE > 0
+        self._state = int(self._data.status[KEY_STATUS], 16)

@@ -15,7 +15,7 @@ DEVICES = [
     },
     {
         "uid": "3WRRJR6RCZQZSND8VP0YTO3YXCSOFPKBMW8T51TU-LQ*ILYH1E3DWZOVMNEUIMDYMNLOW-LFRQFDPWWJOVHVDOS",
-        "name": "bedroom",
+        "name": "Bedroom fan",
         "type": "fan",
         "characteristics": ["on", "rotationSpeed"],
     },
@@ -39,7 +39,7 @@ DEVICES = [
     },
     {
         "uid": "3WRRJR6RCZQZSND8VP0YTO3YXCSOFPKBMW8T51TU-LQ*1JKU1MVWHQL-Z9SCUS85VFXMRGNDCDNDDUVVDKBU31W",
-        "name": "irrigation",
+        "name": "Irrigation switch",
         "type": "switch",
         "characteristics": ["on"],
     },
@@ -81,7 +81,7 @@ DEVICES = [
     },
     {
         "uid": "3WRRJR6RCZQZSND8VP0YTO3YXCSOFPKBMW8T51TU-LQ*TWMYQKL3UVED4HSIIB9GXJWJZBQCXG-9VE-N2IUAIWI",
-        "name": "thermostat",
+        "name": "Bedroom thermostat",
         "type": "thermostat",
         "characteristics": [
             "heatingCoolingState",
@@ -91,7 +91,7 @@ DEVICES = [
     },
     {
         "uid": "3WRRJR6RCZQZSND8VP0YTO3YXCSOFPKBMW8T51TU-LQ*3XSSVIJWK-65HILWTC4WINQK46SP4OEZRCNO25VGWAS",
-        "name": "blind",
+        "name": "Bedroom window covering",
         "type": "windowCovering",
         "characteristics": ["position"],
     },

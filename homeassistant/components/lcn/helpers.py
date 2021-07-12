@@ -1,13 +1,9 @@
 """Helpers for LCN component."""
-from __future__ import annotations
-
 import re
-from typing import Tuple, Type, Union, cast
 
 import pypck
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_ADDRESS,
     CONF_BINARY_SENSORS,
@@ -25,7 +21,6 @@ from homeassistant.const import (
     CONF_SWITCHES,
     CONF_USERNAME,
 )
-from homeassistant.helpers.typing import ConfigType, HomeAssistantType
 
 from .const import (
     CONF_CLIMATES,
@@ -42,13 +37,6 @@ from .const import (
     DEFAULT_NAME,
     DOMAIN,
 )
-
-# typing
-AddressType = Tuple[int, int, bool]
-DeviceConnectionType = Union[
-    pypck.module.ModuleConnection, pypck.module.GroupConnection
-]
-InputType = Type[pypck.inputs.Input]
 
 # Regex for address validation
 PATTERN_ADDRESS = re.compile(
@@ -67,23 +55,21 @@ DOMAIN_LOOKUP = {
 }
 
 
-def get_device_connection(
-    hass: HomeAssistantType, address: AddressType, config_entry: ConfigEntry
-) -> DeviceConnectionType | None:
+def get_device_connection(hass, address, config_entry):
     """Return a lcn device_connection."""
     host_connection = hass.data[DOMAIN][config_entry.entry_id][CONNECTION]
     addr = pypck.lcn_addr.LcnAddr(*address)
     return host_connection.get_address_conn(addr)
 
 
-def get_resource(domain_name: str, domain_data: ConfigType) -> str:
+def get_resource(domain_name, domain_data):
     """Return the resource for the specified domain_data."""
     if domain_name in ["switch", "light"]:
-        return cast(str, domain_data["output"])
+        return domain_data["output"]
     if domain_name in ["binary_sensor", "sensor"]:
-        return cast(str, domain_data["source"])
+        return domain_data["source"]
     if domain_name == "cover":
-        return cast(str, domain_data["motor"])
+        return domain_data["motor"]
     if domain_name == "climate":
         return f'{domain_data["source"]}.{domain_data["setpoint"]}'
     if domain_name == "scene":
@@ -91,13 +77,13 @@ def get_resource(domain_name: str, domain_data: ConfigType) -> str:
     raise ValueError("Unknown domain")
 
 
-def generate_unique_id(address: AddressType) -> str:
+def generate_unique_id(address):
     """Generate a unique_id from the given parameters."""
     is_group = "g" if address[2] else "m"
     return f"{is_group}{address[0]:03d}{address[1]:03d}"
 
 
-def import_lcn_config(lcn_config: ConfigType) -> list[ConfigType]:
+def import_lcn_config(lcn_config):
     """Convert lcn settings from configuration.yaml to config_entries data.
 
     Create a list of config_entry data structures like:
@@ -199,7 +185,7 @@ def import_lcn_config(lcn_config: ConfigType) -> list[ConfigType]:
     return list(data.values())
 
 
-def has_unique_host_names(hosts: list[ConfigType]) -> list[ConfigType]:
+def has_unique_host_names(hosts):
     """Validate that all connection names are unique.
 
     Use 'pchk' as default connection_name (or add a numeric suffix if
@@ -220,7 +206,7 @@ def has_unique_host_names(hosts: list[ConfigType]) -> list[ConfigType]:
     return hosts
 
 
-def is_address(value: str) -> tuple[AddressType, str]:
+def is_address(value):
     """Validate the given address string.
 
     Examples for S000M005 at myhome:
@@ -241,7 +227,7 @@ def is_address(value: str) -> tuple[AddressType, str]:
     raise ValueError(f"{value} is not a valid address string")
 
 
-def is_states_string(states_string: str) -> list[str]:
+def is_states_string(states_string):
     """Validate the given states string and return states list."""
     if len(states_string) != 8:
         raise ValueError("Invalid length of states string")

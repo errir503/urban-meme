@@ -1,8 +1,4 @@
 """Support for LCN climate control."""
-from __future__ import annotations
-
-from typing import Any, cast
-
 import pypck
 
 from homeassistant.components.climate import (
@@ -10,7 +6,6 @@ from homeassistant.components.climate import (
     ClimateEntity,
     const,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_TEMPERATURE,
     CONF_ADDRESS,
@@ -19,8 +14,6 @@ from homeassistant.const import (
     CONF_SOURCE,
     CONF_UNIT_OF_MEASUREMENT,
 )
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import ConfigType, HomeAssistantType
 
 from . import LcnEntity
 from .const import (
@@ -30,27 +23,21 @@ from .const import (
     CONF_MIN_TEMP,
     CONF_SETPOINT,
 )
-from .helpers import DeviceConnectionType, InputType, get_device_connection
+from .helpers import get_device_connection
 
 PARALLEL_UPDATES = 0
 
 
-def create_lcn_climate_entity(
-    hass: HomeAssistantType, entity_config: ConfigType, config_entry: ConfigEntry
-) -> LcnEntity:
+def create_lcn_climate_entity(hass, entity_config, config_entry):
     """Set up an entity for this domain."""
     device_connection = get_device_connection(
-        hass, entity_config[CONF_ADDRESS], config_entry
+        hass, tuple(entity_config[CONF_ADDRESS]), config_entry
     )
 
     return LcnClimate(entity_config, config_entry.entry_id, device_connection)
 
 
-async def async_setup_entry(
-    hass: HomeAssistantType,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
+async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up LCN switch entities from a config entry."""
     entities = []
 
@@ -66,9 +53,7 @@ async def async_setup_entry(
 class LcnClimate(LcnEntity, ClimateEntity):
     """Representation of a LCN climate device."""
 
-    def __init__(
-        self, config: ConfigType, entry_id: str, device_connection: DeviceConnectionType
-    ) -> None:
+    def __init__(self, config, entry_id, device_connection):
         """Initialize of a LCN climate device."""
         super().__init__(config, entry_id, device_connection)
 
@@ -87,14 +72,14 @@ class LcnClimate(LcnEntity, ClimateEntity):
         self._target_temperature = None
         self._is_on = True
 
-    async def async_added_to_hass(self) -> None:
+    async def async_added_to_hass(self):
         """Run when entity about to be added to hass."""
         await super().async_added_to_hass()
         if not self.device_connection.is_group:
             await self.device_connection.activate_status_request_handler(self.variable)
             await self.device_connection.activate_status_request_handler(self.setpoint)
 
-    async def async_will_remove_from_hass(self) -> None:
+    async def async_will_remove_from_hass(self):
         """Run when entity will be removed from hass."""
         await super().async_will_remove_from_hass()
         if not self.device_connection.is_group:
@@ -102,27 +87,27 @@ class LcnClimate(LcnEntity, ClimateEntity):
             await self.device_connection.cancel_status_request_handler(self.setpoint)
 
     @property
-    def supported_features(self) -> int:
+    def supported_features(self):
         """Return the list of supported features."""
         return const.SUPPORT_TARGET_TEMPERATURE
 
     @property
-    def temperature_unit(self) -> str:
+    def temperature_unit(self):
         """Return the unit of measurement."""
-        return cast(str, self.unit.value)
+        return self.unit.value
 
     @property
-    def current_temperature(self) -> float | None:
+    def current_temperature(self):
         """Return the current temperature."""
         return self._current_temperature
 
     @property
-    def target_temperature(self) -> float | None:
+    def target_temperature(self):
         """Return the temperature we try to reach."""
         return self._target_temperature
 
     @property
-    def hvac_mode(self) -> str:
+    def hvac_mode(self):
         """Return hvac operation ie. heat, cool mode.
 
         Need to be one of HVAC_MODE_*.
@@ -132,7 +117,7 @@ class LcnClimate(LcnEntity, ClimateEntity):
         return const.HVAC_MODE_OFF
 
     @property
-    def hvac_modes(self) -> list[str]:
+    def hvac_modes(self):
         """Return the list of available hvac operation modes.
 
         Need to be a subset of HVAC_MODES.
@@ -143,16 +128,16 @@ class LcnClimate(LcnEntity, ClimateEntity):
         return modes
 
     @property
-    def max_temp(self) -> float:
+    def max_temp(self):
         """Return the maximum temperature."""
-        return cast(float, self._max_temp)
+        return self._max_temp
 
     @property
-    def min_temp(self) -> float:
+    def min_temp(self):
         """Return the minimum temperature."""
-        return cast(float, self._min_temp)
+        return self._min_temp
 
-    async def async_set_hvac_mode(self, hvac_mode: str) -> None:
+    async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
         if hvac_mode == const.HVAC_MODE_HEAT:
             if not await self.device_connection.lock_regulator(
@@ -168,7 +153,7 @@ class LcnClimate(LcnEntity, ClimateEntity):
             self._target_temperature = None
             self.async_write_ha_state()
 
-    async def async_set_temperature(self, **kwargs: Any) -> None:
+    async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
         temperature = kwargs.get(ATTR_TEMPERATURE)
         if temperature is None:
@@ -181,7 +166,7 @@ class LcnClimate(LcnEntity, ClimateEntity):
         self._target_temperature = temperature
         self.async_write_ha_state()
 
-    def input_received(self, input_obj: InputType) -> None:
+    def input_received(self, input_obj):
         """Set temperature value when LCN input object is received."""
         if not isinstance(input_obj, pypck.inputs.ModStatusVar):
             return

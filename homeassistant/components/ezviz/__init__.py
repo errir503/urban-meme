@@ -1,10 +1,10 @@
 """Support for Ezviz camera."""
+from datetime import timedelta
 import logging
 
 from pyezviz.client import EzvizClient
 from pyezviz.exceptions import HTTPError, InvalidURL, PyEzvizError
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_PASSWORD,
     CONF_TIMEOUT,
@@ -12,7 +12,6 @@ from homeassistant.const import (
     CONF_URL,
     CONF_USERNAME,
 )
-from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 
 from .const import (
@@ -29,6 +28,8 @@ from .coordinator import EzvizDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
+MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=30)
+
 PLATFORMS = [
     "binary_sensor",
     "camera",
@@ -37,16 +38,17 @@ PLATFORMS = [
 ]
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass, entry):
     """Set up Ezviz from a config entry."""
     hass.data.setdefault(DOMAIN, {})
 
     if not entry.options:
         options = {
-            CONF_FFMPEG_ARGUMENTS: DEFAULT_FFMPEG_ARGUMENTS,
-            CONF_TIMEOUT: DEFAULT_TIMEOUT,
+            CONF_FFMPEG_ARGUMENTS: entry.data.get(
+                CONF_FFMPEG_ARGUMENTS, DEFAULT_FFMPEG_ARGUMENTS
+            ),
+            CONF_TIMEOUT: entry.data.get(CONF_TIMEOUT, DEFAULT_TIMEOUT),
         }
-
         hass.config_entries.async_update_entry(entry, options=options)
 
     if entry.data.get(CONF_TYPE) == ATTR_TYPE_CAMERA:
@@ -68,9 +70,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.error("Unable to connect to Ezviz service: %s", str(error))
         raise ConfigEntryNotReady from error
 
-    coordinator = EzvizDataUpdateCoordinator(
-        hass, api=ezviz_client, api_timeout=entry.options[CONF_TIMEOUT]
-    )
+    coordinator = EzvizDataUpdateCoordinator(hass, api=ezviz_client)
     await coordinator.async_refresh()
 
     if not coordinator.last_update_success:
@@ -87,7 +87,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass, entry):
     """Unload a config entry."""
 
     if entry.data.get(CONF_TYPE) == ATTR_TYPE_CAMERA:
@@ -100,12 +100,12 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return unload_ok
 
 
-async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
+async def _async_update_listener(hass, entry):
     """Handle options update."""
     await hass.config_entries.async_reload(entry.entry_id)
 
 
-def _get_ezviz_client_instance(entry: ConfigEntry) -> EzvizClient:
+def _get_ezviz_client_instance(entry):
     """Initialize a new instance of EzvizClientApi."""
     ezviz_client = EzvizClient(
         entry.data[CONF_USERNAME],

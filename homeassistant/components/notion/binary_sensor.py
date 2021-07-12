@@ -44,7 +44,7 @@ BINARY_SENSOR_TYPES = {
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
-) -> None:
+):
     """Set up Notion sensors based on a config entry."""
     coordinator = hass.data[DOMAIN][DATA_COORDINATOR][entry.entry_id]
 
@@ -77,19 +77,24 @@ class NotionBinarySensor(NotionEntity, BinarySensorEntity):
     @callback
     def _async_update_from_latest_data(self) -> None:
         """Fetch new state data for the sensor."""
-        task = self.coordinator.data["tasks"][self._task_id]
+        task = self.coordinator.data["tasks"][self.task_id]
 
         if "value" in task["status"]:
-            state = task["status"]["value"]
+            self._state = task["status"]["value"]
         elif task["status"].get("insights", {}).get("primary"):
-            state = task["status"]["insights"]["primary"]["to_state"]
+            self._state = task["status"]["insights"]["primary"]["to_state"]
         else:
             LOGGER.warning("Unknown data payload: %s", task["status"])
-            state = None
+            self._state = None
+
+    @property
+    def is_on(self) -> bool:
+        """Return whether the sensor is on or off."""
+        task = self.coordinator.data["tasks"][self.task_id]
 
         if task["task_type"] == SENSOR_BATTERY:
-            self._attr_is_on = state == "critical"
-        elif task["task_type"] in (
+            return self._state == "critical"
+        if task["task_type"] in (
             SENSOR_DOOR,
             SENSOR_GARAGE_DOOR,
             SENSOR_SAFE,
@@ -97,10 +102,10 @@ class NotionBinarySensor(NotionEntity, BinarySensorEntity):
             SENSOR_WINDOW_HINGED_HORIZONTAL,
             SENSOR_WINDOW_HINGED_VERTICAL,
         ):
-            self._attr_is_on = state != "closed"
-        elif task["task_type"] == SENSOR_LEAK:
-            self._attr_is_on = state != "no_leak"
-        elif task["task_type"] == SENSOR_MISSING:
-            self._attr_is_on = state == "not_missing"
-        elif task["task_type"] == SENSOR_SMOKE_CO:
-            self._attr_is_on = state != "no_alarm"
+            return self._state != "closed"
+        if task["task_type"] == SENSOR_LEAK:
+            return self._state != "no_leak"
+        if task["task_type"] == SENSOR_MISSING:
+            return self._state == "not_missing"
+        if task["task_type"] == SENSOR_SMOKE_CO:
+            return self._state != "no_alarm"

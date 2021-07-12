@@ -81,9 +81,9 @@ class Trigger:
     """Device trigger settings."""
 
     device_id: str = attr.ib()
-    discovery_hash: dict | None = attr.ib()
+    discovery_hash: dict = attr.ib()
     hass: HomeAssistant = attr.ib()
-    remove_update_signal: Callable[[], None] | None = attr.ib()
+    remove_update_signal: Callable[[], None] = attr.ib()
     subtype: str = attr.ib()
     tasmota_trigger: TasmotaTrigger = attr.ib()
     type: str = attr.ib()
@@ -242,7 +242,7 @@ async def async_remove_triggers(hass: HomeAssistant, device_id: str):
 
 async def async_get_triggers(hass: HomeAssistant, device_id: str) -> list[dict]:
     """List device triggers for a Tasmota device."""
-    triggers: list[dict[str, str]] = []
+    triggers = []
 
     if DEVICE_TRIGGERS not in hass.data:
         return triggers
