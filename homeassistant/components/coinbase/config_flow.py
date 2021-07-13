@@ -15,7 +15,6 @@ from .const import (
     API_ACCOUNT_CURRENCY,
     API_RATES,
     CONF_CURRENCIES,
-    CONF_EXCHANGE_BASE,
     CONF_EXCHANGE_RATES,
     CONF_OPTIONS,
     CONF_YAML_API_TOKEN,
@@ -157,7 +156,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         errors = {}
         default_currencies = self.config_entry.options.get(CONF_CURRENCIES, [])
         default_exchange_rates = self.config_entry.options.get(CONF_EXCHANGE_RATES, [])
-        default_exchange_base = self.config_entry.options.get(CONF_EXCHANGE_BASE, "USD")
 
         if user_input is not None:
             # Pass back user selected options, even if bad
@@ -166,9 +164,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
             if CONF_EXCHANGE_RATES in user_input:
                 default_exchange_rates = user_input[CONF_EXCHANGE_RATES]
-
-            if CONF_EXCHANGE_RATES in user_input:
-                default_exchange_base = user_input[CONF_EXCHANGE_BASE]
 
             try:
                 await validate_options(self.hass, self.config_entry, user_input)
@@ -194,10 +189,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                         CONF_EXCHANGE_RATES,
                         default=default_exchange_rates,
                     ): cv.multi_select(RATES),
-                    vol.Optional(
-                        CONF_EXCHANGE_BASE,
-                        default=default_exchange_base,
-                    ): vol.In(WALLETS),
                 }
             ),
             errors=errors,

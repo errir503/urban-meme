@@ -29,7 +29,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DATA_CLIENT, DOMAIN
+from .const import DATA_CLIENT, DATA_UNSUBSCRIBE, DOMAIN
 from .discovery import ZwaveDiscoveryInfo
 from .entity import ZWaveBaseEntity
 from .helpers import get_device_id
@@ -73,7 +73,7 @@ async def async_setup_entry(
         """Add node status sensor."""
         async_add_entities([ZWaveNodeStatusSensor(config_entry, client, node)])
 
-    config_entry.async_on_unload(
+    hass.data[DOMAIN][config_entry.entry_id][DATA_UNSUBSCRIBE].append(
         async_dispatcher_connect(
             hass,
             f"{DOMAIN}_{config_entry.entry_id}_add_{SENSOR_DOMAIN}",
@@ -81,7 +81,7 @@ async def async_setup_entry(
         )
     )
 
-    config_entry.async_on_unload(
+    hass.data[DOMAIN][config_entry.entry_id][DATA_UNSUBSCRIBE].append(
         async_dispatcher_connect(
             hass,
             f"{DOMAIN}_{config_entry.entry_id}_add_node_status_sensor",

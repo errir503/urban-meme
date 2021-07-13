@@ -1,12 +1,7 @@
 """Support for Waterfurnace."""
 
 from homeassistant.components.sensor import ENTITY_ID_FORMAT, SensorEntity
-from homeassistant.const import (
-    DEVICE_CLASS_TEMPERATURE,
-    PERCENTAGE,
-    POWER_WATT,
-    TEMP_FAHRENHEIT,
-)
+from homeassistant.const import PERCENTAGE, POWER_WATT, TEMP_FAHRENHEIT
 from homeassistant.core import callback
 from homeassistant.util import slugify
 
@@ -17,15 +12,9 @@ class WFSensorConfig:
     """Water Furnace Sensor configuration."""
 
     def __init__(
-        self,
-        friendly_name,
-        field,
-        icon="mdi:gauge",
-        unit_of_measurement=None,
-        device_class=None,
+        self, friendly_name, field, icon="mdi:gauge", unit_of_measurement=None
     ):
         """Initialize configuration."""
-        self.device_class = device_class
         self.friendly_name = friendly_name
         self.field = field
         self.icon = icon
@@ -36,19 +25,13 @@ SENSORS = [
     WFSensorConfig("Furnace Mode", "mode"),
     WFSensorConfig("Total Power", "totalunitpower", "mdi:flash", POWER_WATT),
     WFSensorConfig(
-        "Active Setpoint",
-        "tstatactivesetpoint",
-        None,
-        TEMP_FAHRENHEIT,
-        DEVICE_CLASS_TEMPERATURE,
+        "Active Setpoint", "tstatactivesetpoint", "mdi:thermometer", TEMP_FAHRENHEIT
     ),
+    WFSensorConfig("Leaving Air", "leavingairtemp", "mdi:thermometer", TEMP_FAHRENHEIT),
+    WFSensorConfig("Room Temp", "tstatroomtemp", "mdi:thermometer", TEMP_FAHRENHEIT),
     WFSensorConfig(
-        "Leaving Air", "leavingairtemp", None, TEMP_FAHRENHEIT, DEVICE_CLASS_TEMPERATURE
+        "Loop Temp", "enteringwatertemp", "mdi:thermometer", TEMP_FAHRENHEIT
     ),
-    WFSensorConfig(
-        "Room Temp", "tstatroomtemp", None, TEMP_FAHRENHEIT, DEVICE_CLASS_TEMPERATURE
-    ),
-    WFSensorConfig("Loop Temp", "enteringwatertemp", None, TEMP_FAHRENHEIT),
     WFSensorConfig(
         "Humidity Set Point", "tstathumidsetpoint", "mdi:water-percent", PERCENTAGE
     ),
@@ -88,7 +71,6 @@ class WaterFurnaceSensor(SensorEntity):
         self._state = None
         self._icon = config.icon
         self._unit_of_measurement = config.unit_of_measurement
-        self._attr_device_class = config.device_class
 
         # This ensures that the sensors are isolated per waterfurnace unit
         self.entity_id = ENTITY_ID_FORMAT.format(

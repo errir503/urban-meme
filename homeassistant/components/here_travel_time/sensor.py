@@ -27,7 +27,7 @@ from homeassistant.helpers import location
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import DiscoveryInfoType
-from homeassistant.util import dt
+import homeassistant.util.dt as dt
 
 _LOGGER = logging.getLogger(__name__)
 

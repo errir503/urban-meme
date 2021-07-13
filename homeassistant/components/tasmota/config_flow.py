@@ -1,14 +1,8 @@
 """Config flow for Tasmota."""
-from __future__ import annotations
-
-from typing import Any, cast
-
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.components.mqtt import ReceiveMessage, valid_subscribe_topic
-from homeassistant.data_entry_flow import FlowResult
-from homeassistant.helpers.typing import DiscoveryInfoType
+from homeassistant.components.mqtt import valid_subscribe_topic
 
 from .const import CONF_DISCOVERY_PREFIX, DEFAULT_PREFIX, DOMAIN
 
@@ -18,11 +12,11 @@ class FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    def __init__(self) -> None:
+    def __init__(self):
         """Initialize flow."""
         self._prefix = DEFAULT_PREFIX
 
-    async def async_step_mqtt(self, discovery_info: DiscoveryInfoType) -> FlowResult:
+    async def async_step_mqtt(self, discovery_info=None):
         """Handle a flow initialized by MQTT discovery."""
         if self._async_in_progress() or self._async_current_entries():
             return self.async_abort(reason="single_instance_allowed")
@@ -30,7 +24,7 @@ class FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         await self.async_set_unique_id(DOMAIN)
 
         # Validate the topic, will throw if it fails
-        prefix = cast(ReceiveMessage, discovery_info).subscribed_topic
+        prefix = discovery_info.subscribed_topic
         if prefix.endswith("/#"):
             prefix = prefix[:-2]
         try:
@@ -42,9 +36,7 @@ class FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self.async_step_confirm()
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_user(self, user_input=None):
         """Handle a flow initialized by the user."""
         if self._async_current_entries():
             return self.async_abort(reason="single_instance_allowed")
@@ -53,9 +45,7 @@ class FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             return await self.async_step_config()
         return await self.async_step_confirm()
 
-    async def async_step_config(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_config(self, user_input=None):
         """Confirm the setup."""
         errors = {}
         data = {CONF_DISCOVERY_PREFIX: self._prefix}
@@ -82,9 +72,7 @@ class FlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="config", data_schema=vol.Schema(fields), errors=errors
         )
 
-    async def async_step_confirm(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_confirm(self, user_input=None):
         """Confirm the setup."""
 
         data = {CONF_DISCOVERY_PREFIX: self._prefix}

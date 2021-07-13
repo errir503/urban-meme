@@ -55,22 +55,38 @@ class AzureDevOpsEntity(Entity):
 
     def __init__(self, organization: str, project: str, name: str, icon: str) -> None:
         """Initialize the Azure DevOps entity."""
-        self._attr_name = name
-        self._attr_icon = icon
+        self._name = name
+        self._icon = icon
+        self._available = True
         self.organization = organization
         self.project = project
+
+    @property
+    def name(self) -> str:
+        """Return the name of the entity."""
+        return self._name
+
+    @property
+    def icon(self) -> str:
+        """Return the mdi icon of the entity."""
+        return self._icon
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        return self._available
 
     async def async_update(self) -> None:
         """Update Azure DevOps entity."""
         if await self._azure_devops_update():
-            self._attr_available = True
+            self._available = True
         else:
-            if self._attr_available:
+            if self._available:
                 _LOGGER.debug(
                     "An error occurred while updating Azure DevOps sensor",
                     exc_info=True,
                 )
-            self._attr_available = False
+            self._available = False
 
     async def _azure_devops_update(self) -> None:
         """Update Azure DevOps entity."""

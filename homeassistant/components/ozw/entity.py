@@ -83,9 +83,9 @@ class ZWaveDeviceEntityValues:
             return
 
         # Go through the possible values for this entity defined by the schema.
-        for name, name_value in self._values.items():
+        for name in self._values:
             # Skip if it's already been added.
-            if name_value is not None:
+            if self._values[name] is not None:
                 continue
             # Skip if the value doesn't match the schema.
             if not check_value_schema(value, self._schema[const.DISC_VALUES][name]):

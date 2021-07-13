@@ -1,18 +1,12 @@
 """Config flow for Elexa Guardian integration."""
-from __future__ import annotations
-
-from typing import Any
-
 from aioguardian import Client
 from aioguardian.errors import GuardianError
 import voluptuous as vol
 
-from homeassistant import config_entries
+from homeassistant import config_entries, core
 from homeassistant.components.dhcp import IP_ADDRESS
 from homeassistant.const import CONF_IP_ADDRESS, CONF_PORT
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.data_entry_flow import FlowResult
-from homeassistant.helpers.typing import DiscoveryInfoType
+from homeassistant.core import callback
 
 from .const import CONF_UID, DOMAIN, LOGGER
 
@@ -29,18 +23,18 @@ UNIQUE_ID = "guardian_{0}"
 
 
 @callback
-def async_get_pin_from_discovery_hostname(hostname: str) -> str:
+def async_get_pin_from_discovery_hostname(hostname):
     """Get the device's 4-digit PIN from its zeroconf-discovered hostname."""
     return hostname.split(".")[0].split("-")[1]
 
 
 @callback
-def async_get_pin_from_uid(uid: str) -> str:
+def async_get_pin_from_uid(uid):
     """Get the device's 4-digit PIN from its UID."""
     return uid[-4:]
 
 
-async def validate_input(hass: HomeAssistant, data: dict[str, Any]):
+async def validate_input(hass: core.HomeAssistant, data):
     """Validate the user input allows us to connect.
 
     Data has the keys from DATA_SCHEMA with values provided by the user.
@@ -58,11 +52,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    def __init__(self) -> None:
+    def __init__(self):
         """Initialize."""
         self.discovery_info = {}
 
-    async def _async_set_unique_id(self, pin: str) -> None:
+    async def _async_set_unique_id(self, pin):
         """Set the config entry's unique ID (based on the device's 4-digit PIN)."""
         await self.async_set_unique_id(UNIQUE_ID.format(pin))
         if self.discovery_info:
@@ -72,9 +66,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         else:
             self._abort_if_unique_id_configured()
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_user(self, user_input=None):
         """Handle configuration via the UI."""
         if user_input is None:
             return self.async_show_form(
@@ -98,7 +90,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             title=info[CONF_UID], data={CONF_UID: info["uid"], **user_input}
         )
 
-    async def async_step_dhcp(self, discovery_info: DiscoveryInfoType) -> FlowResult:
+    async def async_step_dhcp(self, discovery_info):
         """Handle the configuration via dhcp."""
         self.discovery_info = {
             CONF_IP_ADDRESS: discovery_info[IP_ADDRESS],
@@ -106,9 +98,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         }
         return await self._async_handle_discovery()
 
-    async def async_step_zeroconf(
-        self, discovery_info: DiscoveryInfoType
-    ) -> FlowResult:
+    async def async_step_zeroconf(self, discovery_info):
         """Handle the configuration via zeroconf."""
         self.discovery_info = {
             CONF_IP_ADDRESS: discovery_info["host"],
@@ -118,7 +108,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         await self._async_set_unique_id(pin)
         return await self._async_handle_discovery()
 
-    async def _async_handle_discovery(self) -> FlowResult:
+    async def _async_handle_discovery(self):
         """Handle any discovery."""
         self.context[CONF_IP_ADDRESS] = self.discovery_info[CONF_IP_ADDRESS]
         if any(
@@ -129,9 +119,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self.async_step_discovery_confirm()
 
-    async def async_step_discovery_confirm(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_discovery_confirm(self, user_input=None):
         """Finish the configuration via any discovery."""
         if user_input is None:
             self._set_confirm_only()

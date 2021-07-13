@@ -1,17 +1,12 @@
 """Support for Tasmota sensors."""
 from __future__ import annotations
 
-from datetime import datetime
 import logging
-from typing import Any
 
-from hatasmota import const as hc, sensor as tasmota_sensor, status_sensor
-from hatasmota.entity import TasmotaEntity as HATasmotaEntity
-from hatasmota.models import DiscoveryHashType
+from hatasmota import const as hc, status_sensor
 
 from homeassistant.components import sensor
 from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT, SensorEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
     CONCENTRATION_PARTS_PER_BILLION,
@@ -46,9 +41,8 @@ from homeassistant.const import (
     TEMP_KELVIN,
     VOLT,
 )
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
 from .const import DATA_REMOVE_DISCOVER_COMPONENT
@@ -156,17 +150,10 @@ SENSOR_UNIT_MAP = {
 }
 
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
+async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up Tasmota sensor dynamically through discovery."""
 
-    @callback
-    def async_discover(
-        tasmota_entity: HATasmotaEntity, discovery_hash: DiscoveryHashType
-    ) -> None:
+    async def async_discover_sensor(tasmota_entity, discovery_hash):
         """Discover and add a Tasmota sensor."""
         async_add_entities(
             [
@@ -181,7 +168,7 @@ async def async_setup_entry(
     ] = async_dispatcher_connect(
         hass,
         TASMOTA_DISCOVERY_ENTITY_NEW.format(sensor.DOMAIN),
-        async_discover,
+        async_discover_sensor,
     )
 
 
@@ -189,33 +176,24 @@ class TasmotaSensor(TasmotaAvailability, TasmotaDiscoveryUpdate, SensorEntity):
     """Representation of a Tasmota sensor."""
 
     _attr_last_reset = None
-    _tasmota_entity: tasmota_sensor.TasmotaSensor
 
-    def __init__(self, **kwds: Any) -> None:
+    def __init__(self, **kwds):
         """Initialize the Tasmota sensor."""
-        self._state: Any | None = None
-        self._state_timestamp: datetime | None = None
+        self._state = None
 
         super().__init__(
             **kwds,
         )
 
-    async def async_added_to_hass(self) -> None:
-        """Subscribe to MQTT events."""
-        self._tasmota_entity.set_on_state_callback(self.sensor_state_updated)
-        await super().async_added_to_hass()
-
     @callback
-    def sensor_state_updated(self, state: Any, **kwargs: Any) -> None:
+    def state_updated(self, state, **kwargs):
         """Handle state updates."""
-        if self.device_class == DEVICE_CLASS_TIMESTAMP:
-            self._state_timestamp = state
-        else:
-            self._state = state
+        self._state = state
         if "last_reset" in kwargs:
             try:
-                last_reset_dt = dt_util.parse_datetime(kwargs["last_reset"])
-                last_reset = dt_util.as_utc(last_reset_dt) if last_reset_dt else None
+                last_reset = dt_util.as_utc(
+                    dt_util.parse_datetime(kwargs["last_reset"])
+                )
                 if last_reset is None:
                     raise ValueError
                 self._attr_last_reset = last_reset
@@ -250,7 +228,7 @@ class TasmotaSensor(TasmotaAvailability, TasmotaDiscoveryUpdate, SensorEntity):
         return True
 
     @property
-    def icon(self) -> str | None:
+    def icon(self):
         """Return the icon."""
         class_or_icon = SENSOR_DEVICE_CLASS_ICON_MAP.get(
             self._tasmota_entity.quantity, {}
@@ -258,18 +236,18 @@ class TasmotaSensor(TasmotaAvailability, TasmotaDiscoveryUpdate, SensorEntity):
         return class_or_icon.get(ICON)
 
     @property
-    def state(self) -> str | None:
+    def state(self):
         """Return the state of the entity."""
-        if self._state_timestamp and self.device_class == DEVICE_CLASS_TIMESTAMP:
-            return self._state_timestamp.isoformat()
+        if self._state and self.device_class == DEVICE_CLASS_TIMESTAMP:
+            return self._state.isoformat()
         return self._state
 
     @property
-    def force_update(self) -> bool:
+    def force_update(self):
         """Force update."""
         return True
 
     @property
-    def unit_of_measurement(self) -> str | None:
+    def unit_of_measurement(self):
         """Return the unit this state is expressed in."""
         return SENSOR_UNIT_MAP.get(self._tasmota_entity.unit, self._tasmota_entity.unit)

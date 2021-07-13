@@ -139,8 +139,7 @@ class LgTVDevice(MediaPlayerEntity):
                     self._sources = dict(zip(channel_names, channel_list))
                     # sort source names by the major channel number
                     source_tuples = [
-                        (k, source.find("major").text)
-                        for k, source in self._sources.items()
+                        (k, self._sources[k].find("major").text) for k in self._sources
                     ]
                     sorted_sources = sorted(
                         source_tuples, key=lambda channel: int(channel[1])

@@ -1,7 +1,6 @@
 {
     "config": {
         "abort": {
-            "reauth_successful": "Autentikasi ulang berhasil",
             "single_instance_allowed": "Sudah dikonfigurasi. Hanya satu konfigurasi yang diizinkan.",
             "unknown": "Kesalahan yang tidak diharapkan"
         },
@@ -12,11 +11,6 @@
         },
         "flow_title": "Cloudflare: {name}",
         "step": {
-            "reauth_confirm": {
-                "data": {
-                    "api_token": "Token API"
-                }
-            },
             "records": {
                 "data": {
                     "records": "Catatan"

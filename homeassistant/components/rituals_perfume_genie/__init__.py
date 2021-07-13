@@ -11,7 +11,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .const import ACCOUNT_HASH, COORDINATORS, DEVICES, DOMAIN
+from .const import ACCOUNT_HASH, COORDINATORS, DEVICES, DOMAIN, HUBLOT
 
 PLATFORMS = ["binary_sensor", "number", "select", "sensor", "switch"]
 
@@ -23,7 +23,8 @@ UPDATE_INTERVAL = timedelta(seconds=30)
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Rituals Perfume Genie from a config entry."""
     session = async_get_clientsession(hass)
-    account = Account(session=session, account_hash=entry.data[ACCOUNT_HASH])
+    account = Account(session=session)
+    account.data = {ACCOUNT_HASH: entry.data.get(ACCOUNT_HASH)}
 
     try:
         account_devices = await account.get_devices()
@@ -36,7 +37,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     }
 
     for device in account_devices:
-        hublot = device.hublot
+        hublot = device.hub_data[HUBLOT]
 
         coordinator = RitualsDataUpdateCoordinator(hass, device)
         await coordinator.async_refresh()
@@ -67,7 +68,7 @@ class RitualsDataUpdateCoordinator(DataUpdateCoordinator):
         super().__init__(
             hass,
             _LOGGER,
-            name=f"{DOMAIN}-{device.hublot}",
+            name=f"{DOMAIN}-{device.hub_data[HUBLOT]}",
             update_interval=UPDATE_INTERVAL,
         )
 

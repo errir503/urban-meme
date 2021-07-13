@@ -156,9 +156,7 @@ async def test_setup_min(hass, mock_zeroconf):
     )
     entry.add_to_hass(hass)
 
-    with patch(f"{PATH_HOMEKIT}.HomeKit") as mock_homekit, patch(
-        "homeassistant.components.network.async_get_source_ip", return_value="1.2.3.4"
-    ):
+    with patch(f"{PATH_HOMEKIT}.HomeKit") as mock_homekit:
         mock_homekit.return_value = homekit = Mock()
         type(homekit).async_start = AsyncMock()
         assert await hass.config_entries.async_setup(entry.entry_id)
@@ -168,7 +166,7 @@ async def test_setup_min(hass, mock_zeroconf):
         hass,
         BRIDGE_NAME,
         DEFAULT_PORT,
-        "1.2.3.4",
+        None,
         ANY,
         ANY,
         {},
@@ -251,7 +249,7 @@ async def test_homekit_setup(hass, hk_driver, mock_zeroconf):
         hass,
         BRIDGE_NAME,
         DEFAULT_PORT,
-        IP_ADDRESS,
+        None,
         True,
         {},
         {},
@@ -264,7 +262,10 @@ async def test_homekit_setup(hass, hk_driver, mock_zeroconf):
     hass.states.async_set("light.demo", "on")
     hass.states.async_set("light.demo2", "on")
     zeroconf_mock = MagicMock()
-    with patch(f"{PATH_HOMEKIT}.HomeDriver", return_value=hk_driver) as mock_driver:
+    with patch(
+        f"{PATH_HOMEKIT}.HomeDriver", return_value=hk_driver
+    ) as mock_driver, patch("homeassistant.util.get_local_ip") as mock_ip:
+        mock_ip.return_value = IP_ADDRESS
         await hass.async_add_executor_job(homekit.setup, zeroconf_mock)
 
     path = get_persist_fullpath_for_entry_id(hass, entry.entry_id)
@@ -841,9 +842,7 @@ async def test_yaml_updates_update_config_entry_for_name(hass, mock_zeroconf):
     )
     entry.add_to_hass(hass)
 
-    with patch(f"{PATH_HOMEKIT}.HomeKit") as mock_homekit, patch(
-        "homeassistant.components.network.async_get_source_ip", return_value="1.2.3.4"
-    ):
+    with patch(f"{PATH_HOMEKIT}.HomeKit") as mock_homekit:
         mock_homekit.return_value = homekit = Mock()
         type(homekit).async_start = AsyncMock()
         assert await async_setup_component(
@@ -855,7 +854,7 @@ async def test_yaml_updates_update_config_entry_for_name(hass, mock_zeroconf):
         hass,
         BRIDGE_NAME,
         12345,
-        "1.2.3.4",
+        None,
         ANY,
         ANY,
         {},
@@ -1110,9 +1109,7 @@ async def test_reload(hass, mock_zeroconf):
     )
     entry.add_to_hass(hass)
 
-    with patch(f"{PATH_HOMEKIT}.HomeKit") as mock_homekit, patch(
-        "homeassistant.components.network.async_get_source_ip", return_value="1.2.3.4"
-    ):
+    with patch(f"{PATH_HOMEKIT}.HomeKit") as mock_homekit:
         mock_homekit.return_value = homekit = Mock()
         assert await async_setup_component(
             hass, "homekit", {"homekit": {CONF_NAME: "reloadable", CONF_PORT: 12345}}
@@ -1123,7 +1120,7 @@ async def test_reload(hass, mock_zeroconf):
         hass,
         "reloadable",
         12345,
-        "1.2.3.4",
+        None,
         ANY,
         False,
         {},
@@ -1145,8 +1142,6 @@ async def test_reload(hass, mock_zeroconf):
         f"{PATH_HOMEKIT}.get_accessory"
     ), patch(
         "pyhap.accessory_driver.AccessoryDriver.async_start"
-    ), patch(
-        "homeassistant.components.network.async_get_source_ip", return_value="1.2.3.4"
     ):
         mock_homekit2.return_value = homekit = Mock()
         await hass.services.async_call(
@@ -1161,7 +1156,7 @@ async def test_reload(hass, mock_zeroconf):
         hass,
         "reloadable",
         45678,
-        "1.2.3.4",
+        None,
         ANY,
         False,
         {},

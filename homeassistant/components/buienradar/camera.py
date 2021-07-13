@@ -8,10 +8,11 @@ import logging
 import aiohttp
 import voluptuous as vol
 
-from homeassistant.components.camera import Camera
+from homeassistant.components.camera import PLATFORM_SCHEMA, Camera
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE
+from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
@@ -19,6 +20,7 @@ from homeassistant.util import dt as dt_util
 from .const import (
     CONF_COUNTRY,
     CONF_DELTA,
+    CONF_DIMENSION,
     DEFAULT_COUNTRY,
     DEFAULT_DELTA,
     DEFAULT_DIMENSION,
@@ -31,6 +33,26 @@ DIM_RANGE = vol.All(vol.Coerce(int), vol.Range(min=120, max=700))
 
 # Multiple choice for available Radar Map URL
 SUPPORTED_COUNTRY_CODES = ["NL", "BE"]
+
+PLATFORM_SCHEMA = vol.All(
+    PLATFORM_SCHEMA.extend(
+        {
+            vol.Optional(CONF_DIMENSION, default=512): DIM_RANGE,
+            vol.Optional(CONF_DELTA, default=600.0): cv.positive_float,
+            vol.Optional(CONF_NAME, default="Buienradar loop"): cv.string,
+            vol.Optional(CONF_COUNTRY, default="NL"): vol.All(
+                vol.Coerce(str), vol.In(SUPPORTED_COUNTRY_CODES)
+            ),
+        }
+    )
+)
+
+
+async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+    """Set up buienradar camera platform."""
+    _LOGGER.warning(
+        "Platform configuration is deprecated, will be removed in a future release"
+    )
 
 
 async def async_setup_entry(

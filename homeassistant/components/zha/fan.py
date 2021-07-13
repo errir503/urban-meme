@@ -6,7 +6,7 @@ import functools
 import math
 
 from zigpy.exceptions import ZigbeeException
-from zigpy.zcl.clusters import hvac
+import zigpy.zcl.clusters.hvac as hvac
 
 from homeassistant.components.fan import (
     ATTR_PERCENTAGE,

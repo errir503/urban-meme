@@ -69,7 +69,7 @@ def service_call_action(
         return None
 
     try:
-        return fritzbox_tools.connection.call_action(  # type: ignore[no-any-return]
+        return fritzbox_tools.connection.call_action(
             f"{service_name}:{service_suffix}",
             action_name,
             **kwargs,
@@ -262,8 +262,8 @@ def wifi_entities_list(
                 networks[i] = ssid
 
     return [
-        FritzBoxWifiSwitch(fritzbox_tools, device_friendly_name, net, network_name)
-        for net, network_name in networks.items()
+        FritzBoxWifiSwitch(fritzbox_tools, device_friendly_name, net, networks[net])
+        for net in networks
     ]
 
 
@@ -428,8 +428,8 @@ class FritzBoxPortSwitch(FritzBoxBaseSwitch, SwitchEntity):
             "NewPortMappingDescription": "description",
         }
 
-        for key, attr in attributes_dict.items():
-            self._attributes[attr] = self.port_mapping[key]
+        for key in attributes_dict:
+            self._attributes[attributes_dict[key]] = self.port_mapping[key]
 
     async def _async_handle_port_switch_on_off(self, turn_on: bool) -> bool:
 

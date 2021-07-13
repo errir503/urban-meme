@@ -100,8 +100,10 @@ class KNXExposeSensor:
     def _init_expose_state(self) -> None:
         """Initialize state of the exposure."""
         init_state = self.hass.states.get(self.entity_id)
-        state_value = self._get_expose_value(init_state)
-        self.device.sensor_value.value = state_value
+        init_value = self._get_expose_value(init_state)
+        self.device.sensor_value.value = (
+            init_value if init_value is not None else self.expose_default
+        )
 
     @callback
     def shutdown(self) -> None:
@@ -114,13 +116,12 @@ class KNXExposeSensor:
     def _get_expose_value(self, state: State | None) -> StateType:
         """Extract value from state."""
         if state is None or state.state in (STATE_UNKNOWN, STATE_UNAVAILABLE):
-            value = self.expose_default
-        else:
-            value = (
-                state.state
-                if self.expose_attribute is None
-                else state.attributes.get(self.expose_attribute, self.expose_default)
-            )
+            return None
+        value = (
+            state.state
+            if self.expose_attribute is None
+            else state.attributes.get(self.expose_attribute)
+        )
         if self.type == "binary":
             if value in (1, STATE_ON, "True"):
                 return True
@@ -149,7 +150,9 @@ class KNXExposeSensor:
     async def _async_set_knx_value(self, value: StateType) -> None:
         """Set new value on xknx ExposeSensor."""
         if value is None:
-            return
+            if self.expose_default is None:
+                return
+            value = self.expose_default
         await self.device.set(value)
 
 

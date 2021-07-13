@@ -9,7 +9,7 @@ import voluptuous as vol
 from homeassistant.components.binary_sensor import PLATFORM_SCHEMA, BinarySensorEntity
 from homeassistant.const import CONF_NAME, WEEKDAYS
 import homeassistant.helpers.config_validation as cv
-from homeassistant.util import dt
+import homeassistant.util.dt as dt
 
 _LOGGER = logging.getLogger(__name__)
 

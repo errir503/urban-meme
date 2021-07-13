@@ -9,7 +9,6 @@ from homeassistant.components.alarm_control_panel.const import (
     SUPPORT_ALARM_ARM_AWAY,
     SUPPORT_ALARM_ARM_HOME,
     SUPPORT_ALARM_ARM_NIGHT,
-    SUPPORT_ALARM_ARM_VACATION,
 )
 from homeassistant.components.automation import AutomationActionType
 from homeassistant.components.device_automation import DEVICE_TRIGGER_BASE_SCHEMA
@@ -24,7 +23,6 @@ from homeassistant.const import (
     STATE_ALARM_ARMED_AWAY,
     STATE_ALARM_ARMED_HOME,
     STATE_ALARM_ARMED_NIGHT,
-    STATE_ALARM_ARMED_VACATION,
     STATE_ALARM_ARMING,
     STATE_ALARM_DISARMED,
     STATE_ALARM_TRIGGERED,
@@ -41,7 +39,6 @@ TRIGGER_TYPES: Final[set[str]] = BASIC_TRIGGER_TYPES | {
     "armed_home",
     "armed_away",
     "armed_night",
-    "armed_vacation",
 }
 
 TRIGGER_SCHEMA: Final = DEVICE_TRIGGER_BASE_SCHEMA.extend(
@@ -103,13 +100,6 @@ async def async_get_triggers(
                     CONF_TYPE: "armed_night",
                 }
             )
-        if supported_features & SUPPORT_ALARM_ARM_VACATION:
-            triggers.append(
-                {
-                    **base_trigger,
-                    CONF_TYPE: "armed_vacation",
-                }
-            )
 
     return triggers
 
@@ -144,8 +134,6 @@ async def async_attach_trigger(
         to_state = STATE_ALARM_ARMED_AWAY
     elif config[CONF_TYPE] == "armed_night":
         to_state = STATE_ALARM_ARMED_NIGHT
-    elif config[CONF_TYPE] == "armed_vacation":
-        to_state = STATE_ALARM_ARMED_VACATION
 
     state_config = {
         state_trigger.CONF_PLATFORM: "state",

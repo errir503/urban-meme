@@ -8,7 +8,7 @@ import voluptuous as vol
 
 from homeassistant.components.fan import SUPPORT_DIRECTION, SUPPORT_SET_SPEED, FanEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers import entity_platform
+import homeassistant.helpers.entity_platform as entity_platform
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.util.percentage import (

@@ -1,19 +1,9 @@
 """Support for Tasmota binary sensors."""
-from __future__ import annotations
-
-from datetime import datetime
-from typing import Any, Callable
-
-from hatasmota import switch as tasmota_switch
-from hatasmota.entity import TasmotaEntity as HATasmotaEntity
-from hatasmota.models import DiscoveryHashType
 
 from homeassistant.components import binary_sensor
 from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 import homeassistant.helpers.event as evt
 
 from .const import DATA_REMOVE_DISCOVER_COMPONENT
@@ -21,17 +11,11 @@ from .discovery import TASMOTA_DISCOVERY_ENTITY_NEW
 from .mixins import TasmotaAvailability, TasmotaDiscoveryUpdate
 
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
+async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up Tasmota binary sensor dynamically through discovery."""
 
     @callback
-    def async_discover(
-        tasmota_entity: HATasmotaEntity, discovery_hash: DiscoveryHashType
-    ) -> None:
+    def async_discover(tasmota_entity, discovery_hash):
         """Discover and add a Tasmota binary sensor."""
         async_add_entities(
             [
@@ -57,40 +41,33 @@ class TasmotaBinarySensor(
 ):
     """Representation a Tasmota binary sensor."""
 
-    _tasmota_entity: tasmota_switch.TasmotaSwitch
-
-    def __init__(self, **kwds: Any) -> None:
+    def __init__(self, **kwds):
         """Initialize the Tasmota binary sensor."""
-        self._delay_listener: Callable | None = None
-        self._on_off_state: bool | None = None
+        self._delay_listener = None
+        self._state = None
 
         super().__init__(
             **kwds,
         )
 
-    async def async_added_to_hass(self) -> None:
-        """Subscribe to MQTT events."""
-        self._tasmota_entity.set_on_state_callback(self.on_off_state_updated)
-        await super().async_added_to_hass()
-
     @callback
-    def off_delay_listener(self, now: datetime) -> None:
+    def off_delay_listener(self, now):
         """Switch device off after a delay."""
         self._delay_listener = None
-        self._on_off_state = False
+        self._state = False
         self.async_write_ha_state()
 
     @callback
-    def on_off_state_updated(self, state: bool, **kwargs: Any) -> None:
+    def state_updated(self, state, **kwargs):
         """Handle state updates."""
-        self._on_off_state = state
+        self._state = state
 
         if self._delay_listener is not None:
             self._delay_listener()
             self._delay_listener = None
 
         off_delay = self._tasmota_entity.off_delay
-        if self._on_off_state and off_delay is not None:
+        if self._state and off_delay is not None:
             self._delay_listener = evt.async_call_later(
                 self.hass, off_delay, self.off_delay_listener
             )
@@ -98,11 +75,11 @@ class TasmotaBinarySensor(
         self.async_write_ha_state()
 
     @property
-    def force_update(self) -> bool:
+    def force_update(self):
         """Force update."""
         return True
 
     @property
-    def is_on(self) -> bool | None:
+    def is_on(self):
         """Return true if the binary sensor is on."""
-        return self._on_off_state
+        return self._state

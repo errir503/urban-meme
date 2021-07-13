@@ -1,5 +1,5 @@
 """Closures channels module for Zigbee Home Automation."""
-from zigpy.zcl.clusters import closures
+import zigpy.zcl.clusters.closures as closures
 
 from homeassistant.core import callback
 

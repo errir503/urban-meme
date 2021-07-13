@@ -67,8 +67,8 @@ async def async_get_actions(hass: HomeAssistant, device_id: str) -> list[dict]:
     ]
     actions = [
         action
-        for channel, channel_actions in DEVICE_ACTIONS.items()
-        for action in channel_actions
+        for channel in DEVICE_ACTIONS
+        for action in DEVICE_ACTIONS[channel]
         if channel in cluster_channels
     ]
     for action in actions:

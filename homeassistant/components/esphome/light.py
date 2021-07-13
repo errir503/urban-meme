@@ -1,8 +1,6 @@
 """Support for ESPHome lights."""
 from __future__ import annotations
 
-from typing import Any
-
 from aioesphomeapi import LightInfo, LightState
 
 from homeassistant.components.light import (
@@ -26,7 +24,6 @@ from homeassistant.components.light import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 import homeassistant.util.color as color_util
 
 from . import EsphomeEntity, esphome_state_property, platform_async_setup_entry
@@ -35,7 +32,7 @@ FLASH_LENGTHS = {FLASH_SHORT: 2, FLASH_LONG: 10}
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities
 ) -> None:
     """Set up ESPHome lights based on a config entry."""
     await platform_async_setup_entry(
@@ -49,21 +46,28 @@ async def async_setup_entry(
     )
 
 
-# https://github.com/PyCQA/pylint/issues/3150 for all @esphome_state_property
-# pylint: disable=invalid-overridden-method
+class EsphomeLight(EsphomeEntity, LightEntity):
+    """A switch implementation for ESPHome."""
 
+    @property
+    def _static_info(self) -> LightInfo:
+        return super()._static_info
 
-class EsphomeLight(EsphomeEntity[LightInfo, LightState], LightEntity):
-    """A light implementation for ESPHome."""
+    @property
+    def _state(self) -> LightState | None:
+        return super()._state
+
+    # https://github.com/PyCQA/pylint/issues/3150 for all @esphome_state_property
+    # pylint: disable=invalid-overridden-method
 
     @esphome_state_property
-    def is_on(self) -> bool | None:  # type: ignore[override]
-        """Return true if the light is on."""
+    def is_on(self) -> bool | None:
+        """Return true if the switch is on."""
         return self._state.state
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs) -> None:
         """Turn the entity on."""
-        data: dict[str, Any] = {"key": self._static_info.key, "state": True}
+        data = {"key": self._static_info.key, "state": True}
         if ATTR_HS_COLOR in kwargs:
             hue, sat = kwargs[ATTR_HS_COLOR]
             red, green, blue = color_util.color_hsv_to_RGB(hue, sat, 100)
@@ -82,9 +86,9 @@ class EsphomeLight(EsphomeEntity[LightInfo, LightState], LightEntity):
             data["white"] = kwargs[ATTR_WHITE_VALUE] / 255
         await self._client.light_command(**data)
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
+    async def async_turn_off(self, **kwargs) -> None:
         """Turn the entity off."""
-        data: dict[str, Any] = {"key": self._static_info.key, "state": False}
+        data = {"key": self._static_info.key, "state": False}
         if ATTR_FLASH in kwargs:
             data["flash_length"] = FLASH_LENGTHS[kwargs[ATTR_FLASH]]
         if ATTR_TRANSITION in kwargs:
@@ -104,7 +108,7 @@ class EsphomeLight(EsphomeEntity[LightInfo, LightState], LightEntity):
         )
 
     @esphome_state_property
-    def color_temp(self) -> float | None:  # type: ignore[override]
+    def color_temp(self) -> float | None:
         """Return the CT color value in mireds."""
         return self._state.color_temperature
 
@@ -141,11 +145,11 @@ class EsphomeLight(EsphomeEntity[LightInfo, LightState], LightEntity):
         return self._static_info.effects
 
     @property
-    def min_mireds(self) -> float:  # type: ignore[override]
+    def min_mireds(self) -> float:
         """Return the coldest color_temp that this light supports."""
         return self._static_info.min_mireds
 
     @property
-    def max_mireds(self) -> float:  # type: ignore[override]
+    def max_mireds(self) -> float:
         """Return the warmest color_temp that this light supports."""
         return self._static_info.max_mireds

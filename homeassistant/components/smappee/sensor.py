@@ -149,38 +149,38 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     for service_location in smappee_base.smappee.service_locations.values():
         # Add all basic sensors (realtime values and aggregators)
         # Some are available in local only env
-        for sensor, attributes in TREND_SENSORS.items():
-            if not service_location.local_polling or attributes[5]:
+        for sensor in TREND_SENSORS:
+            if not service_location.local_polling or TREND_SENSORS[sensor][5]:
                 entities.append(
                     SmappeeSensor(
                         smappee_base=smappee_base,
                         service_location=service_location,
                         sensor=sensor,
-                        attributes=attributes,
+                        attributes=TREND_SENSORS[sensor],
                     )
                 )
 
         if service_location.has_reactive_value:
-            for reactive_sensor, attributes in REACTIVE_SENSORS.items():
+            for reactive_sensor in REACTIVE_SENSORS:
                 entities.append(
                     SmappeeSensor(
                         smappee_base=smappee_base,
                         service_location=service_location,
                         sensor=reactive_sensor,
-                        attributes=attributes,
+                        attributes=REACTIVE_SENSORS[reactive_sensor],
                     )
                 )
 
         # Add solar sensors (some are available in local only env)
         if service_location.has_solar_production:
-            for sensor, attributes in SOLAR_SENSORS.items():
-                if not service_location.local_polling or attributes[5]:
+            for sensor in SOLAR_SENSORS:
+                if not service_location.local_polling or SOLAR_SENSORS[sensor][5]:
                     entities.append(
                         SmappeeSensor(
                             smappee_base=smappee_base,
                             service_location=service_location,
                             sensor=sensor,
-                            attributes=attributes,
+                            attributes=SOLAR_SENSORS[sensor],
                         )
                     )
 

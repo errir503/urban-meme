@@ -236,15 +236,15 @@ async def test_user_adds_existing_device(hass, mrp_device):
     assert result2["errors"] == {"base": "already_configured"}
 
 
-async def test_user_adds_unusable_device(hass, device_with_no_services):
-    """Test that it is not possible to add device with no services."""
+async def test_user_adds_unusable_device(hass, airplay_device):
+    """Test that it is not possible to add pure AirPlay device."""
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
     result2 = await hass.config_entries.flow.async_configure(
         result["flow_id"],
-        {"device_input": "Invalid Device"},
+        {"device_input": "AirPlay Device"},
     )
     assert result2["type"] == data_entry_flow.RESULT_TYPE_FORM
     assert result2["errors"] == {"base": "no_usable_service"}

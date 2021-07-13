@@ -129,15 +129,13 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 class BayesianBinarySensor(BinarySensorEntity):
     """Representation of a Bayesian sensor."""
 
-    _attr_should_poll = False
-
     def __init__(self, name, prior, observations, probability_threshold, device_class):
         """Initialize the Bayesian sensor."""
-        self._attr_name = name
+        self._name = name
         self._observations = observations
         self._probability_threshold = probability_threshold
-        self._attr_device_class = device_class
-        self._attr_is_on = False
+        self._device_class = device_class
+        self._deviation = False
         self._callbacks = []
 
         self.prior = prior
@@ -240,12 +238,12 @@ class BayesianBinarySensor(BinarySensorEntity):
 
         self.current_observations.update(self._initialize_current_observations())
         self.probability = self._calculate_new_probability()
-        self._attr_is_on = bool(self.probability >= self._probability_threshold)
+        self._deviation = bool(self.probability >= self._probability_threshold)
 
     @callback
     def _recalculate_and_write_state(self):
         self.probability = self._calculate_new_probability()
-        self._attr_is_on = bool(self.probability >= self._probability_threshold)
+        self._deviation = bool(self.probability >= self._probability_threshold)
         self.async_write_ha_state()
 
     def _initialize_current_observations(self):
@@ -366,8 +364,29 @@ class BayesianBinarySensor(BinarySensorEntity):
             return False
 
     @property
+    def name(self):
+        """Return the name of the sensor."""
+        return self._name
+
+    @property
+    def is_on(self):
+        """Return true if sensor is on."""
+        return self._deviation
+
+    @property
+    def should_poll(self):
+        """No polling needed."""
+        return False
+
+    @property
+    def device_class(self):
+        """Return the sensor class of the sensor."""
+        return self._device_class
+
+    @property
     def extra_state_attributes(self):
         """Return the state attributes of the sensor."""
+
         attr_observations_list = [
             obs.copy() for obs in self.current_observations.values() if obs is not None
         ]

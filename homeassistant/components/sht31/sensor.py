@@ -11,7 +11,6 @@ from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntity
 from homeassistant.const import (
     CONF_MONITORED_CONDITIONS,
     CONF_NAME,
-    DEVICE_CLASS_TEMPERATURE,
     PERCENTAGE,
     PRECISION_TENTHS,
     TEMP_CELSIUS,
@@ -119,8 +118,6 @@ class SHTSensor(SensorEntity):
 
 class SHTSensorTemperature(SHTSensor):
     """Representation of a temperature sensor."""
-
-    _attr_device_class = DEVICE_CLASS_TEMPERATURE
 
     @property
     def unit_of_measurement(self):

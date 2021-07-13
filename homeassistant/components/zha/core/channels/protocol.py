@@ -1,5 +1,5 @@
 """Protocol channels module for Zigbee Home Automation."""
-from zigpy.zcl.clusters import protocol
+import zigpy.zcl.clusters.protocol as protocol
 
 from .. import registries
 from .base import ZigbeeChannel

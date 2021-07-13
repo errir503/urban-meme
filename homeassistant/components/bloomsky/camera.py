@@ -25,7 +25,7 @@ class BloomSkyCamera(Camera):
     def __init__(self, bs, device):
         """Initialize access to the BloomSky camera images."""
         super().__init__()
-        self._attr_name = device["DeviceName"]
+        self._name = device["DeviceName"]
         self._id = device["DeviceID"]
         self._bloomsky = bs
         self._url = ""
@@ -35,7 +35,6 @@ class BloomSkyCamera(Camera):
         # to download the same image over and over.
         self._last_image = ""
         self._logger = logging.getLogger(__name__)
-        self._attr_unique_id = self._id
 
     def camera_image(self):
         """Update the camera's image if it has changed."""
@@ -52,3 +51,13 @@ class BloomSkyCamera(Camera):
             return None
 
         return self._last_image
+
+    @property
+    def unique_id(self):
+        """Return a unique ID."""
+        return self._id
+
+    @property
+    def name(self):
+        """Return the name of this BloomSky device."""
+        return self._name

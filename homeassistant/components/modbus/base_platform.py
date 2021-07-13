@@ -23,13 +23,8 @@ from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import (
     CALL_TYPE_COIL,
-    CALL_TYPE_REGISTER_HOLDING,
     CALL_TYPE_WRITE_COIL,
-    CALL_TYPE_WRITE_COILS,
     CALL_TYPE_WRITE_REGISTER,
-    CALL_TYPE_WRITE_REGISTERS,
-    CALL_TYPE_X_COILS,
-    CALL_TYPE_X_REGISTER_HOLDINGS,
     CONF_INPUT_TYPE,
     CONF_STATE_OFF,
     CONF_STATE_ON,
@@ -56,7 +51,6 @@ class BasePlatform(Entity):
         self._value = None
         self._available = True
         self._scan_interval = int(entry[CONF_SCAN_INTERVAL])
-        self._call_active = False
 
     @abstractmethod
     async def async_update(self, now=None):
@@ -98,19 +92,10 @@ class BaseSwitch(BasePlatform, RestoreEntity):
         config[CONF_INPUT_TYPE] = ""
         super().__init__(hub, config)
         self._is_on = None
-        convert = {
-            CALL_TYPE_REGISTER_HOLDING: (
-                CALL_TYPE_REGISTER_HOLDING,
-                CALL_TYPE_WRITE_REGISTER,
-            ),
-            CALL_TYPE_COIL: (CALL_TYPE_COIL, CALL_TYPE_WRITE_COIL),
-            CALL_TYPE_X_COILS: (CALL_TYPE_COIL, CALL_TYPE_WRITE_COILS),
-            CALL_TYPE_X_REGISTER_HOLDINGS: (
-                CALL_TYPE_REGISTER_HOLDING,
-                CALL_TYPE_WRITE_REGISTERS,
-            ),
-        }
-        self._write_type = convert[config[CONF_WRITE_TYPE]][1]
+        if config[CONF_WRITE_TYPE] == CALL_TYPE_COIL:
+            self._write_type = CALL_TYPE_WRITE_COIL
+        else:
+            self._write_type = CALL_TYPE_WRITE_REGISTER
         self.command_on = config[CONF_COMMAND_ON]
         self._command_off = config[CONF_COMMAND_OFF]
         if CONF_VERIFY in config:
@@ -122,7 +107,7 @@ class BaseSwitch(BasePlatform, RestoreEntity):
                 CONF_ADDRESS, config[CONF_ADDRESS]
             )
             self._verify_type = config[CONF_VERIFY].get(
-                CONF_INPUT_TYPE, convert[config[CONF_WRITE_TYPE]][0]
+                CONF_INPUT_TYPE, config[CONF_WRITE_TYPE]
             )
             self._state_on = config[CONF_VERIFY].get(CONF_STATE_ON, self.command_on)
             self._state_off = config[CONF_VERIFY].get(CONF_STATE_OFF, self._command_off)
@@ -175,14 +160,9 @@ class BaseSwitch(BasePlatform, RestoreEntity):
             self.async_write_ha_state()
             return
 
-        # do not allow multiple active calls to the same platform
-        if self._call_active:
-            return
-        self._call_active = True
         result = await self._hub.async_pymodbus_call(
             self._slave, self._verify_address, 1, self._verify_type
         )
-        self._call_active = False
         if result is None:
             self._available = False
             self.async_write_ha_state()

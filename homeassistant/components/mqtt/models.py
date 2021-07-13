@@ -2,35 +2,23 @@
 from __future__ import annotations
 
 import datetime as dt
-from typing import Awaitable, Callable, Union
+from typing import Callable, Union
 
 import attr
 
 PublishPayloadType = Union[str, bytes, int, float, None]
-ReceivePayloadType = Union[str, bytes]
 
 
 @attr.s(slots=True, frozen=True)
-class PublishMessage:
+class Message:
     """MQTT Message."""
 
     topic: str = attr.ib()
     payload: PublishPayloadType = attr.ib()
     qos: int = attr.ib()
     retain: bool = attr.ib()
+    subscribed_topic: str | None = attr.ib(default=None)
+    timestamp: dt.datetime | None = attr.ib(default=None)
 
 
-@attr.s(slots=True, frozen=True)
-class ReceiveMessage:
-    """MQTT Message."""
-
-    topic: str = attr.ib()
-    payload: ReceivePayloadType = attr.ib()
-    qos: int = attr.ib()
-    retain: bool = attr.ib()
-    subscribed_topic: str = attr.ib(default=None)
-    timestamp: dt.datetime = attr.ib(default=None)
-
-
-AsyncMessageCallbackType = Callable[[ReceiveMessage], Awaitable[None]]
-MessageCallbackType = Callable[[ReceiveMessage], None]
+MessageCallbackType = Callable[[Message], None]

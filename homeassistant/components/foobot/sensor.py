@@ -16,7 +16,6 @@ from homeassistant.const import (
     CONCENTRATION_PARTS_PER_MILLION,
     CONF_TOKEN,
     CONF_USERNAME,
-    DEVICE_CLASS_TEMPERATURE,
     PERCENTAGE,
     TEMP_CELSIUS,
     TIME_SECONDS,
@@ -37,23 +36,17 @@ ATTR_VOLATILE_ORGANIC_COMPOUNDS = "VOC"
 ATTR_FOOBOT_INDEX = "index"
 
 SENSOR_TYPES = {
-    "time": [ATTR_TIME, TIME_SECONDS, None, None],
-    "pm": [ATTR_PM2_5, CONCENTRATION_MICROGRAMS_PER_CUBIC_METER, "mdi:cloud", None],
-    "tmp": [ATTR_TEMPERATURE, TEMP_CELSIUS, None, DEVICE_CLASS_TEMPERATURE],
-    "hum": [ATTR_HUMIDITY, PERCENTAGE, "mdi:water-percent", None],
-    "co2": [
-        ATTR_CARBON_DIOXIDE,
-        CONCENTRATION_PARTS_PER_MILLION,
-        "mdi:molecule-co2",
-        None,
-    ],
+    "time": [ATTR_TIME, TIME_SECONDS],
+    "pm": [ATTR_PM2_5, CONCENTRATION_MICROGRAMS_PER_CUBIC_METER, "mdi:cloud"],
+    "tmp": [ATTR_TEMPERATURE, TEMP_CELSIUS, "mdi:thermometer"],
+    "hum": [ATTR_HUMIDITY, PERCENTAGE, "mdi:water-percent"],
+    "co2": [ATTR_CARBON_DIOXIDE, CONCENTRATION_PARTS_PER_MILLION, "mdi:molecule-co2"],
     "voc": [
         ATTR_VOLATILE_ORGANIC_COMPOUNDS,
         CONCENTRATION_PARTS_PER_BILLION,
         "mdi:cloud",
-        None,
     ],
-    "allpollu": [ATTR_FOOBOT_INDEX, PERCENTAGE, "mdi:percent", None],
+    "allpollu": [ATTR_FOOBOT_INDEX, PERCENTAGE, "mdi:percent"],
 }
 
 SCAN_INTERVAL = timedelta(minutes=10)
@@ -114,11 +107,6 @@ class FoobotSensor(SensorEntity):
     def name(self):
         """Return the name of the sensor."""
         return self._name
-
-    @property
-    def device_class(self):
-        """Return the class of this device, from component DEVICE_CLASSES."""
-        return SENSOR_TYPES[self.type][3]
 
     @property
     def icon(self):

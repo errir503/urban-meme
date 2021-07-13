@@ -2,16 +2,14 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import Any
 
-from aioesphomeapi import APIClient, APIConnectionError, DeviceInfo
+from aioesphomeapi import APIClient, APIConnectionError
 import voluptuous as vol
 
 from homeassistant.components import zeroconf
 from homeassistant.config_entries import ConfigFlow
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, CONF_PORT
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from . import DOMAIN, DomainData
@@ -22,19 +20,20 @@ class EsphomeFlowHandler(ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    def __init__(self) -> None:
+    def __init__(self):
         """Initialize flow."""
         self._host: str | None = None
         self._port: int | None = None
         self._password: str | None = None
 
-    async def _async_step_user_base(
+    async def async_step_user(
         self, user_input: ConfigType | None = None, error: str | None = None
-    ) -> FlowResult:
+    ):  # pylint: disable=arguments-differ
+        """Handle a flow initialized by the user."""
         if user_input is not None:
             return await self._async_authenticate_or_add(user_input)
 
-        fields: dict[Any, type] = OrderedDict()
+        fields = OrderedDict()
         fields[vol.Required(CONF_HOST, default=self._host or vol.UNDEFINED)] = str
         fields[vol.Optional(CONF_PORT, default=self._port or 6053)] = int
 
@@ -46,33 +45,26 @@ class EsphomeFlowHandler(ConfigFlow, domain=DOMAIN):
             step_id="user", data_schema=vol.Schema(fields), errors=errors
         )
 
-    async def async_step_user(self, user_input: ConfigType | None = None) -> FlowResult:
-        """Handle a flow initialized by the user."""
-        return await self._async_step_user_base(user_input=user_input)
-
     @property
-    def _name(self) -> str | None:
+    def _name(self):
         return self.context.get(CONF_NAME)
 
     @_name.setter
-    def _name(self, value: str) -> None:
+    def _name(self, value):
         self.context[CONF_NAME] = value
         self.context["title_placeholders"] = {"name": self._name}
 
-    def _set_user_input(self, user_input: ConfigType | None) -> None:
+    def _set_user_input(self, user_input):
         if user_input is None:
             return
         self._host = user_input[CONF_HOST]
         self._port = user_input[CONF_PORT]
 
-    async def _async_authenticate_or_add(
-        self, user_input: ConfigType | None
-    ) -> FlowResult:
+    async def _async_authenticate_or_add(self, user_input):
         self._set_user_input(user_input)
         error, device_info = await self.fetch_device_info()
         if error is not None:
-            return await self._async_step_user_base(error=error)
-        assert device_info is not None
+            return await self.async_step_user(error=error)
         self._name = device_info.name
 
         # Only show authentication step if device uses password
@@ -81,9 +73,7 @@ class EsphomeFlowHandler(ConfigFlow, domain=DOMAIN):
 
         return self._async_get_entry()
 
-    async def async_step_discovery_confirm(
-        self, user_input: ConfigType | None = None
-    ) -> FlowResult:
+    async def async_step_discovery_confirm(self, user_input=None):
         """Handle user-confirmation of discovered node."""
         if user_input is not None:
             return await self._async_authenticate_or_add(None)
@@ -91,9 +81,7 @@ class EsphomeFlowHandler(ConfigFlow, domain=DOMAIN):
             step_id="discovery_confirm", description_placeholders={"name": self._name}
         )
 
-    async def async_step_zeroconf(
-        self, discovery_info: DiscoveryInfoType
-    ) -> FlowResult:
+    async def async_step_zeroconf(self, discovery_info: DiscoveryInfoType):
         """Handle zeroconf discovery."""
         # Hostname is format: livingroom.local.
         local_name = discovery_info["hostname"][:-1]
@@ -141,8 +129,7 @@ class EsphomeFlowHandler(ConfigFlow, domain=DOMAIN):
         return await self.async_step_discovery_confirm()
 
     @callback
-    def _async_get_entry(self) -> FlowResult:
-        assert self._name is not None
+    def _async_get_entry(self):
         return self.async_create_entry(
             title=self._name,
             data={
@@ -153,9 +140,7 @@ class EsphomeFlowHandler(ConfigFlow, domain=DOMAIN):
             },
         )
 
-    async def async_step_authenticate(
-        self, user_input: ConfigType | None = None, error: str | None = None
-    ) -> FlowResult:
+    async def async_step_authenticate(self, user_input=None, error=None):
         """Handle getting password for authentication."""
         if user_input is not None:
             self._password = user_input[CONF_PASSWORD]
@@ -175,11 +160,9 @@ class EsphomeFlowHandler(ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    async def fetch_device_info(self) -> tuple[str | None, DeviceInfo | None]:
+    async def fetch_device_info(self):
         """Fetch device info from API and return any errors."""
         zeroconf_instance = await zeroconf.async_get_instance(self.hass)
-        assert self._host is not None
-        assert self._port is not None
         cli = APIClient(
             self.hass.loop,
             self._host,
@@ -200,11 +183,9 @@ class EsphomeFlowHandler(ConfigFlow, domain=DOMAIN):
 
         return None, device_info
 
-    async def try_login(self) -> str | None:
+    async def try_login(self):
         """Try logging in to device and return any errors."""
         zeroconf_instance = await zeroconf.async_get_instance(self.hass)
-        assert self._host is not None
-        assert self._port is not None
         cli = APIClient(
             self.hass.loop,
             self._host,

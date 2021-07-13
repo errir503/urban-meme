@@ -1,8 +1,6 @@
 """Config flow for ReCollect Waste integration."""
 from __future__ import annotations
 
-from typing import Any
-
 from aiorecollect.client import Client
 from aiorecollect.errors import RecollectError
 import voluptuous as vol
@@ -10,7 +8,6 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_FRIENDLY_NAME
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import aiohttp_client
 
 from .const import CONF_PLACE_ID, CONF_SERVICE_ID, DOMAIN, LOGGER
@@ -33,15 +30,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Define the config flow to handle options."""
         return RecollectWasteOptionsFlowHandler(config_entry)
 
-    async def async_step_import(
-        self, import_config: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_import(self, import_config: dict = None) -> dict:
         """Handle configuration via YAML import."""
         return await self.async_step_user(import_config)
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_user(self, user_input: dict = None) -> dict:
         """Handle configuration via the UI."""
         if user_input is None:
             return self.async_show_form(
@@ -84,9 +77,7 @@ class RecollectWasteOptionsFlowHandler(config_entries.OptionsFlow):
         """Initialize."""
         self._entry = entry
 
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_init(self, user_input: dict | None = None):
         """Manage the options."""
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)

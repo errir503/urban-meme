@@ -19,7 +19,7 @@ from homeassistant.const import (
     STATE_ON,
     TEMP_CELSIUS,
 )
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.config_validation import (  # noqa: F401
     PLATFORM_SCHEMA,
@@ -29,7 +29,7 @@ from homeassistant.helpers.config_validation import (  # noqa: F401
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.temperature import display_temp as show_temp
-from homeassistant.helpers.typing import ConfigType
+from homeassistant.helpers.typing import ConfigType, ServiceDataType
 from homeassistant.util.temperature import convert as convert_temperature
 
 from .const import (
@@ -248,7 +248,7 @@ class ClimateEntity(Entity):
     def state_attributes(self) -> dict[str, Any]:
         """Return the optional state attributes."""
         supported_features = self.supported_features
-        data: dict[str, str | float | None] = {
+        data = {
             ATTR_CURRENT_TEMPERATURE: show_temp(
                 self.hass,
                 self.current_temperature,
@@ -498,7 +498,7 @@ class ClimateEntity(Entity):
         """Turn the entity on."""
         if hasattr(self, "turn_on"):
             # pylint: disable=no-member
-            await self.hass.async_add_executor_job(self.turn_on)  # type: ignore[attr-defined]
+            await self.hass.async_add_executor_job(self.turn_on)
             return
 
         # Fake turn on
@@ -512,7 +512,7 @@ class ClimateEntity(Entity):
         """Turn the entity off."""
         if hasattr(self, "turn_off"):
             # pylint: disable=no-member
-            await self.hass.async_add_executor_job(self.turn_off)  # type: ignore[attr-defined]
+            await self.hass.async_add_executor_job(self.turn_off)
             return
 
         # Fake turn off
@@ -554,23 +554,23 @@ class ClimateEntity(Entity):
 
 
 async def async_service_aux_heat(
-    entity: ClimateEntity, service_call: ServiceCall
+    entity: ClimateEntity, service: ServiceDataType
 ) -> None:
     """Handle aux heat service."""
-    if service_call.data[ATTR_AUX_HEAT]:
+    if service.data[ATTR_AUX_HEAT]:
         await entity.async_turn_aux_heat_on()
     else:
         await entity.async_turn_aux_heat_off()
 
 
 async def async_service_temperature_set(
-    entity: ClimateEntity, service_call: ServiceCall
+    entity: ClimateEntity, service: ServiceDataType
 ) -> None:
     """Handle set temperature service."""
     hass = entity.hass
     kwargs = {}
 
-    for value, temp in service_call.data.items():
+    for value, temp in service.data.items():
         if value in CONVERTIBLE_ATTRIBUTE:
             kwargs[value] = convert_temperature(
                 temp, hass.config.units.temperature_unit, entity.temperature_unit

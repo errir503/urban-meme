@@ -21,7 +21,6 @@
         "step": {
             "init": {
                 "data": {
-                    "ph_offset": "Ofset pH (positif atau negatif)",
                     "polling_interval": "Interval polling (dalam detik)"
                 }
             }

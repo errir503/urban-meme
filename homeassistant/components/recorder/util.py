@@ -8,7 +8,7 @@ import functools
 import logging
 import os
 import time
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 from sqlalchemy.exc import OperationalError, SQLAlchemyError
 from sqlalchemy.orm.session import Session
@@ -91,7 +91,7 @@ def commit(session, work):
     return False
 
 
-def execute(qry, to_native=False, validate_entity_ids=True) -> list | None:
+def execute(qry, to_native=False, validate_entity_ids=True):
     """Query the database and convert the objects to HA native form.
 
     This method also retries a few times in the case of stale connections.
@@ -134,8 +134,6 @@ def execute(qry, to_native=False, validate_entity_ids=True) -> list | None:
             if tryno == RETRIES - 1:
                 raise
             time.sleep(QUERY_RETRY_WAIT)
-
-    return None
 
 
 def validate_or_move_away_sqlite_database(dburl: str) -> bool:
@@ -290,13 +288,13 @@ def end_incomplete_runs(session, start_time):
         session.add(run)
 
 
-def retryable_database_job(description: str) -> Callable:
+def retryable_database_job(description: str):
     """Try to execute a database job.
 
     The job should return True if it finished, and False if it needs to be rescheduled.
     """
 
-    def decorator(job: Callable) -> Callable:
+    def decorator(job: callable):
         @functools.wraps(job)
         def wrapper(instance: Recorder, *args, **kwargs):
             try:

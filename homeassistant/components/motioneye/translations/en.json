@@ -25,15 +25,5 @@
                 }
             }
         }
-    },
-    "options": {
-        "step": {
-            "init": {
-                "data": {
-                    "webhook_set": "Configure motionEye webhooks to report events to Home Assistant",
-                    "webhook_set_overwrite": "Overwrite unrecognized webhooks"
-                }
-            }
-        }
     }
 }

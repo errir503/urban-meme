@@ -160,8 +160,8 @@ class SensorManager:
             )
         )
 
-        for platform, value in to_add.items():
-            self._component_add_entities[platform](value)
+        for platform in to_add:
+            self._component_add_entities[platform](to_add[platform])
 
 
 class GenericHueSensor(GenericHueDevice, entity.Entity):

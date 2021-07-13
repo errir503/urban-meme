@@ -75,13 +75,10 @@
                 "type": "number",
                 "readable": true,
                 "writeable": true,
-                "label": "Target value",
-                "valueChangeOptions": [
-                  "transitionDuration"
-                ],
                 "min": 0,
-                "max": 99
-              }
+                "max": 99,
+                "label": "Target value"
+            }
         },
         {
             "commandClassName": "Multilevel Switch",
@@ -342,23 +339,6 @@
                 "description": "The target value of the Blue color."
             }
         },
-        {
-            "endpoint": 0,
-            "commandClass": 51,
-            "commandClassName": "Color Switch",
-            "property": "targetColor",
-            "propertyName": "targetColor",
-            "ccVersion": 1,
-            "metadata": {
-              "type": "any",
-              "readable": true,
-              "writeable": true,
-              "label": "Target Color",
-              "valueChangeOptions": [
-                "transitionDuration"
-              ]
-            }
-          },        
         {
             "commandClassName": "Configuration",
             "commandClass": 112,

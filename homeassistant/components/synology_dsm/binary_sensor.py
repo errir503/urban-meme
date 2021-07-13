@@ -32,13 +32,17 @@ async def async_setup_entry(
         | SynoDSMUpgradeBinarySensor
         | SynoDSMStorageBinarySensor
     ] = [
-        SynoDSMSecurityBinarySensor(api, sensor_type, sensor, coordinator)
-        for sensor_type, sensor in SECURITY_BINARY_SENSORS.items()
+        SynoDSMSecurityBinarySensor(
+            api, sensor_type, SECURITY_BINARY_SENSORS[sensor_type], coordinator
+        )
+        for sensor_type in SECURITY_BINARY_SENSORS
     ]
 
     entities += [
-        SynoDSMUpgradeBinarySensor(api, sensor_type, sensor, coordinator)
-        for sensor_type, sensor in UPGRADE_BINARY_SENSORS.items()
+        SynoDSMUpgradeBinarySensor(
+            api, sensor_type, UPGRADE_BINARY_SENSORS[sensor_type], coordinator
+        )
+        for sensor_type in UPGRADE_BINARY_SENSORS
     ]
 
     # Handle all disks
@@ -48,11 +52,11 @@ async def async_setup_entry(
                 SynoDSMStorageBinarySensor(
                     api,
                     sensor_type,
-                    sensor,
+                    STORAGE_DISK_BINARY_SENSORS[sensor_type],
                     coordinator,
                     disk,
                 )
-                for sensor_type, sensor in STORAGE_DISK_BINARY_SENSORS.items()
+                for sensor_type in STORAGE_DISK_BINARY_SENSORS
             ]
 
     async_add_entities(entities)

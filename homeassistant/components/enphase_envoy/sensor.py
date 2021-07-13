@@ -56,13 +56,14 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     name = data[NAME]
 
     entities = []
-    for condition, sensor in SENSORS.items():
+    for condition in SENSORS:
+        entity_name = ""
         if (
             condition == "inverters"
             and coordinator.data.get("inverters_production") is not None
         ):
             for inverter in coordinator.data["inverters_production"]:
-                entity_name = f"{name} {sensor[0]} {inverter}"
+                entity_name = f"{name} {SENSORS[condition][0]} {inverter}"
                 split_name = entity_name.split(" ")
                 serial_number = split_name[-1]
                 entities.append(
@@ -72,8 +73,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
                         name,
                         config_entry.unique_id,
                         serial_number,
-                        sensor[1],
-                        sensor[2],
+                        SENSORS[condition][1],
+                        SENSORS[condition][2],
                         coordinator,
                     )
                 )
@@ -82,7 +83,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             if isinstance(data, str) and "not available" in data:
                 continue
 
-            entity_name = f"{name} {sensor[0]}"
+            entity_name = f"{name} {SENSORS[condition][0]}"
             entities.append(
                 Envoy(
                     condition,
@@ -90,8 +91,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
                     name,
                     config_entry.unique_id,
                     None,
-                    sensor[1],
-                    sensor[2],
+                    SENSORS[condition][1],
+                    SENSORS[condition][2],
                     coordinator,
                 )
             )

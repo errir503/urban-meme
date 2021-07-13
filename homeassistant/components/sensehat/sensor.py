@@ -10,7 +10,6 @@ from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntity
 from homeassistant.const import (
     CONF_DISPLAY_OPTIONS,
     CONF_NAME,
-    DEVICE_CLASS_TEMPERATURE,
     PERCENTAGE,
     TEMP_CELSIUS,
 )
@@ -25,9 +24,9 @@ CONF_IS_HAT_ATTACHED = "is_hat_attached"
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
 
 SENSOR_TYPES = {
-    "temperature": ["temperature", TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE],
-    "humidity": ["humidity", PERCENTAGE, None],
-    "pressure": ["pressure", "mb", None],
+    "temperature": ["temperature", TEMP_CELSIUS],
+    "humidity": ["humidity", PERCENTAGE],
+    "pressure": ["pressure", "mb"],
 }
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
@@ -78,7 +77,6 @@ class SenseHatSensor(SensorEntity):
         self._unit_of_measurement = SENSOR_TYPES[sensor_types][1]
         self.type = sensor_types
         self._state = None
-        self._attr_device_class = SENSOR_TYPES[sensor_types][2]
 
     @property
     def name(self):

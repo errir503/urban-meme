@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from collections.abc import Coroutine
 
-from zigpy.zcl.clusters import homeautomation
+import zigpy.zcl.clusters.homeautomation as homeautomation
 
 from .. import registries
 from ..const import (

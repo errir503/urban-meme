@@ -71,13 +71,37 @@ class AzureDevOpsSensor(AzureDevOpsDeviceEntity, SensorEntity):
         unit_of_measurement: str = "",
     ) -> None:
         """Initialize Azure DevOps sensor."""
-        self._attr_unit_of_measurement = unit_of_measurement
+        self._state = None
+        self._attributes = None
+        self._available = False
+        self._unit_of_measurement = unit_of_measurement
+        self.measurement = measurement
         self.client = client
         self.organization = organization
         self.project = project
-        self._attr_unique_id = "_".join([organization, key])
+        self.key = key
 
         super().__init__(organization, project, name, icon)
+
+    @property
+    def unique_id(self) -> str:
+        """Return the unique ID for this sensor."""
+        return "_".join([self.organization, self.key])
+
+    @property
+    def state(self) -> str:
+        """Return the state of the sensor."""
+        return self._state
+
+    @property
+    def extra_state_attributes(self) -> object:
+        """Return the attributes of the sensor."""
+        return self._attributes
+
+    @property
+    def unit_of_measurement(self) -> str:
+        """Return the unit this state is expressed in."""
+        return self._unit_of_measurement
 
 
 class AzureDevOpsLatestBuildSensor(AzureDevOpsSensor):
@@ -105,10 +129,10 @@ class AzureDevOpsLatestBuildSensor(AzureDevOpsSensor):
             )
         except aiohttp.ClientError as exception:
             _LOGGER.warning(exception)
-            self._attr_available = False
+            self._available = False
             return False
-        self._attr_state = build.build_number
-        self._attr_extra_state_attributes = {
+        self._state = build.build_number
+        self._attributes = {
             "definition_id": build.definition.id,
             "definition_name": build.definition.name,
             "id": build.id,
@@ -122,5 +146,5 @@ class AzureDevOpsLatestBuildSensor(AzureDevOpsSensor):
             "start_time": build.start_time,
             "finish_time": build.finish_time,
         }
-        self._attr_available = True
+        self._available = True
         return True

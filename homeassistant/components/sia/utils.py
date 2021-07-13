@@ -6,8 +6,6 @@ from typing import Any
 
 from pysiaalarm import SIAEvent
 
-from homeassistant.util.dt import utcnow
-
 from .const import ATTR_CODE, ATTR_ID, ATTR_MESSAGE, ATTR_TIMESTAMP, ATTR_ZONE
 
 PING_INTERVAL_MARGIN = 30
@@ -25,9 +23,7 @@ def get_attr_from_sia_event(event: SIAEvent) -> dict[str, Any]:
         ATTR_CODE: event.code,
         ATTR_MESSAGE: event.message,
         ATTR_ID: event.id,
-        ATTR_TIMESTAMP: event.timestamp.isoformat()
-        if event.timestamp
-        else utcnow().isoformat(),
+        ATTR_TIMESTAMP: event.timestamp.isoformat(),
     }
 
 
@@ -46,9 +42,7 @@ def get_event_data_from_sia_event(event: SIAEvent) -> dict[str, Any]:
         "code": event.code,
         "message": event.message,
         "x_data": event.x_data,
-        "timestamp": event.timestamp.isoformat()
-        if event.timestamp
-        else utcnow().isoformat(),
+        "timestamp": event.timestamp.isoformat(),
         "event_qualifier": event.event_qualifier,
         "event_type": event.event_type,
         "partition": event.partition,

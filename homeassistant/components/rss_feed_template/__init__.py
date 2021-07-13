@@ -40,7 +40,7 @@ CONFIG_SCHEMA = vol.Schema(
 def setup(hass, config):
     """Set up the RSS feed template component."""
     for (feeduri, feedconfig) in config[DOMAIN].items():
-        url = f"/api/rss_template/{feeduri}"
+        url = "/api/rss_template/%s" % feeduri
 
         requires_auth = feedconfig.get("requires_api_password")
 

@@ -4,7 +4,6 @@ import logging
 from goalzero import Yeti, exceptions
 
 from homeassistant.components.binary_sensor import DOMAIN as DOMAIN_BINARY_SENSOR
-from homeassistant.components.sensor import DOMAIN as DOMAIN_SENSOR
 from homeassistant.components.switch import DOMAIN as DOMAIN_SWITCH
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_NAME
@@ -22,7 +21,7 @@ from .const import DATA_KEY_API, DATA_KEY_COORDINATOR, DOMAIN, MIN_TIME_BETWEEN_
 _LOGGER = logging.getLogger(__name__)
 
 
-PLATFORMS = [DOMAIN_BINARY_SENSOR, DOMAIN_SENSOR, DOMAIN_SWITCH]
+PLATFORMS = [DOMAIN_BINARY_SENSOR, DOMAIN_SWITCH]
 
 
 async def async_setup_entry(hass, entry):
@@ -43,7 +42,7 @@ async def async_setup_entry(hass, entry):
         try:
             await api.get_state()
         except exceptions.ConnectError as err:
-            raise UpdateFailed("Failed to communicate with device") from err
+            raise UpdateFailed(f"Failed to communicating with device {err}") from err
 
     coordinator = DataUpdateCoordinator(
         hass,
