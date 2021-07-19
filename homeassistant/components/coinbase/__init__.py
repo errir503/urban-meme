@@ -20,7 +20,6 @@ from .const import (
     API_ACCOUNT_ID,
     API_ACCOUNTS_DATA,
     CONF_CURRENCIES,
-    CONF_EXCHANGE_BASE,
     CONF_EXCHANGE_RATES,
     CONF_YAML_API_TOKEN,
     DOMAIN,
@@ -68,7 +67,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Coinbase from a config entry."""
 
-    instance = await hass.async_add_executor_job(create_and_update_instance, entry)
+    instance = await hass.async_add_executor_job(
+        create_and_update_instance, entry.data[CONF_API_KEY], entry.data[CONF_API_TOKEN]
+    )
 
     entry.async_on_unload(entry.add_update_listener(update_listener))
 
@@ -90,11 +91,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     return unload_ok
 
 
-def create_and_update_instance(entry: ConfigEntry) -> CoinbaseData:
+def create_and_update_instance(api_key, api_token):
     """Create and update a Coinbase Data instance."""
-    client = Client(entry.data[CONF_API_KEY], entry.data[CONF_API_TOKEN])
-    base_rate = entry.options.get(CONF_EXCHANGE_BASE, "USD")
-    instance = CoinbaseData(client, base_rate)
+    client = Client(api_key, api_token)
+    instance = CoinbaseData(client)
     instance.update()
     return instance
 
@@ -139,12 +139,11 @@ def get_accounts(client):
 class CoinbaseData:
     """Get the latest data and update the states."""
 
-    def __init__(self, client, exchange_base):
+    def __init__(self, client):
         """Init the coinbase data object."""
 
         self.client = client
         self.accounts = None
-        self.exchange_base = exchange_base
         self.exchange_rates = None
         self.user_id = self.client.get_current_user()[API_ACCOUNT_ID]
 
@@ -154,9 +153,7 @@ class CoinbaseData:
 
         try:
             self.accounts = get_accounts(self.client)
-            self.exchange_rates = self.client.get_exchange_rates(
-                currency=self.exchange_base
-            )
+            self.exchange_rates = self.client.get_exchange_rates()
         except AuthenticationError as coinbase_error:
             _LOGGER.error(
                 "Authentication error connecting to coinbase: %s", coinbase_error

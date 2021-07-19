@@ -1,7 +1,5 @@
 """Configure pytest for Litter-Robot tests."""
-from __future__ import annotations
-
-from typing import Any
+from typing import Any, Optional
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from pylitterbot import Account, Robot
@@ -17,7 +15,7 @@ from tests.common import MockConfigEntry
 
 
 def create_mock_robot(
-    robot_data: dict | None = None, side_effect: Any | None = None
+    robot_data: Optional[dict] = None, side_effect: Optional[Any] = None
 ) -> Robot:
     """Create a mock Litter-Robot device."""
     if not robot_data:
@@ -35,8 +33,8 @@ def create_mock_robot(
 
 
 def create_mock_account(
-    robot_data: dict | None = None,
-    side_effect: Any | None = None,
+    robot_data: Optional[dict] = None,
+    side_effect: Optional[Any] = None,
     skip_robots: bool = False,
 ) -> MagicMock:
     """Create a mock Litter-Robot account."""
@@ -74,7 +72,7 @@ def mock_account_with_side_effects() -> MagicMock:
 
 
 async def setup_integration(
-    hass: HomeAssistant, mock_account: MagicMock, platform_domain: str | None = None
+    hass: HomeAssistant, mock_account: MagicMock, platform_domain: Optional[str] = None
 ) -> MockConfigEntry:
     """Load a Litter-Robot platform with the provided hub."""
     entry = MockConfigEntry(

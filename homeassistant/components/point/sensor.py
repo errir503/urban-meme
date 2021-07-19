@@ -8,7 +8,6 @@ from homeassistant.const import (
     DEVICE_CLASS_TEMPERATURE,
     PERCENTAGE,
     PRESSURE_HPA,
-    SOUND_PRESSURE_WEIGHTED_DBA,
     TEMP_CELSIUS,
 )
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
@@ -25,7 +24,7 @@ SENSOR_TYPES = {
     DEVICE_CLASS_TEMPERATURE: (None, 1, TEMP_CELSIUS),
     DEVICE_CLASS_PRESSURE: (None, 0, PRESSURE_HPA),
     DEVICE_CLASS_HUMIDITY: (None, 1, PERCENTAGE),
-    DEVICE_CLASS_SOUND: ("mdi:ear-hearing", 1, SOUND_PRESSURE_WEIGHTED_DBA),
+    DEVICE_CLASS_SOUND: ("mdi:ear-hearing", 1, "dBa"),
 }
 
 

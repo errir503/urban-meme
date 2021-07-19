@@ -610,7 +610,7 @@ def enable_statistics():
 
 
 @pytest.fixture
-def hass_recorder(enable_statistics, hass_storage):
+def hass_recorder(enable_statistics):
     """Home Assistant fixture with in-memory recorder."""
     hass = get_test_home_assistant()
     stats = recorder.Recorder.async_hourly_statistics if enable_statistics else None

@@ -1,8 +1,4 @@
 """Switch support for the Skybell HD Doorbell."""
-from __future__ import annotations
-
-from typing import NamedTuple
-
 import voluptuous as vol
 
 from homeassistant.components.switch import PLATFORM_SCHEMA, SwitchEntity
@@ -11,20 +7,10 @@ import homeassistant.helpers.config_validation as cv
 
 from . import DEFAULT_ENTITY_NAMESPACE, DOMAIN as SKYBELL_DOMAIN, SkybellDevice
 
-
-class SkybellSwitchMetadata(NamedTuple):
-    """Metadata for an individual Skybell switch."""
-
-    name: str
-
-
+# Switch types: Name
 SWITCH_TYPES = {
-    "do_not_disturb": SkybellSwitchMetadata(
-        "Do Not Disturb",
-    ),
-    "motion_sensor": SkybellSwitchMetadata(
-        "Motion Sensor",
-    ),
+    "do_not_disturb": ["Do Not Disturb"],
+    "motion_sensor": ["Motion Sensor"],
 }
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
@@ -58,8 +44,14 @@ class SkybellSwitch(SkybellDevice, SwitchEntity):
         """Initialize a light for a Skybell device."""
         super().__init__(device)
         self._switch_type = switch_type
-        metadata = SWITCH_TYPES[self._switch_type]
-        self._attr_name = f"{self._device.name} {metadata.name}"
+        self._name = "{} {}".format(
+            self._device.name, SWITCH_TYPES[self._switch_type][0]
+        )
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return self._name
 
     def turn_on(self, **kwargs):
         """Turn on the switch."""

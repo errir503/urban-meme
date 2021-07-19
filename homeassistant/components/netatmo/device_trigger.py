@@ -63,9 +63,7 @@ TRIGGER_SCHEMA = DEVICE_TRIGGER_BASE_SCHEMA.extend(
 )
 
 
-async def async_validate_trigger_config(
-    hass: HomeAssistant, config: ConfigType
-) -> ConfigType:
+async def async_validate_trigger_config(hass, config):
     """Validate config."""
     config = TRIGGER_SCHEMA(config)
 
@@ -131,10 +129,10 @@ async def async_attach_trigger(
     device = device_registry.async_get(config[CONF_DEVICE_ID])
 
     if not device:
-        return lambda: None
+        return
 
     if device.model not in DEVICES:
-        return lambda: None
+        return
 
     event_config = {
         event_trigger.CONF_PLATFORM: "event",
@@ -144,14 +142,10 @@ async def async_attach_trigger(
             ATTR_DEVICE_ID: config[ATTR_DEVICE_ID],
         },
     }
-    # if config[CONF_TYPE] in SUBTYPES:
-    #     event_config[event_trigger.CONF_EVENT_DATA]["data"] = {
-    #         "mode": config[CONF_SUBTYPE]
-    #     }
     if config[CONF_TYPE] in SUBTYPES:
-        event_config.update(
-            {event_trigger.CONF_EVENT_DATA: {"data": {"mode": config[CONF_SUBTYPE]}}}
-        )
+        event_config[event_trigger.CONF_EVENT_DATA]["data"] = {
+            "mode": config[CONF_SUBTYPE]
+        }
 
     event_config = event_trigger.TRIGGER_SCHEMA(event_config)
     return await event_trigger.async_attach_trigger(

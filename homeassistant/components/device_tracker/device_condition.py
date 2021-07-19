@@ -11,6 +11,7 @@ from homeassistant.const import (
     CONF_ENTITY_ID,
     CONF_TYPE,
     STATE_HOME,
+    STATE_NOT_HOME,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import condition, config_validation as cv, entity_registry
@@ -61,15 +62,14 @@ def async_condition_from_config(
     """Create a function to test a device condition."""
     if config_validation:
         config = CONDITION_SCHEMA(config)
-
-    reverse = config[CONF_TYPE] == "is_not_home"
+    if config[CONF_TYPE] == "is_home":
+        state = STATE_HOME
+    else:
+        state = STATE_NOT_HOME
 
     @callback
     def test_is_state(hass: HomeAssistant, variables: TemplateVarsType) -> bool:
         """Test if an entity is a certain state."""
-        result = condition.state(hass, config[ATTR_ENTITY_ID], STATE_HOME)
-        if reverse:
-            result = not result
-        return result
+        return condition.state(hass, config[ATTR_ENTITY_ID], state)
 
     return test_is_state

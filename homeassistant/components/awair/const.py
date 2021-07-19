@@ -18,7 +18,6 @@ from homeassistant.const import (
     DEVICE_CLASS_TEMPERATURE,
     LIGHT_LUX,
     PERCENTAGE,
-    SOUND_PRESSURE_WEIGHTED_DBA,
     TEMP_CELSIUS,
 )
 
@@ -73,7 +72,7 @@ SENSOR_TYPES = {
     API_SPL_A: {
         ATTR_DEVICE_CLASS: None,
         ATTR_ICON: "mdi:ear-hearing",
-        ATTR_UNIT: SOUND_PRESSURE_WEIGHTED_DBA,
+        ATTR_UNIT: "dBa",
         ATTR_LABEL: "Sound level",
         ATTR_UNIQUE_ID: "sound_level",
     },

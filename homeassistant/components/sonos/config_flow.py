@@ -50,7 +50,7 @@ class SonosDiscoveryFlowHandler(DiscoveryFlowHandler):
         )
         if discovery_manager := self.hass.data.get(DATA_SONOS_DISCOVERY_MANAGER):
             discovery_manager.async_discovered_player(
-                "Zeroconf", properties, host, uid, boot_seqnum, model
+                properties, host, uid, boot_seqnum, model
             )
         return await self.async_step_discovery(discovery_info)
 

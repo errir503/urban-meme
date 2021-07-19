@@ -11,9 +11,7 @@ from homeassistant.const import (
     SERVICE_LOCK,
     SERVICE_UNLOCK,
     STATE_LOCKED,
-    STATE_LOCKING,
     STATE_UNLOCKED,
-    STATE_UNLOCKING,
 )
 from homeassistant.core import Context, HomeAssistant, State
 
@@ -21,7 +19,7 @@ from . import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-VALID_STATES = {STATE_LOCKED, STATE_UNLOCKED, STATE_LOCKING, STATE_UNLOCKING}
+VALID_STATES = {STATE_LOCKED, STATE_UNLOCKED}
 
 
 async def _async_reproduce_state(
@@ -50,9 +48,9 @@ async def _async_reproduce_state(
 
     service_data = {ATTR_ENTITY_ID: state.entity_id}
 
-    if state.state in {STATE_LOCKED, STATE_LOCKING}:
+    if state.state == STATE_LOCKED:
         service = SERVICE_LOCK
-    elif state.state in {STATE_UNLOCKED, STATE_UNLOCKING}:
+    elif state.state == STATE_UNLOCKED:
         service = SERVICE_UNLOCK
 
     await hass.services.async_call(

@@ -6,7 +6,7 @@ from collections.abc import Coroutine
 from typing import Any
 
 import zigpy.exceptions
-from zigpy.zcl.clusters import general
+import zigpy.zcl.clusters.general as general
 from zigpy.zcl.foundation import Status
 
 from homeassistant.core import callback

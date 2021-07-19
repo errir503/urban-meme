@@ -8,9 +8,6 @@
             "invalid_auth": "Autentikasi tidak valid"
         },
         "step": {
-            "reauth_confirm": {
-                "title": "Autentikasi Ulang Integrasi"
-            },
             "user": {
                 "data": {
                     "email": "Email",

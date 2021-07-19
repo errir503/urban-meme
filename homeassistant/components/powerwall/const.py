@@ -32,3 +32,5 @@ POWERWALL_HTTP_SESSION = "http_session"
 
 MODEL = "PowerWall 2"
 MANUFACTURER = "Tesla"
+
+ENERGY_KILO_WATT = "kW"

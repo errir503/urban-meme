@@ -1,8 +1,5 @@
 """Support for Tasmota device discovery."""
-from __future__ import annotations
-
 import logging
-from typing import Callable
 
 from hatasmota.discovery import (
     TasmotaDiscovery,
@@ -13,13 +10,8 @@ from hatasmota.discovery import (
     get_triggers as tasmota_get_triggers,
     unique_id_from_hash,
 )
-from hatasmota.entity import TasmotaEntityConfig
-from hatasmota.models import DiscoveryHashType, TasmotaDeviceConfig
-from hatasmota.mqtt import TasmotaMQTTClient
-from hatasmota.sensor import TasmotaBaseSensorConfig
 
-from homeassistant.components import sensor
-from homeassistant.config_entries import ConfigEntry
+import homeassistant.components.sensor as sensor
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dev_reg
 from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -34,12 +26,8 @@ TASMOTA_DISCOVERY_ENTITY_NEW = "tasmota_discovery_entity_new_{}"
 TASMOTA_DISCOVERY_ENTITY_UPDATED = "tasmota_discovery_entity_updated_{}_{}_{}_{}"
 TASMOTA_DISCOVERY_INSTANCE = "tasmota_discovery_instance"
 
-SetupDeviceCallback = Callable[[TasmotaDeviceConfig, str], None]
 
-
-def clear_discovery_hash(
-    hass: HomeAssistant, discovery_hash: DiscoveryHashType
-) -> None:
+def clear_discovery_hash(hass, discovery_hash):
     """Clear entry in ALREADY_DISCOVERED list."""
     if ALREADY_DISCOVERED not in hass.data:
         # Discovery is shutting down
@@ -47,25 +35,17 @@ def clear_discovery_hash(
     del hass.data[ALREADY_DISCOVERED][discovery_hash]
 
 
-def set_discovery_hash(hass: HomeAssistant, discovery_hash: DiscoveryHashType) -> None:
+def set_discovery_hash(hass, discovery_hash):
     """Set entry in ALREADY_DISCOVERED list."""
     hass.data[ALREADY_DISCOVERED][discovery_hash] = {}
 
 
 async def async_start(
-    hass: HomeAssistant,
-    discovery_topic: str,
-    config_entry: ConfigEntry,
-    tasmota_mqtt: TasmotaMQTTClient,
-    setup_device: SetupDeviceCallback,
-) -> None:
+    hass: HomeAssistant, discovery_topic, config_entry, tasmota_mqtt, setup_device
+) -> bool:
     """Start Tasmota device discovery."""
 
-    async def _discover_entity(
-        tasmota_entity_config: TasmotaEntityConfig | None,
-        discovery_hash: DiscoveryHashType,
-        platform: str,
-    ) -> None:
+    async def _discover_entity(tasmota_entity_config, discovery_hash, platform):
         """Handle adding or updating a discovered entity."""
         if not tasmota_entity_config:
             # Entity disabled, clean up entity registry
@@ -90,10 +70,6 @@ async def async_start(
             )
         else:
             tasmota_entity = tasmota_get_entity(tasmota_entity_config, tasmota_mqtt)
-            if not tasmota_entity:
-                _LOGGER.error("Failed to create entity %s %s", platform, discovery_hash)
-                return
-
             _LOGGER.debug(
                 "Adding new entity: %s %s %s",
                 platform,
@@ -110,7 +86,7 @@ async def async_start(
                 discovery_hash,
             )
 
-    async def async_device_discovered(payload: dict, mac: str) -> None:
+    async def async_device_discovered(payload, mac):
         """Process the received message."""
 
         if ALREADY_DISCOVERED not in hass.data:
@@ -126,12 +102,7 @@ async def async_start(
 
         tasmota_triggers = tasmota_get_triggers(payload)
         for trigger_config in tasmota_triggers:
-            discovery_hash: DiscoveryHashType = (
-                mac,
-                "automation",
-                "trigger",
-                trigger_config.trigger_id,
-            )
+            discovery_hash = (mac, "automation", "trigger", trigger_config.trigger_id)
             if discovery_hash in hass.data[ALREADY_DISCOVERED]:
                 _LOGGER.debug(
                     "Trigger already added, sending update: %s",
@@ -160,9 +131,7 @@ async def async_start(
             for (tasmota_entity_config, discovery_hash) in tasmota_entities:
                 await _discover_entity(tasmota_entity_config, discovery_hash, platform)
 
-    async def async_sensors_discovered(
-        sensors: list[tuple[TasmotaBaseSensorConfig, DiscoveryHashType]], mac: str
-    ) -> None:
+    async def async_sensors_discovered(sensors, mac):
         """Handle discovery of (additional) sensors."""
         platform = sensor.DOMAIN
 
@@ -202,7 +171,7 @@ async def async_start(
     hass.data[TASMOTA_DISCOVERY_INSTANCE] = tasmota_discovery
 
 
-async def async_stop(hass: HomeAssistant) -> None:
+async def async_stop(hass: HomeAssistant) -> bool:
     """Stop Tasmota device discovery."""
     hass.data.pop(ALREADY_DISCOVERED)
     tasmota_discovery = hass.data.pop(TASMOTA_DISCOVERY_INSTANCE)

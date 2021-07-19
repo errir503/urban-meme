@@ -7,12 +7,11 @@ import uuid
 import voluptuous as vol
 
 from homeassistant.const import CONF_NAME
-from homeassistant.core import Context, HomeAssistant, callback
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import collection
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.storage import Store
-from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import bind_hass
 import homeassistant.util.dt as dt_util
 
@@ -76,7 +75,7 @@ class TagStorageCollection(collection.StorageCollection):
         return data
 
     @callback
-    def _get_suggested_id(self, info: dict[str, str]) -> str:
+    def _get_suggested_id(self, info: dict) -> str:
         """Suggest an ID based on the config."""
         return info[TAG_ID]
 
@@ -89,7 +88,7 @@ class TagStorageCollection(collection.StorageCollection):
         return data
 
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+async def async_setup(hass: HomeAssistant, config: dict):
     """Set up the Tag component."""
     hass.data[DOMAIN] = {}
     id_manager = TagIDManager()
@@ -107,9 +106,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 
 @bind_hass
-async def async_scan_tag(
-    hass: HomeAssistant, tag_id: str, device_id: str, context: Context | None = None
-) -> None:
+async def async_scan_tag(hass, tag_id, device_id, context=None):
     """Handle when a tag is scanned."""
     if DOMAIN not in hass.config.components:
         raise HomeAssistantError("tag component has not been set up.")

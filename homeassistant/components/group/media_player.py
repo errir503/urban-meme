@@ -48,7 +48,6 @@ from homeassistant.const import (
     ATTR_SUPPORTED_FEATURES,
     CONF_ENTITIES,
     CONF_NAME,
-    CONF_UNIQUE_ID,
     STATE_OFF,
     STATE_ON,
     STATE_UNAVAILABLE,
@@ -72,9 +71,8 @@ DEFAULT_NAME = "Media Group"
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
-        vol.Required(CONF_ENTITIES): cv.entities_domain(DOMAIN),
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-        vol.Optional(CONF_UNIQUE_ID): cv.string,
+        vol.Required(CONF_ENTITIES): cv.entities_domain(DOMAIN),
     }
 )
 
@@ -86,24 +84,17 @@ async def async_setup_platform(
     discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     """Set up the Media Group platform."""
-    async_add_entities(
-        [
-            MediaGroup(
-                config.get(CONF_UNIQUE_ID), config[CONF_NAME], config[CONF_ENTITIES]
-            )
-        ]
-    )
+    async_add_entities([MediaGroup(config[CONF_NAME], config[CONF_ENTITIES])])
 
 
 class MediaGroup(MediaPlayerEntity):
     """Representation of a Media Group."""
 
-    def __init__(self, unique_id: str | None, name: str, entities: list[str]) -> None:
+    def __init__(self, name: str, entities: list[str]) -> None:
         """Initialize a Media Group entity."""
         self._name = name
         self._state: str | None = None
         self._supported_features: int = 0
-        self._attr_unique_id = unique_id
 
         self._entities = entities
         self._features: dict[str, set[str]] = {

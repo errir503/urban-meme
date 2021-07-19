@@ -21,7 +21,7 @@
                 "data": {
                     "host": "Host",
                     "port": "Port",
-                    "ssl": "Verwendet ein SSL-Zertifikat",
+                    "ssl": "SSL verwenden",
                     "token": "Token (optional)",
                     "verify_ssl": "SSL-Zertifikat \u00fcberpr\u00fcfen"
                 },
@@ -35,7 +35,7 @@
                 "title": "Plex-Server ausw\u00e4hlen"
             },
             "user": {
-                "description": "Gehe zu [plex.tv] (https://plex.tv), um einen Plex-Server zu verbinden",
+                "description": "Gehen Sie zu [plex.tv] (https://plex.tv), um einen Plex-Server zu verbinden",
                 "title": "Plex Media Server"
             },
             "user_advanced": {

@@ -1,8 +1,5 @@
 """Support for the Rainforest Eagle-200 energy monitor."""
-from __future__ import annotations
-
-from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import timedelta
 import logging
 
 from eagle200_reader import EagleReader
@@ -10,19 +7,14 @@ from requests.exceptions import ConnectionError as ConnectError, HTTPError, Time
 from uEagle import Eagle as LegacyReader
 import voluptuous as vol
 
-from homeassistant.components.sensor import (
-    DEVICE_CLASS_ENERGY,
-    PLATFORM_SCHEMA,
-    STATE_CLASS_MEASUREMENT,
-    SensorEntity,
-)
+from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntity
 from homeassistant.const import (
     CONF_IP_ADDRESS,
     DEVICE_CLASS_POWER,
     ENERGY_KILO_WATT_HOUR,
 )
 import homeassistant.helpers.config_validation as cv
-from homeassistant.util import Throttle, dt
+from homeassistant.util import Throttle
 
 CONF_CLOUD_ID = "cloud_id"
 CONF_INSTALL_CODE = "install_code"
@@ -32,43 +24,19 @@ _LOGGER = logging.getLogger(__name__)
 
 MIN_SCAN_INTERVAL = timedelta(seconds=30)
 
-
-@dataclass
-class SensorType:
-    """Rainforest sensor type."""
-
-    name: str
-    unit_of_measurement: str
-    device_class: str | None = None
-    state_class: str | None = None
-    last_reset: datetime | None = None
-
-
 SENSORS = {
-    "instantanous_demand": SensorType(
-        name="Eagle-200 Meter Power Demand",
-        unit_of_measurement=POWER_KILO_WATT,
-        device_class=DEVICE_CLASS_POWER,
+    "instantanous_demand": ("Eagle-200 Meter Power Demand", POWER_KILO_WATT),
+    "summation_delivered": (
+        "Eagle-200 Total Meter Energy Delivered",
+        ENERGY_KILO_WATT_HOUR,
     ),
-    "summation_delivered": SensorType(
-        name="Eagle-200 Total Meter Energy Delivered",
-        unit_of_measurement=ENERGY_KILO_WATT_HOUR,
-        device_class=DEVICE_CLASS_ENERGY,
-        state_class=STATE_CLASS_MEASUREMENT,
-        last_reset=dt.utc_from_timestamp(0),
+    "summation_received": (
+        "Eagle-200 Total Meter Energy Received",
+        ENERGY_KILO_WATT_HOUR,
     ),
-    "summation_received": SensorType(
-        name="Eagle-200 Total Meter Energy Received",
-        unit_of_measurement=ENERGY_KILO_WATT_HOUR,
-        device_class=DEVICE_CLASS_ENERGY,
-        state_class=STATE_CLASS_MEASUREMENT,
-        last_reset=dt.utc_from_timestamp(0),
-    ),
-    "summation_total": SensorType(
-        name="Eagle-200 Net Meter Energy (Delivered minus Received)",
-        unit_of_measurement=ENERGY_KILO_WATT_HOUR,
-        device_class=DEVICE_CLASS_ENERGY,
-        state_class=STATE_CLASS_MEASUREMENT,
+    "summation_total": (
+        "Eagle-200 Net Meter Energy (Delivered minus Received)",
+        ENERGY_KILO_WATT_HOUR,
     ),
 }
 
@@ -118,28 +86,56 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 
     eagle_data = EagleData(eagle_reader)
     eagle_data.update()
+    monitored_conditions = list(SENSORS)
+    sensors = []
+    for condition in monitored_conditions:
+        sensors.append(
+            EagleSensor(
+                eagle_data, condition, SENSORS[condition][0], SENSORS[condition][1]
+            )
+        )
 
-    add_entities(EagleSensor(eagle_data, condition) for condition in SENSORS)
+    add_entities(sensors)
 
 
 class EagleSensor(SensorEntity):
     """Implementation of the Rainforest Eagle-200 sensor."""
 
-    def __init__(self, eagle_data, sensor_type):
+    def __init__(self, eagle_data, sensor_type, name, unit):
         """Initialize the sensor."""
         self.eagle_data = eagle_data
         self._type = sensor_type
-        sensor_info = SENSORS[sensor_type]
-        self._attr_name = sensor_info.name
-        self._attr_unit_of_measurement = sensor_info.unit_of_measurement
-        self._attr_device_class = sensor_info.device_class
-        self._attr_state_class = sensor_info.state_class
-        self._attr_last_reset = sensor_info.last_reset
+        self._name = name
+        self._unit_of_measurement = unit
+        self._state = None
+
+    @property
+    def device_class(self):
+        """Return the power device class for the instantanous_demand sensor."""
+        if self._type == "instantanous_demand":
+            return DEVICE_CLASS_POWER
+
+        return None
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return self._name
+
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+        return self._state
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement."""
+        return self._unit_of_measurement
 
     def update(self):
         """Get the energy information from the Rainforest Eagle."""
         self.eagle_data.update()
-        self._attr_state = self.eagle_data.get_state(self._type)
+        self._state = self.eagle_data.get_state(self._type)
 
 
 class EagleData:

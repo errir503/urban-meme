@@ -3,20 +3,12 @@ from copy import deepcopy
 from unittest.mock import patch
 
 from homeassistant import config_entries, data_entry_flow
-from homeassistant.components.growatt_server.const import (
-    CONF_PLANT_ID,
-    DEFAULT_URL,
-    DOMAIN,
-)
-from homeassistant.const import CONF_PASSWORD, CONF_URL, CONF_USERNAME
+from homeassistant.components.growatt_server.const import CONF_PLANT_ID, DOMAIN
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 
 from tests.common import MockConfigEntry
 
-FIXTURE_USER_INPUT = {
-    CONF_USERNAME: "username",
-    CONF_PASSWORD: "password",
-    CONF_URL: DEFAULT_URL,
-}
+FIXTURE_USER_INPUT = {CONF_USERNAME: "username", CONF_PASSWORD: "password"}
 
 GROWATT_PLANT_LIST_RESPONSE = {
     "data": [
@@ -53,8 +45,8 @@ async def test_show_authenticate_form(hass):
     assert result["step_id"] == "user"
 
 
-async def test_incorrect_login(hass):
-    """Test that it shows the appropriate error when an incorrect username/password/server is entered."""
+async def test_incorrect_username(hass):
+    """Test that it shows the appropriate error when an incorrect username is entered."""
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )

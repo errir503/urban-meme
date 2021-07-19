@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, Final, cast
+from typing import Any
 
 from aioshelly import Block
 import async_timeout
@@ -23,9 +23,7 @@ from homeassistant.components.light import (
     LightEntity,
     brightness_supported,
 )
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.core import callback
 from homeassistant.util.color import (
     color_temperature_kelvin_to_mired,
     color_temperature_mired_to_kelvin,
@@ -46,14 +44,10 @@ from .const import (
 from .entity import ShellyBlockEntity
 from .utils import async_remove_shelly_entity
 
-_LOGGER: Final = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
+async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up lights for device."""
     wrapper = hass.data[DOMAIN][DATA_CONFIG_ENTRY][config_entry.entry_id][COAP]
 
@@ -84,12 +78,12 @@ class ShellyLight(ShellyBlockEntity, LightEntity):
     def __init__(self, wrapper: ShellyDeviceWrapper, block: Block) -> None:
         """Initialize light."""
         super().__init__(wrapper, block)
-        self.control_result: dict[str, Any] | None = None
-        self.mode_result: dict[str, Any] | None = None
-        self._supported_color_modes: set[str] = set()
-        self._supported_features: int = 0
-        self._min_kelvin: int = KELVIN_MIN_VALUE_WHITE
-        self._max_kelvin: int = KELVIN_MAX_VALUE
+        self.control_result = None
+        self.mode_result = None
+        self._supported_color_modes = set()
+        self._supported_features = 0
+        self._min_kelvin = KELVIN_MIN_VALUE_WHITE
+        self._max_kelvin = KELVIN_MAX_VALUE
 
         if hasattr(block, "red") and hasattr(block, "green") and hasattr(block, "blue"):
             self._min_kelvin = KELVIN_MIN_VALUE_COLOR
@@ -119,18 +113,18 @@ class ShellyLight(ShellyBlockEntity, LightEntity):
     def is_on(self) -> bool:
         """If light is on."""
         if self.control_result:
-            return cast(bool, self.control_result["ison"])
+            return self.control_result["ison"]
 
-        return bool(self.block.output)
+        return self.block.output
 
     @property
-    def mode(self) -> str:
+    def mode(self) -> str | None:
         """Return the color mode of the light."""
         if self.mode_result:
-            return cast(str, self.mode_result["mode"])
+            return self.mode_result["mode"]
 
         if hasattr(self.block, "mode"):
-            return cast(str, self.block.mode)
+            return self.block.mode
 
         if (
             hasattr(self.block, "red")
@@ -142,7 +136,7 @@ class ShellyLight(ShellyBlockEntity, LightEntity):
         return "white"
 
     @property
-    def brightness(self) -> int:
+    def brightness(self) -> int | None:
         """Return the brightness of this light between 0..255."""
         if self.mode == "color":
             if self.control_result:
@@ -158,7 +152,7 @@ class ShellyLight(ShellyBlockEntity, LightEntity):
         return round(255 * brightness_pct / 100)
 
     @property
-    def color_mode(self) -> str:
+    def color_mode(self) -> str | None:
         """Return the color mode of the light."""
         if self.mode == "color":
             if hasattr(self.block, "white"):
@@ -197,7 +191,7 @@ class ShellyLight(ShellyBlockEntity, LightEntity):
         return (*self.rgb_color, white)
 
     @property
-    def color_temp(self) -> int:
+    def color_temp(self) -> int | None:
         """Return the CT color value in mireds."""
         if self.control_result:
             color_temp = self.control_result["temp"]
@@ -250,7 +244,7 @@ class ShellyLight(ShellyBlockEntity, LightEntity):
 
         return STANDARD_RGB_EFFECTS[effect_index]
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs) -> None:
         """Turn on light."""
         if self.block.type == "relay":
             self.control_result = await self.set_state(turn="on")
@@ -310,12 +304,12 @@ class ShellyLight(ShellyBlockEntity, LightEntity):
 
         self.async_write_ha_state()
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
+    async def async_turn_off(self, **kwargs) -> None:
         """Turn off light."""
         self.control_result = await self.set_state(turn="off")
         self.async_write_ha_state()
 
-    async def set_light_mode(self, set_mode: str | None) -> bool:
+    async def set_light_mode(self, set_mode):
         """Change device mode color/white if mode has changed."""
         if set_mode is None or self.mode == set_mode:
             return True
@@ -337,7 +331,7 @@ class ShellyLight(ShellyBlockEntity, LightEntity):
         return True
 
     @callback
-    def _update_callback(self) -> None:
+    def _update_callback(self):
         """When device updates, clear control & mode result that overrides state."""
         self.control_result = None
         self.mode_result = None

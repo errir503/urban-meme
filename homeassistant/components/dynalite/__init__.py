@@ -52,7 +52,6 @@ from .const import (
     SERVICE_REQUEST_AREA_PRESET,
     SERVICE_REQUEST_CHANNEL_LEVEL,
 )
-from .convert_config import convert_config
 
 
 def num_string(value: int | str) -> str:
@@ -109,8 +108,8 @@ TEMPLATE_SCHEMA = vol.Schema({str: TEMPLATE_DATA_SCHEMA})
 def validate_area(config: dict[str, Any]) -> dict[str, Any]:
     """Validate that template parameters are only used if area is using the relevant template."""
     conf_set = set()
-    for configs in DEFAULT_TEMPLATES.values():
-        for conf in configs:
+    for template in DEFAULT_TEMPLATES:
+        for conf in DEFAULT_TEMPLATES[template]:
             conf_set.add(conf)
     if config.get(CONF_TEMPLATE):
         for conf in DEFAULT_TEMPLATES[config[CONF_TEMPLATE]]:
@@ -264,7 +263,7 @@ async def async_entry_changed(hass: HomeAssistant, entry: ConfigEntry) -> None:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up a bridge from a config entry."""
     LOGGER.debug("Setting up entry %s", entry.data)
-    bridge = DynaliteBridge(hass, convert_config(entry.data))
+    bridge = DynaliteBridge(hass, entry.data)
     # need to do it before the listener
     hass.data[DOMAIN][entry.entry_id] = bridge
     entry.async_on_unload(entry.add_update_listener(async_entry_changed))

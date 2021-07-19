@@ -1,15 +1,9 @@
 """Config flow to configure the devolo home control integration."""
-from __future__ import annotations
-
-from typing import Any
-
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.typing import DiscoveryInfoType
 
 from . import configure_mydevolo
@@ -22,18 +16,16 @@ class DevoloHomeControlFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    def __init__(self) -> None:
+    def __init__(self):
         """Initialize devolo Home Control flow."""
         self.data_schema = {
             vol.Required(CONF_USERNAME): str,
             vol.Required(CONF_PASSWORD): str,
         }
-        self._reauth_entry: ConfigEntry | None = None
+        self._reauth_entry = None
         self._url = DEFAULT_MYDEVOLO
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_user(self, user_input=None):
         """Handle a flow initiated by the user."""
         if self.show_advanced_options:
             self.data_schema[vol.Required(CONF_MYDEVOLO, default=self._url)] = str
@@ -44,9 +36,7 @@ class DevoloHomeControlFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         except CredentialsInvalid:
             return self._show_form(step_id="user", errors={"base": "invalid_auth"})
 
-    async def async_step_zeroconf(
-        self, discovery_info: DiscoveryInfoType
-    ) -> FlowResult:
+    async def async_step_zeroconf(self, discovery_info: DiscoveryInfoType):
         """Handle zeroconf discovery."""
         # Check if it is a gateway
         if discovery_info.get("properties", {}).get("MT") in SUPPORTED_MODEL_TYPES:
@@ -54,9 +44,7 @@ class DevoloHomeControlFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             return await self.async_step_zeroconf_confirm()
         return self.async_abort(reason="Not a devolo Home Control gateway.")
 
-    async def async_step_zeroconf_confirm(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_zeroconf_confirm(self, user_input=None):
         """Handle a flow initiated by zeroconf."""
         if user_input is None:
             return self._show_form(step_id="zeroconf_confirm")
@@ -67,7 +55,7 @@ class DevoloHomeControlFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 step_id="zeroconf_confirm", errors={"base": "invalid_auth"}
             )
 
-    async def async_step_reauth(self, user_input: dict[str, Any]) -> FlowResult:
+    async def async_step_reauth(self, user_input):
         """Handle reauthentication."""
         self._reauth_entry = self.hass.config_entries.async_get_entry(
             self.context["entry_id"]
@@ -79,9 +67,7 @@ class DevoloHomeControlFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         }
         return await self.async_step_reauth_confirm()
 
-    async def async_step_reauth_confirm(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_reauth_confirm(self, user_input=None):
         """Handle a flow initiated by reauthentication."""
         if user_input is None:
             return self._show_form(step_id="reauth_confirm")
@@ -96,7 +82,7 @@ class DevoloHomeControlFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 step_id="reauth_confirm", errors={"base": "reauth_failed"}
             )
 
-    async def _connect_mydevolo(self, user_input: dict[str, Any]) -> FlowResult:
+    async def _connect_mydevolo(self, user_input):
         """Connect to mydevolo."""
         user_input[CONF_MYDEVOLO] = user_input.get(CONF_MYDEVOLO, self._url)
         mydevolo = configure_mydevolo(conf=user_input)
@@ -132,9 +118,7 @@ class DevoloHomeControlFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_abort(reason="reauth_successful")
 
     @callback
-    def _show_form(
-        self, step_id: str, errors: dict[str, str] | None = None
-    ) -> FlowResult:
+    def _show_form(self, step_id, errors=None):
         """Show the form to the user."""
         return self.async_show_form(
             step_id=step_id,

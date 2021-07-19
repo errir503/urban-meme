@@ -1,7 +1,6 @@
 """Config flow for Ambiclimate."""
 import logging
 
-from aiohttp import web
 import ambiclimate
 
 from homeassistant import config_entries
@@ -140,7 +139,7 @@ class AmbiclimateAuthCallbackView(HomeAssistantView):
     url = AUTH_CALLBACK_PATH
     name = AUTH_CALLBACK_NAME
 
-    async def get(self, request: web.Request) -> str:
+    async def get(self, request):
         """Receive authorization token."""
         code = request.query.get("code")
         if code is None:

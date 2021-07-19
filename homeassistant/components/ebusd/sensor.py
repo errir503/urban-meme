@@ -41,13 +41,7 @@ class EbusdSensor(SensorEntity):
         """Initialize the sensor."""
         self._state = None
         self._client_name = name
-        (
-            self._name,
-            self._unit_of_measurement,
-            self._icon,
-            self._type,
-            self._device_class,
-        ) = sensor
+        self._name, self._unit_of_measurement, self._icon, self._type = sensor
         self.data = data
 
     @property
@@ -82,11 +76,6 @@ class EbusdSensor(SensorEntity):
                     schedule[item[0]] = parsed.isoformat()
             return schedule
         return None
-
-    @property
-    def device_class(self):
-        """Return the class of this device, from component DEVICE_CLASSES."""
-        return self._device_class
 
     @property
     def icon(self):

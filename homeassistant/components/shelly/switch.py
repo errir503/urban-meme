@@ -1,14 +1,8 @@
 """Switch for Shelly."""
-from __future__ import annotations
-
-from typing import Any, cast
-
 from aioshelly import Block
 
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.core import callback
 
 from . import ShellyDeviceWrapper
 from .const import COAP, DATA_CONFIG_ENTRY, DOMAIN
@@ -16,11 +10,7 @@ from .entity import ShellyBlockEntity
 from .utils import async_remove_shelly_entity
 
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
+async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up switches for device."""
     wrapper = hass.data[DOMAIN][DATA_CONFIG_ENTRY][config_entry.entry_id][COAP]
 
@@ -60,28 +50,28 @@ class RelaySwitch(ShellyBlockEntity, SwitchEntity):
     def __init__(self, wrapper: ShellyDeviceWrapper, block: Block) -> None:
         """Initialize relay switch."""
         super().__init__(wrapper, block)
-        self.control_result: dict[str, Any] | None = None
+        self.control_result = None
 
     @property
     def is_on(self) -> bool:
         """If switch is on."""
         if self.control_result:
-            return cast(bool, self.control_result["ison"])
+            return self.control_result["ison"]
 
-        return bool(self.block.output)
+        return self.block.output
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs):
         """Turn on relay."""
         self.control_result = await self.set_state(turn="on")
         self.async_write_ha_state()
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
+    async def async_turn_off(self, **kwargs):
         """Turn off relay."""
         self.control_result = await self.set_state(turn="off")
         self.async_write_ha_state()
 
     @callback
-    def _update_callback(self) -> None:
+    def _update_callback(self):
         """When device updates, clear control result that overrides state."""
         self.control_result = None
         super()._update_callback()

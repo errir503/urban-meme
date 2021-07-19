@@ -11,10 +11,10 @@
         "step": {
             "user": {
                 "data": {
-                    "email": "E-Mail",
+                    "email": "E-Mail-Adresse",
                     "password": "Passwort"
                 },
-                "title": "Stelle eine Verbindung zu deinem Sense Energy Monitor her"
+                "title": "Stellen Sie eine Verbindung zu Ihrem Sense Energy Monitor her"
             }
         }
     }

@@ -1,22 +1,20 @@
 """Constants for the Switcher integration."""
+
 DOMAIN = "switcher_kis"
 
 CONF_DEVICE_PASSWORD = "device_password"
 CONF_PHONE_ID = "phone_id"
 
-DATA_BRIDGE = "bridge"
 DATA_DEVICE = "device"
-DATA_DISCOVERY = "discovery"
 
-DISCOVERY_TIME_SEC = 6
+SIGNAL_SWITCHER_DEVICE_UPDATE = "switcher_device_update"
 
-SIGNAL_DEVICE_ADD = "switcher_device_add"
+ATTR_AUTO_OFF_SET = "auto_off_set"
+ATTR_ELECTRIC_CURRENT = "electric_current"
+ATTR_REMAINING_TIME = "remaining_time"
 
-# Services
 CONF_AUTO_OFF = "auto_off"
 CONF_TIMER_MINUTES = "timer_minutes"
+
 SERVICE_SET_AUTO_OFF_NAME = "set_auto_off"
 SERVICE_TURN_ON_WITH_TIMER_NAME = "turn_on_with_timer"
-
-# Defines the maximum interval device must send an update before it marked unavailable
-MAX_UPDATE_INTERVAL_SEC = 20

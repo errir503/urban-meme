@@ -2,7 +2,7 @@
 import asyncio
 
 import zigpy.exceptions
-from zigpy.zcl.clusters import lightlink
+import zigpy.zcl.clusters.lightlink as lightlink
 
 from .. import registries
 from .base import ChannelStatus, ZigbeeChannel

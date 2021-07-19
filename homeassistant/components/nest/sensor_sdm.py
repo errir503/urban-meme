@@ -44,7 +44,7 @@ async def async_setup_sdm_entry(
         _LOGGER.warning("Failed to get devices: %s", err)
         raise PlatformNotReady from err
 
-    entities: list[SensorEntity] = []
+    entities = []
     for device in device_manager.devices.values():
         if TemperatureTrait.NAME in device.traits:
             entities.append(TemperatureSensor(device))

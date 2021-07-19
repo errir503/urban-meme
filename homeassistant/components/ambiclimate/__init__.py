@@ -20,7 +20,7 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
-async def async_setup(hass, config) -> bool:
+async def async_setup(hass, config):
     """Set up Ambiclimate components."""
     if DOMAIN not in config:
         return True
@@ -34,7 +34,7 @@ async def async_setup(hass, config) -> bool:
     return True
 
 
-async def async_setup_entry(hass, entry) -> bool:
+async def async_setup_entry(hass, entry):
     """Set up Ambiclimate from a config entry."""
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, "climate")

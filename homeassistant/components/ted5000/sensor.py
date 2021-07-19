@@ -12,13 +12,7 @@ from homeassistant.components.sensor import (
     STATE_CLASS_MEASUREMENT,
     SensorEntity,
 )
-from homeassistant.const import (
-    CONF_HOST,
-    CONF_NAME,
-    CONF_PORT,
-    ELECTRIC_POTENTIAL_VOLT,
-    POWER_WATT,
-)
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, POWER_WATT, VOLT
 from homeassistant.helpers import config_validation as cv
 from homeassistant.util import Throttle
 
@@ -53,7 +47,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     dev = []
     for mtu in gateway.data:
         dev.append(Ted5000Sensor(gateway, name, mtu, POWER_WATT))
-        dev.append(Ted5000Sensor(gateway, name, mtu, ELECTRIC_POTENTIAL_VOLT))
+        dev.append(Ted5000Sensor(gateway, name, mtu, VOLT))
 
     add_entities(dev)
     return True
@@ -66,7 +60,7 @@ class Ted5000Sensor(SensorEntity):
 
     def __init__(self, gateway, name, mtu, unit):
         """Initialize the sensor."""
-        units = {POWER_WATT: "power", ELECTRIC_POTENTIAL_VOLT: "voltage"}
+        units = {POWER_WATT: "power", VOLT: "voltage"}
         self._gateway = gateway
         self._name = f"{name} mtu{mtu} {units[unit]}"
         self._mtu = mtu
@@ -118,7 +112,4 @@ class Ted5000Gateway:
                 power = int(doc["LiveData"]["Power"]["MTU%d" % mtu]["PowerNow"])
                 voltage = int(doc["LiveData"]["Voltage"]["MTU%d" % mtu]["VoltageNow"])
 
-                self.data[mtu] = {
-                    POWER_WATT: power,
-                    ELECTRIC_POTENTIAL_VOLT: voltage / 10,
-                }
+                self.data[mtu] = {POWER_WATT: power, VOLT: voltage / 10}

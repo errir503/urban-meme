@@ -41,7 +41,6 @@ SUPPORTED_COMPONENTS = [
     "device_automation",
     "device_tracker",
     "fan",
-    "humidifier",
     "light",
     "lock",
     "number",
@@ -84,7 +83,7 @@ class MQTTConfig(dict):
 
 async def async_start(  # noqa: C901
     hass: HomeAssistant, discovery_topic, config_entry=None
-) -> None:
+) -> bool:
     """Start MQTT Discovery."""
     mqtt_integrations = {}
 
@@ -276,16 +275,8 @@ async def async_start(  # noqa: C901
                 if key not in hass.data[INTEGRATION_UNSUBSCRIBE]:
                     return
 
-                data = {
-                    "topic": msg.topic,
-                    "payload": msg.payload,
-                    "qos": msg.qos,
-                    "retain": msg.retain,
-                    "subscribed_topic": msg.subscribed_topic,
-                    "timestamp": msg.timestamp,
-                }
                 result = await hass.config_entries.flow.async_init(
-                    integration, context={"source": DOMAIN}, data=data
+                    integration, context={"source": DOMAIN}, data=msg
                 )
                 if (
                     result
@@ -307,8 +298,10 @@ async def async_start(  # noqa: C901
                 0,
             )
 
+    return True
 
-async def async_stop(hass: HomeAssistant) -> None:
+
+async def async_stop(hass: HomeAssistant) -> bool:
     """Stop MQTT Discovery."""
     if DISCOVERY_UNSUBSCRIBE in hass.data:
         for unsub in hass.data[DISCOVERY_UNSUBSCRIBE]:

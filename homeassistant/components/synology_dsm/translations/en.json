@@ -1,8 +1,7 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Device is already configured",
-            "reauth_successful": "Re-authentication was successful"
+            "already_configured": "Device is already configured"
         },
         "error": {
             "cannot_connect": "Failed to connect",
@@ -29,14 +28,6 @@
                 },
                 "description": "Do you want to setup {name} ({host})?",
                 "title": "Synology DSM"
-            },
-            "reauth": {
-                "data": {
-                    "password": "Password",
-                    "username": "Username"
-                },
-                "description": "Reason: {details}",
-                "title": "Synology DSM Reauthenticate Integration"
             },
             "user": {
                 "data": {

@@ -8,7 +8,6 @@ from homeassistant.const import CONF_HOST
 
 from .bridge import DynaliteBridge
 from .const import DOMAIN, LOGGER
-from .convert_config import convert_config
 
 
 class DynaliteFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -26,13 +25,11 @@ class DynaliteFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         host = import_info[CONF_HOST]
         for entry in self._async_current_entries():
             if entry.data[CONF_HOST] == host:
-                self.hass.config_entries.async_update_entry(
-                    entry, data=dict(import_info)
-                )
+                if entry.data != import_info:
+                    self.hass.config_entries.async_update_entry(entry, data=import_info)
                 return self.async_abort(reason="already_configured")
-
         # New entry
-        bridge = DynaliteBridge(self.hass, convert_config(import_info))
+        bridge = DynaliteBridge(self.hass, import_info)
         if not await bridge.async_setup():
             LOGGER.error("Unable to setup bridge - import info=%s", import_info)
             return self.async_abort(reason="no_connection")

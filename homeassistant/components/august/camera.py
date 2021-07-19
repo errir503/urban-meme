@@ -35,8 +35,11 @@ class AugustCamera(AugustEntityMixin, Camera):
         self._session = session
         self._image_url = None
         self._image_content = None
-        self._attr_name = f"{device.device_name} Camera"
-        self._attr_unique_id = f"{self._device_id:s}_camera"
+
+    @property
+    def name(self):
+        """Return the name of this device."""
+        return f"{self._device.device_name} Camera"
 
     @property
     def is_recording(self):
@@ -78,3 +81,8 @@ class AugustCamera(AugustEntityMixin, Camera):
                 self._session, timeout=self._timeout
             )
         return self._image_content
+
+    @property
+    def unique_id(self) -> str:
+        """Get the unique id of the camera."""
+        return f"{self._device_id:s}_camera"

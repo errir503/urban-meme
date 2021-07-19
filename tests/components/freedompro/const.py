@@ -15,7 +15,7 @@ DEVICES = [
     },
     {
         "uid": "3WRRJR6RCZQZSND8VP0YTO3YXCSOFPKBMW8T51TU-LQ*ILYH1E3DWZOVMNEUIMDYMNLOW-LFRQFDPWWJOVHVDOS",
-        "name": "bedroom",
+        "name": "Bedroom fan",
         "type": "fan",
         "characteristics": ["on", "rotationSpeed"],
     },
@@ -81,7 +81,7 @@ DEVICES = [
     },
     {
         "uid": "3WRRJR6RCZQZSND8VP0YTO3YXCSOFPKBMW8T51TU-LQ*TWMYQKL3UVED4HSIIB9GXJWJZBQCXG-9VE-N2IUAIWI",
-        "name": "thermostat",
+        "name": "Bedroom thermostat",
         "type": "thermostat",
         "characteristics": [
             "heatingCoolingState",
@@ -91,7 +91,7 @@ DEVICES = [
     },
     {
         "uid": "3WRRJR6RCZQZSND8VP0YTO3YXCSOFPKBMW8T51TU-LQ*3XSSVIJWK-65HILWTC4WINQK46SP4OEZRCNO25VGWAS",
-        "name": "blind",
+        "name": "Bedroom window covering",
         "type": "windowCovering",
         "characteristics": ["position"],
     },
@@ -131,7 +131,7 @@ DEVICES_STATE = [
     {
         "uid": "3WRRJR6RCZQZSND8VP0YTO3YXCSOFPKBMW8T51TU-LQ*SOT3NKALCRQMHUHJUF79NUG6UQP1IIQIN1PJVRRPT0C",
         "type": "contactSensor",
-        "state": {"contactSensorState": False},
+        "state": {"contactSensorState": True},
         "online": True,
     },
     {
@@ -207,7 +207,7 @@ DEVICES_STATE = [
     {
         "uid": "3WRRJR6RCZQZSND8VP0YTO3YXCSOFPKBMW8T51TU-LQ*JVRAR_6WVL1Y0PJ5GFWGPMFV7FLVD4MZKBWXC_UFWYM",
         "type": "lightSensor",
-        "state": {"currentAmbientLightLevel": 0},
+        "state": {"currentAmbientLightLevel": 500},
         "online": True,
     },
     {

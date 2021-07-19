@@ -9,11 +9,6 @@
         },
         "flow_title": "{name}",
         "step": {
-            "environment": {
-                "data": {
-                    "environment": "K\u00f6rnyezet"
-                }
-            },
             "local": {
                 "data": {
                     "host": "Hoszt"

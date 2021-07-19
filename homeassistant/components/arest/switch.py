@@ -86,8 +86,24 @@ class ArestSwitchBase(SwitchEntity):
     def __init__(self, resource, location, name):
         """Initialize the switch."""
         self._resource = resource
-        self._attr_name = f"{location.title()} {name.title()}"
-        self._attr_available = True
+        self._name = f"{location.title()} {name.title()}"
+        self._state = None
+        self._available = True
+
+    @property
+    def name(self):
+        """Return the name of the switch."""
+        return self._name
+
+    @property
+    def is_on(self):
+        """Return true if device is on."""
+        return self._state
+
+    @property
+    def available(self):
+        """Could the device be accessed during the last update call."""
+        return self._available
 
 
 class ArestSwitchFunction(ArestSwitchBase):
@@ -118,7 +134,7 @@ class ArestSwitchFunction(ArestSwitchBase):
         )
 
         if request.status_code == HTTP_OK:
-            self._attr_is_on = True
+            self._state = True
         else:
             _LOGGER.error("Can't turn on function %s at %s", self._func, self._resource)
 
@@ -129,7 +145,7 @@ class ArestSwitchFunction(ArestSwitchBase):
         )
 
         if request.status_code == HTTP_OK:
-            self._attr_is_on = False
+            self._state = False
         else:
             _LOGGER.error(
                 "Can't turn off function %s at %s", self._func, self._resource
@@ -139,11 +155,11 @@ class ArestSwitchFunction(ArestSwitchBase):
         """Get the latest data from aREST API and update the state."""
         try:
             request = requests.get(f"{self._resource}/{self._func}", timeout=10)
-            self._attr_is_on = request.json()["return_value"] != 0
-            self._attr_available = True
+            self._state = request.json()["return_value"] != 0
+            self._available = True
         except requests.exceptions.ConnectionError:
             _LOGGER.warning("No route to device %s", self._resource)
-            self._attr_available = False
+            self._available = False
 
 
 class ArestSwitchPin(ArestSwitchBase):
@@ -155,10 +171,10 @@ class ArestSwitchPin(ArestSwitchBase):
         self._pin = pin
         self.invert = invert
 
-        request = requests.get(f"{resource}/mode/{pin}/o", timeout=10)
+        request = requests.get(f"{self._resource}/mode/{self._pin}/o", timeout=10)
         if request.status_code != HTTP_OK:
             _LOGGER.error("Can't set mode")
-            self._attr_available = False
+            self._available = False
 
     def turn_on(self, **kwargs):
         """Turn the device on."""
@@ -167,7 +183,7 @@ class ArestSwitchPin(ArestSwitchBase):
             f"{self._resource}/digital/{self._pin}/{turn_on_payload}", timeout=10
         )
         if request.status_code == HTTP_OK:
-            self._attr_is_on = True
+            self._state = True
         else:
             _LOGGER.error("Can't turn on pin %s at %s", self._pin, self._resource)
 
@@ -178,7 +194,7 @@ class ArestSwitchPin(ArestSwitchBase):
             f"{self._resource}/digital/{self._pin}/{turn_off_payload}", timeout=10
         )
         if request.status_code == HTTP_OK:
-            self._attr_is_on = False
+            self._state = False
         else:
             _LOGGER.error("Can't turn off pin %s at %s", self._pin, self._resource)
 
@@ -187,8 +203,8 @@ class ArestSwitchPin(ArestSwitchBase):
         try:
             request = requests.get(f"{self._resource}/digital/{self._pin}", timeout=10)
             status_value = int(self.invert)
-            self._attr_is_on = request.json()["return_value"] != status_value
-            self._attr_available = True
+            self._state = request.json()["return_value"] != status_value
+            self._available = True
         except requests.exceptions.ConnectionError:
             _LOGGER.warning("No route to device %s", self._resource)
-            self._attr_available = False
+            self._available = False

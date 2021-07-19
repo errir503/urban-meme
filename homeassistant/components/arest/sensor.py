@@ -139,27 +139,48 @@ class ArestSensor(SensorEntity):
     ):
         """Initialize the sensor."""
         self.arest = arest
-        self._attr_name = f"{location.title()} {name.title()}"
+        self._resource = resource
+        self._name = f"{location.title()} {name.title()}"
         self._variable = variable
-        self._attr_unit_of_measurement = unit_of_measurement
+        self._pin = pin
+        self._state = None
+        self._unit_of_measurement = unit_of_measurement
         self._renderer = renderer
 
-        if pin is not None:
-            request = requests.get(f"{resource}/mode/{pin}/i", timeout=10)
+        if self._pin is not None:
+            request = requests.get(f"{self._resource}/mode/{self._pin}/i", timeout=10)
             if request.status_code != HTTP_OK:
-                _LOGGER.error("Can't set mode of %s", resource)
+                _LOGGER.error("Can't set mode of %s", self._resource)
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return self._name
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit the value is expressed in."""
+        return self._unit_of_measurement
+
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+        values = self.arest.data
+
+        if "error" in values:
+            return values["error"]
+
+        value = self._renderer(values.get("value", values.get(self._variable, None)))
+        return value
 
     def update(self):
         """Get the latest data from aREST API."""
         self.arest.update()
-        self._attr_available = self.arest.available
-        values = self.arest.data
-        if "error" in values:
-            self._attr_state = values["error"]
-        else:
-            self._attr_state = self._renderer(
-                values.get("value", values.get(self._variable, None))
-            )
+
+    @property
+    def available(self):
+        """Could the device be accessed during the last update call."""
+        return self.arest.available
 
 
 class ArestData:
@@ -170,7 +191,7 @@ class ArestData:
         self._resource = resource
         self._pin = pin
         self.data = {}
-        self._attr_available = True
+        self.available = True
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
@@ -191,7 +212,7 @@ class ArestData:
                         f"{self._resource}/digital/{self._pin}", timeout=10
                     )
                     self.data = {"value": response.json()["return_value"]}
-            self._attr_available = True
+            self.available = True
         except requests.exceptions.ConnectionError:
             _LOGGER.error("No route to device %s", self._resource)
-            self._attr_available = False
+            self.available = False

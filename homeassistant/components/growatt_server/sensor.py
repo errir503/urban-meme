@@ -12,7 +12,6 @@ from homeassistant.config_entries import SOURCE_IMPORT
 from homeassistant.const import (
     CONF_NAME,
     CONF_PASSWORD,
-    CONF_URL,
     CONF_USERNAME,
     CURRENCY_EURO,
     DEVICE_CLASS_BATTERY,
@@ -22,19 +21,19 @@ from homeassistant.const import (
     DEVICE_CLASS_TEMPERATURE,
     DEVICE_CLASS_TIMESTAMP,
     DEVICE_CLASS_VOLTAGE,
-    ELECTRIC_CURRENT_AMPERE,
-    ELECTRIC_POTENTIAL_VOLT,
+    ELECTRICAL_CURRENT_AMPERE,
     ENERGY_KILO_WATT_HOUR,
     FREQUENCY_HERTZ,
     PERCENTAGE,
     POWER_KILO_WATT,
     POWER_WATT,
     TEMP_CELSIUS,
+    VOLT,
 )
 import homeassistant.helpers.config_validation as cv
 from homeassistant.util import Throttle, dt
 
-from .const import CONF_PLANT_ID, DEFAULT_NAME, DEFAULT_PLANT_ID, DEFAULT_URL, DOMAIN
+from .const import CONF_PLANT_ID, DEFAULT_NAME, DEFAULT_PLANT_ID, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -85,13 +84,13 @@ INVERTER_SENSOR_TYPES = {
     ),
     "inverter_voltage_input_1": (
         "Input 1 voltage",
-        ELECTRIC_POTENTIAL_VOLT,
+        VOLT,
         "vpv1",
         {"round": 2, "device_class": DEVICE_CLASS_VOLTAGE},
     ),
     "inverter_amperage_input_1": (
         "Input 1 Amperage",
-        ELECTRIC_CURRENT_AMPERE,
+        ELECTRICAL_CURRENT_AMPERE,
         "ipv1",
         {"round": 1, "device_class": DEVICE_CLASS_CURRENT},
     ),
@@ -103,13 +102,13 @@ INVERTER_SENSOR_TYPES = {
     ),
     "inverter_voltage_input_2": (
         "Input 2 voltage",
-        ELECTRIC_POTENTIAL_VOLT,
+        VOLT,
         "vpv2",
         {"round": 1, "device_class": DEVICE_CLASS_VOLTAGE},
     ),
     "inverter_amperage_input_2": (
         "Input 2 Amperage",
-        ELECTRIC_CURRENT_AMPERE,
+        ELECTRICAL_CURRENT_AMPERE,
         "ipv2",
         {"round": 1, "device_class": DEVICE_CLASS_CURRENT},
     ),
@@ -121,13 +120,13 @@ INVERTER_SENSOR_TYPES = {
     ),
     "inverter_voltage_input_3": (
         "Input 3 voltage",
-        ELECTRIC_POTENTIAL_VOLT,
+        VOLT,
         "vpv3",
         {"round": 1, "device_class": DEVICE_CLASS_VOLTAGE},
     ),
     "inverter_amperage_input_3": (
         "Input 3 Amperage",
-        ELECTRIC_CURRENT_AMPERE,
+        ELECTRICAL_CURRENT_AMPERE,
         "ipv3",
         {"round": 1, "device_class": DEVICE_CLASS_CURRENT},
     ),
@@ -145,13 +144,13 @@ INVERTER_SENSOR_TYPES = {
     ),
     "inverter_reactive_voltage": (
         "Reactive voltage",
-        ELECTRIC_POTENTIAL_VOLT,
+        VOLT,
         "vacr",
         {"round": 1, "device_class": DEVICE_CLASS_VOLTAGE},
     ),
     "inverter_inverter_reactive_amperage": (
         "Reactive amperage",
-        ELECTRIC_CURRENT_AMPERE,
+        ELECTRICAL_CURRENT_AMPERE,
         "iacr",
         {"round": 1, "device_class": DEVICE_CLASS_CURRENT},
     ),
@@ -281,13 +280,13 @@ STORAGE_SENSOR_TYPES = {
     ),
     "storage_grid_voltage": (
         "AC input voltage",
-        ELECTRIC_POTENTIAL_VOLT,
+        VOLT,
         "vGrid",
         {"round": 2, "device_class": DEVICE_CLASS_VOLTAGE},
     ),
     "storage_pv_charging_voltage": (
         "PV charging voltage",
-        ELECTRIC_POTENTIAL_VOLT,
+        VOLT,
         "vpv",
         {"round": 2, "device_class": DEVICE_CLASS_VOLTAGE},
     ),
@@ -299,7 +298,7 @@ STORAGE_SENSOR_TYPES = {
     ),
     "storage_output_voltage": (
         "Output voltage",
-        ELECTRIC_POTENTIAL_VOLT,
+        VOLT,
         "outPutVolt",
         {"round": 2, "device_class": DEVICE_CLASS_VOLTAGE},
     ),
@@ -311,31 +310,31 @@ STORAGE_SENSOR_TYPES = {
     ),
     "storage_current_PV": (
         "Solar charge current",
-        ELECTRIC_CURRENT_AMPERE,
+        ELECTRICAL_CURRENT_AMPERE,
         "iAcCharge",
         {"round": 2, "device_class": DEVICE_CLASS_CURRENT},
     ),
     "storage_current_1": (
         "Solar current to storage",
-        ELECTRIC_CURRENT_AMPERE,
+        ELECTRICAL_CURRENT_AMPERE,
         "iChargePV1",
         {"round": 2, "device_class": DEVICE_CLASS_CURRENT},
     ),
     "storage_grid_amperage_input": (
         "Grid charge current",
-        ELECTRIC_CURRENT_AMPERE,
+        ELECTRICAL_CURRENT_AMPERE,
         "chgCurr",
         {"round": 2, "device_class": DEVICE_CLASS_CURRENT},
     ),
     "storage_grid_out_current": (
         "Grid out current",
-        ELECTRIC_CURRENT_AMPERE,
+        ELECTRICAL_CURRENT_AMPERE,
         "outPutCurrent",
         {"round": 2, "device_class": DEVICE_CLASS_CURRENT},
     ),
     "storage_battery_voltage": (
         "Battery voltage",
-        ELECTRIC_POTENTIAL_VOLT,
+        VOLT,
         "vBat",
         {"round": 2, "device_class": DEVICE_CLASS_VOLTAGE},
     ),
@@ -399,19 +398,19 @@ MIX_SENSOR_TYPES = {
     ),
     "mix_battery_voltage": (
         "Battery voltage",
-        ELECTRIC_POTENTIAL_VOLT,
+        VOLT,
         "vbat",
         {"device_class": DEVICE_CLASS_VOLTAGE},
     ),
     "mix_pv1_voltage": (
         "PV1 voltage",
-        ELECTRIC_POTENTIAL_VOLT,
+        VOLT,
         "vpv1",
         {"device_class": DEVICE_CLASS_VOLTAGE},
     ),
     "mix_pv2_voltage": (
         "PV2 voltage",
-        ELECTRIC_POTENTIAL_VOLT,
+        VOLT,
         "vpv2",
         {"device_class": DEVICE_CLASS_VOLTAGE},
     ),
@@ -491,7 +490,7 @@ MIX_SENSOR_TYPES = {
     ),
     "mix_grid_voltage": (
         "Grid voltage",
-        ELECTRIC_POTENTIAL_VOLT,
+        VOLT,
         "vAc1",
         {"device_class": DEVICE_CLASS_VOLTAGE},
     ),
@@ -555,7 +554,6 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_PLANT_ID, default=DEFAULT_PLANT_ID): cv.string,
         vol.Required(CONF_USERNAME): cv.string,
         vol.Required(CONF_PASSWORD): cv.string,
-        vol.Required(CONF_URL, default=DEFAULT_URL): cv.string,
     }
 )
 
@@ -581,7 +579,7 @@ def get_device_list(api, config):
     # Log in to api and fetch first plant if no plant id is defined.
     login_response = api.login(config[CONF_USERNAME], config[CONF_PASSWORD])
     if not login_response["success"] and login_response["errCode"] == "102":
-        _LOGGER.error("Username, Password or URL may be incorrect!")
+        _LOGGER.error("Username or Password may be incorrect!")
         return
     user_id = login_response["userId"]
     if plant_id == DEFAULT_PLANT_ID:
@@ -598,11 +596,9 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     config = config_entry.data
     username = config[CONF_USERNAME]
     password = config[CONF_PASSWORD]
-    url = config[CONF_URL]
     name = config[CONF_NAME]
 
     api = growattServer.GrowattApi()
-    api.server_url = url
 
     devices, plant_id = await hass.async_add_executor_job(get_device_list, api, config)
 

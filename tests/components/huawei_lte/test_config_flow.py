@@ -10,7 +10,7 @@ from requests_mock import ANY
 
 from homeassistant import config_entries, data_entry_flow
 from homeassistant.components import ssdp
-from homeassistant.components.huawei_lte.const import CONF_UNAUTHENTICATED_MODE, DOMAIN
+from homeassistant.components.huawei_lte.const import DOMAIN
 from homeassistant.const import (
     CONF_NAME,
     CONF_PASSWORD,
@@ -20,8 +20,6 @@ from homeassistant.const import (
 )
 
 from tests.common import MockConfigEntry
-
-FIXTURE_UNIQUE_ID = "SERIALNUMBER"
 
 FIXTURE_USER_INPUT = {
     CONF_URL: "http://192.168.1.1/",
@@ -59,30 +57,20 @@ async def test_urlize_plain_host(hass, requests_mock):
     assert user_input[CONF_URL] == f"http://{host}/"
 
 
-async def test_already_configured(hass, requests_mock, login_requests_mock):
+async def test_already_configured(hass):
     """Test we reject already configured devices."""
     MockConfigEntry(
-        domain=DOMAIN,
-        unique_id=FIXTURE_UNIQUE_ID,
-        data=FIXTURE_USER_INPUT,
-        title="Already configured",
+        domain=DOMAIN, data=FIXTURE_USER_INPUT, title="Already configured"
     ).add_to_hass(hass)
-
-    login_requests_mock.request(
-        ANY,
-        f"{FIXTURE_USER_INPUT[CONF_URL]}api/user/login",
-        text="<response>OK</response>",
-    )
-    requests_mock.request(
-        ANY,
-        f"{FIXTURE_USER_INPUT[CONF_URL]}api/device/information",
-        text=f"<response><SerialNumber>{FIXTURE_UNIQUE_ID}</SerialNumber></response>",
-    )
 
     result = await hass.config_entries.flow.async_init(
         DOMAIN,
         context={"source": config_entries.SOURCE_USER},
-        data=FIXTURE_USER_INPUT,
+        data={
+            **FIXTURE_USER_INPUT,
+            # Tweak URL a bit to check that doesn't fail duplicate detection
+            CONF_URL: FIXTURE_USER_INPUT[CONF_URL].replace("http", "HTTP"),
+        },
     )
 
     assert result["type"] == data_entry_flow.RESULT_TYPE_ABORT
@@ -194,7 +182,7 @@ async def test_ssdp(hass):
 
     assert result["type"] == data_entry_flow.RESULT_TYPE_FORM
     assert result["step_id"] == "user"
-    assert result["data_schema"]({})[CONF_URL] == url
+    assert context[CONF_URL] == url
 
 
 async def test_options(hass):
@@ -215,4 +203,3 @@ async def test_options(hass):
     )
     assert result["data"][CONF_NAME] == DOMAIN
     assert result["data"][CONF_RECIPIENT] == [recipient]
-    assert result["data"][CONF_UNAUTHENTICATED_MODE] is False

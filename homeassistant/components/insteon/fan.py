@@ -1,6 +1,4 @@
 """Support for INSTEON fans via PowerLinc Modem."""
-from __future__ import annotations
-
 import math
 
 from homeassistant.components.fan import (
@@ -41,7 +39,7 @@ class InsteonFanEntity(InsteonEntity, FanEntity):
     """An INSTEON fan entity."""
 
     @property
-    def percentage(self) -> int | None:
+    def percentage(self) -> int:
         """Return the current speed percentage."""
         if self._insteon_device_group.value is None:
             return None

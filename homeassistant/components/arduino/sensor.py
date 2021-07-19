@@ -35,11 +35,24 @@ class ArduinoSensor(SensorEntity):
     def __init__(self, name, pin, pin_type, board):
         """Initialize the sensor."""
         self._pin = pin
-        self._attr_name = name
+        self._name = name
+        self.pin_type = pin_type
+        self.direction = "in"
+        self._value = None
 
-        board.set_mode(self._pin, "in", pin_type)
+        board.set_mode(self._pin, self.direction, self.pin_type)
         self._board = board
+
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+        return self._value
+
+    @property
+    def name(self):
+        """Get the name of the sensor."""
+        return self._name
 
     def update(self):
         """Get the latest value from the pin."""
-        self._attr_state = self._board.get_analog_inputs()[self._pin][1]
+        self._value = self._board.get_analog_inputs()[self._pin][1]

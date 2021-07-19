@@ -3,15 +3,7 @@ import pytest
 
 from homeassistant.components.climate import DOMAIN as CLIMATE_DOMAIN
 from homeassistant.components.climate.const import HVAC_MODE_AUTO
-from homeassistant.components.modbus.const import (
-    CONF_CLIMATES,
-    CONF_DATA_TYPE,
-    CONF_TARGET_TEMP,
-    DATA_TYPE_FLOAT32,
-    DATA_TYPE_FLOAT64,
-    DATA_TYPE_INT16,
-    DATA_TYPE_INT32,
-)
+from homeassistant.components.modbus.const import CONF_CLIMATES, CONF_TARGET_TEMP
 from homeassistant.const import (
     ATTR_TEMPERATURE,
     CONF_ADDRESS,
@@ -104,7 +96,6 @@ async def test_service_climate_update(hass, mock_pymodbus):
                 CONF_TARGET_TEMP: 117,
                 CONF_ADDRESS: 117,
                 CONF_SLAVE: 10,
-                CONF_SCAN_INTERVAL: 0,
             }
         ]
     }
@@ -117,46 +108,6 @@ async def test_service_climate_update(hass, mock_pymodbus):
         "homeassistant", "update_entity", {"entity_id": ENTITY_ID}, blocking=True
     )
     assert hass.states.get(ENTITY_ID).state == "auto"
-
-
-@pytest.mark.parametrize(
-    "data_type, temperature, result",
-    [
-        (DATA_TYPE_INT16, 35, [0x00]),
-        (DATA_TYPE_INT32, 36, [0x00, 0x00]),
-        (DATA_TYPE_FLOAT32, 37.5, [0x00, 0x00]),
-        (DATA_TYPE_FLOAT64, "39", [0x00, 0x00, 0x00, 0x00]),
-    ],
-)
-async def test_service_climate_set_temperature(
-    hass, data_type, temperature, result, mock_pymodbus
-):
-    """Run test for service homeassistant.update_entity."""
-    config = {
-        CONF_CLIMATES: [
-            {
-                CONF_NAME: CLIMATE_NAME,
-                CONF_TARGET_TEMP: 117,
-                CONF_ADDRESS: 117,
-                CONF_SLAVE: 10,
-                CONF_DATA_TYPE: data_type,
-            }
-        ]
-    }
-    mock_pymodbus.read_holding_registers.return_value = ReadResult(result)
-    await prepare_service_update(
-        hass,
-        config,
-    )
-    await hass.services.async_call(
-        CLIMATE_DOMAIN,
-        "set_temperature",
-        {
-            "entity_id": ENTITY_ID,
-            ATTR_TEMPERATURE: temperature,
-        },
-        blocking=True,
-    )
 
 
 test_value = State(ENTITY_ID, 35)
@@ -177,7 +128,6 @@ test_value.attributes = {ATTR_TEMPERATURE: 37}
                     CONF_NAME: CLIMATE_NAME,
                     CONF_TARGET_TEMP: 117,
                     CONF_ADDRESS: 117,
-                    CONF_SCAN_INTERVAL: 0,
                 }
             ],
         },

@@ -2,11 +2,7 @@
 import asyncio
 
 from homeassistant import bootstrap, config_entries
-from homeassistant.const import (
-    ATTR_ENTITY_ID,
-    EVENT_HOMEASSISTANT_START,
-    SOUND_PRESSURE_DB,
-)
+from homeassistant.const import ATTR_ENTITY_ID, EVENT_HOMEASSISTANT_START
 import homeassistant.core as ha
 
 DOMAIN = "demo"
@@ -26,7 +22,6 @@ COMPONENTS_WITH_CONFIG_ENTRY_DEMO_PLATFORM = [
     "number",
     "select",
     "sensor",
-    "siren",
     "switch",
     "vacuum",
     "water_heater",
@@ -123,7 +118,7 @@ async def async_setup(hass, config):
                         "min": 0,
                         "max": 10,
                         "name": "Allowed Noise",
-                        "unit_of_measurement": SOUND_PRESSURE_DB,
+                        "unit_of_measurement": "dB",
                     }
                 }
             },

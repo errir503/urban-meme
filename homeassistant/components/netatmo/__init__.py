@@ -1,6 +1,4 @@
 """The Netatmo integration."""
-from __future__ import annotations
-
 import logging
 import secrets
 
@@ -69,7 +67,7 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
-async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+async def async_setup(hass: HomeAssistant, config: dict):
     """Set up the Netatmo component."""
     hass.data[DOMAIN] = {
         DATA_PERSONS: {},
@@ -123,7 +121,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.config_entries.async_setup_platforms(entry, PLATFORMS)
 
-    async def unregister_webhook(_: None) -> None:
+    async def unregister_webhook(_):
         if CONF_WEBHOOK_ID not in entry.data:
             return
         _LOGGER.debug("Unregister Netatmo webhook (%s)", entry.data[CONF_WEBHOOK_ID])
@@ -140,7 +138,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 "No webhook to be dropped for %s", entry.data[CONF_WEBHOOK_ID]
             )
 
-    async def register_webhook(_: None) -> None:
+    async def register_webhook(event):
         if CONF_WEBHOOK_ID not in entry.data:
             data = {**entry.data, CONF_WEBHOOK_ID: secrets.token_hex()}
             hass.config_entries.async_update_entry(entry, data=data)
@@ -177,7 +175,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 async_handle_webhook,
             )
 
-            async def handle_event(event: dict) -> None:
+            async def handle_event(event):
                 """Handle webhook events."""
                 if event["data"][WEBHOOK_PUSH_TYPE] == WEBHOOK_ACTIVATION:
                     if activation_listener is not None:
@@ -221,7 +219,7 @@ async def async_config_entry_updated(hass: HomeAssistant, entry: ConfigEntry) ->
     async_dispatcher_send(hass, f"signal-{DOMAIN}-public-update-{entry.entry_id}")
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Unload a config entry."""
     if CONF_WEBHOOK_ID in entry.data:
         webhook_unregister(hass, entry.data[CONF_WEBHOOK_ID])
@@ -238,7 +236,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return unload_ok
 
 
-async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Cleanup when entry is removed."""
     if (
         CONF_WEBHOOK_ID in entry.data

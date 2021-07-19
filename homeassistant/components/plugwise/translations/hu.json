@@ -28,15 +28,5 @@
                 "title": "Csatlakoz\u00e1s a Smile-hoz"
             }
         }
-    },
-    "options": {
-        "step": {
-            "init": {
-                "data": {
-                    "scan_interval": "Szkennel\u00e9si intervallum (m\u00e1sodperc)"
-                },
-                "description": "\u00c1ll\u00edtsa be a Plugwise lehet\u0151s\u00e9get"
-            }
-        }
     }
 }

@@ -1,6 +1,4 @@
 """Support for Goal Zero Yeti Switches."""
-from __future__ import annotations
-
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import CONF_NAME
 
@@ -12,7 +10,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the Goal Zero Yeti switch."""
     name = entry.data[CONF_NAME]
     goalzero_data = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities(
+    switches = [
         YetiSwitch(
             goalzero_data[DATA_KEY_API],
             goalzero_data[DATA_KEY_COORDINATOR],
@@ -21,7 +19,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
             entry.entry_id,
         )
         for switch_name in SWITCH_DICT
-    )
+    ]
+    async_add_entities(switches)
 
 
 class YetiSwitch(YetiEntity, SwitchEntity):
@@ -37,16 +36,27 @@ class YetiSwitch(YetiEntity, SwitchEntity):
     ):
         """Initialize a Goal Zero Yeti switch."""
         super().__init__(api, coordinator, name, server_unique_id)
+
         self._condition = switch_name
-        self._attr_name = f"{name} {SWITCH_DICT[switch_name]}"
-        self._attr_unique_id = f"{server_unique_id}/{switch_name}"
+
+        self._condition_name = SWITCH_DICT[switch_name]
 
     @property
-    def is_on(self) -> bool:
+    def name(self):
+        """Return the name of the switch."""
+        return f"{self._name} {self._condition_name}"
+
+    @property
+    def unique_id(self):
+        """Return the unique id of the switch."""
+        return f"{self._server_unique_id}/{self._condition}"
+
+    @property
+    def is_on(self):
         """Return state of the switch."""
         if self.api.data:
             return self.api.data[self._condition]
-        return False
+        return None
 
     async def async_turn_off(self, **kwargs):
         """Turn off the switch."""

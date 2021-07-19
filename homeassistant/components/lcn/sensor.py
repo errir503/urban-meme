@@ -1,12 +1,8 @@
 """Support for LCN sensors."""
-from __future__ import annotations
-
-from typing import cast
 
 import pypck
 
 from homeassistant.components.sensor import DOMAIN as DOMAIN_SENSOR, SensorEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_ADDRESS,
     CONF_DOMAIN,
@@ -14,8 +10,6 @@ from homeassistant.const import (
     CONF_SOURCE,
     CONF_UNIT_OF_MEASUREMENT,
 )
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import ConfigType, HomeAssistantType
 
 from . import LcnEntity
 from .const import (
@@ -26,15 +20,13 @@ from .const import (
     THRESHOLDS,
     VARIABLES,
 )
-from .helpers import DeviceConnectionType, InputType, get_device_connection
+from .helpers import get_device_connection
 
 
-def create_lcn_sensor_entity(
-    hass: HomeAssistantType, entity_config: ConfigType, config_entry: ConfigEntry
-) -> LcnEntity:
+def create_lcn_sensor_entity(hass, entity_config, config_entry):
     """Set up an entity for this domain."""
     device_connection = get_device_connection(
-        hass, entity_config[CONF_ADDRESS], config_entry
+        hass, tuple(entity_config[CONF_ADDRESS]), config_entry
     )
 
     if (
@@ -48,11 +40,7 @@ def create_lcn_sensor_entity(
     return LcnLedLogicSensor(entity_config, config_entry.entry_id, device_connection)
 
 
-async def async_setup_entry(
-    hass: HomeAssistantType,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
+async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up LCN switch entities from a config entry."""
     entities = []
 
@@ -66,9 +54,7 @@ async def async_setup_entry(
 class LcnVariableSensor(LcnEntity, SensorEntity):
     """Representation of a LCN sensor for variables."""
 
-    def __init__(
-        self, config: ConfigType, entry_id: str, device_connection: DeviceConnectionType
-    ) -> None:
+    def __init__(self, config, entry_id, device_connection):
         """Initialize the LCN sensor."""
         super().__init__(config, entry_id, device_connection)
 
@@ -79,29 +65,29 @@ class LcnVariableSensor(LcnEntity, SensorEntity):
 
         self._value = None
 
-    async def async_added_to_hass(self) -> None:
+    async def async_added_to_hass(self):
         """Run when entity about to be added to hass."""
         await super().async_added_to_hass()
         if not self.device_connection.is_group:
             await self.device_connection.activate_status_request_handler(self.variable)
 
-    async def async_will_remove_from_hass(self) -> None:
+    async def async_will_remove_from_hass(self):
         """Run when entity will be removed from hass."""
         await super().async_will_remove_from_hass()
         if not self.device_connection.is_group:
             await self.device_connection.cancel_status_request_handler(self.variable)
 
     @property
-    def state(self) -> str | None:
+    def state(self):
         """Return the state of the entity."""
         return self._value
 
     @property
-    def unit_of_measurement(self) -> str:
+    def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
-        return cast(str, self.unit.value)
+        return self.unit.value
 
-    def input_received(self, input_obj: InputType) -> None:
+    def input_received(self, input_obj):
         """Set sensor value when LCN input object (command) is received."""
         if (
             not isinstance(input_obj, pypck.inputs.ModStatusVar)
@@ -116,9 +102,7 @@ class LcnVariableSensor(LcnEntity, SensorEntity):
 class LcnLedLogicSensor(LcnEntity, SensorEntity):
     """Representation of a LCN sensor for leds and logicops."""
 
-    def __init__(
-        self, config: ConfigType, entry_id: str, device_connection: DeviceConnectionType
-    ) -> None:
+    def __init__(self, config, entry_id, device_connection):
         """Initialize the LCN sensor."""
         super().__init__(config, entry_id, device_connection)
 
@@ -131,24 +115,24 @@ class LcnLedLogicSensor(LcnEntity, SensorEntity):
 
         self._value = None
 
-    async def async_added_to_hass(self) -> None:
+    async def async_added_to_hass(self):
         """Run when entity about to be added to hass."""
         await super().async_added_to_hass()
         if not self.device_connection.is_group:
             await self.device_connection.activate_status_request_handler(self.source)
 
-    async def async_will_remove_from_hass(self) -> None:
+    async def async_will_remove_from_hass(self):
         """Run when entity will be removed from hass."""
         await super().async_will_remove_from_hass()
         if not self.device_connection.is_group:
             await self.device_connection.cancel_status_request_handler(self.source)
 
     @property
-    def state(self) -> str | None:
+    def state(self):
         """Return the state of the entity."""
         return self._value
 
-    def input_received(self, input_obj: InputType) -> None:
+    def input_received(self, input_obj):
         """Set sensor value when LCN input object (command) is received."""
         if not isinstance(input_obj, pypck.inputs.ModStatusLedsAndLogicOps):
             return

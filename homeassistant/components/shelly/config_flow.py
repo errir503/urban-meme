@@ -1,9 +1,6 @@
 """Config flow for Shelly integration."""
-from __future__ import annotations
-
 import asyncio
 import logging
-from typing import Any, Dict, Final, cast
 
 import aiohttp
 import aioshelly
@@ -17,23 +14,19 @@ from homeassistant.const import (
     CONF_USERNAME,
     HTTP_UNAUTHORIZED,
 )
-from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import aiohttp_client
-from homeassistant.helpers.typing import DiscoveryInfoType
 
 from .const import AIOSHELLY_DEVICE_TIMEOUT_SEC, DOMAIN
 from .utils import get_coap_context, get_device_sleep_period
 
-_LOGGER: Final = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
-HOST_SCHEMA: Final = vol.Schema({vol.Required(CONF_HOST): str})
+HOST_SCHEMA = vol.Schema({vol.Required(CONF_HOST): str})
 
-HTTP_CONNECT_ERRORS: Final = (asyncio.TimeoutError, aiohttp.ClientError)
+HTTP_CONNECT_ERRORS = (asyncio.TimeoutError, aiohttp.ClientError)
 
 
-async def validate_input(
-    hass: core.HomeAssistant, host: str, data: dict[str, Any]
-) -> dict[str, Any]:
+async def validate_input(hass: core.HomeAssistant, host, data):
     """Validate the user input allows us to connect.
 
     Data has the keys from DATA_SCHEMA with values provided by the user.
@@ -67,17 +60,15 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    host: str = ""
-    info: dict[str, Any] = {}
-    device_info: dict[str, Any] = {}
+    host = None
+    info = None
+    device_info = None
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_user(self, user_input=None):
         """Handle the initial step."""
-        errors: dict[str, str] = {}
+        errors = {}
         if user_input is not None:
-            host: str = user_input[CONF_HOST]
+            host = user_input[CONF_HOST]
             try:
                 info = await self._async_get_info(host)
             except HTTP_CONNECT_ERRORS:
@@ -115,11 +106,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user", data_schema=HOST_SCHEMA, errors=errors
         )
 
-    async def async_step_credentials(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_credentials(self, user_input=None):
         """Handle the credentials step."""
-        errors: dict[str, str] = {}
+        errors = {}
         if user_input is not None:
             try:
                 device_info = await validate_input(self.hass, self.host, user_input)
@@ -157,9 +146,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="credentials", data_schema=schema, errors=errors
         )
 
-    async def async_step_zeroconf(
-        self, discovery_info: DiscoveryInfoType
-    ) -> FlowResult:
+    async def async_step_zeroconf(self, discovery_info):
         """Handle zeroconf discovery."""
         try:
             self.info = info = await self._async_get_info(discovery_info["host"])
@@ -186,11 +173,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return await self.async_step_confirm_discovery()
 
-    async def async_step_confirm_discovery(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_confirm_discovery(self, user_input=None):
         """Handle discovery confirm."""
-        errors: dict[str, str] = {}
+        errors = {}
         if user_input is not None:
             return self.async_create_entry(
                 title=self.device_info["title"] or self.device_info["hostname"],
@@ -214,13 +199,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    async def _async_get_info(self, host: str) -> dict[str, Any]:
+    async def _async_get_info(self, host):
         """Get info from shelly device."""
         async with async_timeout.timeout(AIOSHELLY_DEVICE_TIMEOUT_SEC):
-            return cast(
-                Dict[str, Any],
-                await aioshelly.get_info(
-                    aiohttp_client.async_get_clientsession(self.hass),
-                    host,
-                ),
+            return await aioshelly.get_info(
+                aiohttp_client.async_get_clientsession(self.hass),
+                host,
             )

@@ -39,7 +39,6 @@ from homeassistant.const import (
     ATTR_SUPPORTED_FEATURES,
     CONF_ENTITIES,
     CONF_NAME,
-    CONF_UNIQUE_ID,
     STATE_ON,
     STATE_UNAVAILABLE,
 )
@@ -56,7 +55,6 @@ DEFAULT_NAME = "Light Group"
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-        vol.Optional(CONF_UNIQUE_ID): cv.string,
         vol.Required(CONF_ENTITIES): cv.entities_domain(light.DOMAIN),
     }
 )
@@ -74,11 +72,7 @@ async def async_setup_platform(
 ) -> None:
     """Initialize light.group platform."""
     async_add_entities(
-        [
-            LightGroup(
-                config.get(CONF_UNIQUE_ID), config[CONF_NAME], config[CONF_ENTITIES]
-            )
-        ]
+        [LightGroup(cast(str, config.get(CONF_NAME)), config[CONF_ENTITIES])]
     )
 
 
@@ -92,14 +86,13 @@ class LightGroup(GroupEntity, light.LightEntity):
     _attr_min_mireds = 154
     _attr_should_poll = False
 
-    def __init__(self, unique_id: str | None, name: str, entity_ids: list[str]) -> None:
+    def __init__(self, name: str, entity_ids: list[str]) -> None:
         """Initialize a light group."""
         self._entity_ids = entity_ids
         self._white_value: int | None = None
 
         self._attr_name = name
         self._attr_extra_state_attributes = {ATTR_ENTITY_ID: entity_ids}
-        self._attr_unique_id = unique_id
 
     async def async_added_to_hass(self) -> None:
         """Register callbacks."""

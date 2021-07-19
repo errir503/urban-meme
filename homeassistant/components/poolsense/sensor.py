@@ -6,7 +6,6 @@ from homeassistant.const import (
     DEVICE_CLASS_BATTERY,
     DEVICE_CLASS_TEMPERATURE,
     DEVICE_CLASS_TIMESTAMP,
-    ELECTRIC_POTENTIAL_MILLIVOLT,
     PERCENTAGE,
     TEMP_CELSIUS,
 )
@@ -16,7 +15,7 @@ from .const import ATTRIBUTION, DOMAIN
 
 SENSORS = {
     "Chlorine": {
-        "unit": ELECTRIC_POTENTIAL_MILLIVOLT,
+        "unit": "mV",
         "icon": "mdi:pool",
         "name": "Chlorine",
         "device_class": None,
@@ -41,13 +40,13 @@ SENSORS = {
         "device_class": DEVICE_CLASS_TIMESTAMP,
     },
     "Chlorine High": {
-        "unit": ELECTRIC_POTENTIAL_MILLIVOLT,
+        "unit": "mV",
         "icon": "mdi:pool",
         "name": "Chlorine High",
         "device_class": None,
     },
     "Chlorine Low": {
-        "unit": ELECTRIC_POTENTIAL_MILLIVOLT,
+        "unit": "mV",
         "icon": "mdi:pool",
         "name": "Chlorine Low",
         "device_class": None,

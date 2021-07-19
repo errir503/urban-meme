@@ -47,7 +47,7 @@ def _include_yaml(
     """
     if constructor.name is None:
         raise HomeAssistantError(
-            f"YAML include error: filename not set for {node.value}"
+            "YAML include error: filename not set for %s" % node.value
         )
     fname = os.path.join(os.path.dirname(constructor.name), node.value)
     return load_yaml(fname, False)

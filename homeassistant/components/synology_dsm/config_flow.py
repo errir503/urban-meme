@@ -46,7 +46,6 @@ from .const import (
     DEFAULT_USE_SSL,
     DEFAULT_VERIFY_SSL,
     DOMAIN,
-    EXCEPTION_DETAILS,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -56,15 +55,6 @@ CONF_OTP_CODE = "otp_code"
 
 def _discovery_schema_with_defaults(discovery_info: DiscoveryInfoType) -> vol.Schema:
     return vol.Schema(_ordered_shared_schema(discovery_info))
-
-
-def _reauth_schema_with_defaults(user_input: dict[str, Any]) -> vol.Schema:
-    return vol.Schema(
-        {
-            vol.Required(CONF_USERNAME, default=user_input.get(CONF_USERNAME, "")): str,
-            vol.Required(CONF_PASSWORD, default=user_input.get(CONF_PASSWORD, "")): str,
-        }
-    )
 
 
 def _user_schema_with_defaults(user_input: dict[str, Any]) -> vol.Schema:
@@ -110,8 +100,6 @@ class SynologyDSMFlowHandler(ConfigFlow, domain=DOMAIN):
         """Initialize the synology_dsm config flow."""
         self.saved_user_input: dict[str, Any] = {}
         self.discovered_conf: dict[str, Any] = {}
-        self.reauth_conf: dict[str, Any] = {}
-        self.reauth_reason: str | None = None
 
     async def _show_setup_form(
         self,
@@ -122,18 +110,10 @@ class SynologyDSMFlowHandler(ConfigFlow, domain=DOMAIN):
         if not user_input:
             user_input = {}
 
-        description_placeholders = {}
-
         if self.discovered_conf:
             user_input.update(self.discovered_conf)
             step_id = "link"
             data_schema = _discovery_schema_with_defaults(user_input)
-            description_placeholders = self.discovered_conf
-        elif self.reauth_conf:
-            user_input.update(self.reauth_conf)
-            step_id = "reauth"
-            data_schema = _reauth_schema_with_defaults(user_input)
-            description_placeholders = {EXCEPTION_DETAILS: self.reauth_reason}
         else:
             step_id = "user"
             data_schema = _user_schema_with_defaults(user_input)
@@ -142,7 +122,7 @@ class SynologyDSMFlowHandler(ConfigFlow, domain=DOMAIN):
             step_id=step_id,
             data_schema=data_schema,
             errors=errors or {},
-            description_placeholders=description_placeholders,
+            description_placeholders=self.discovered_conf or {},
         )
 
     async def async_step_user(
@@ -156,15 +136,6 @@ class SynologyDSMFlowHandler(ConfigFlow, domain=DOMAIN):
 
         if self.discovered_conf:
             user_input.update(self.discovered_conf)
-
-        if self.reauth_conf:
-            self.reauth_conf.update(
-                {
-                    CONF_USERNAME: user_input[CONF_USERNAME],
-                    CONF_PASSWORD: user_input[CONF_PASSWORD],
-                }
-            )
-            user_input.update(self.reauth_conf)
 
         host = user_input[CONF_HOST]
         port = user_input.get(CONF_PORT)
@@ -210,7 +181,10 @@ class SynologyDSMFlowHandler(ConfigFlow, domain=DOMAIN):
             return await self._show_setup_form(user_input, errors)
 
         # unique_id should be serial for services purpose
-        existing_entry = await self.async_set_unique_id(serial, raise_on_progress=False)
+        await self.async_set_unique_id(serial, raise_on_progress=False)
+
+        # Check if already configured
+        self._abort_if_unique_id_configured()
 
         config_data = {
             CONF_HOST: host,
@@ -227,15 +201,6 @@ class SynologyDSMFlowHandler(ConfigFlow, domain=DOMAIN):
             config_data[CONF_DISKS] = user_input[CONF_DISKS]
         if user_input.get(CONF_VOLUMES):
             config_data[CONF_VOLUMES] = user_input[CONF_VOLUMES]
-
-        if existing_entry and self.reauth_conf:
-            self.hass.config_entries.async_update_entry(
-                existing_entry, data=config_data
-            )
-            await self.hass.config_entries.async_reload(existing_entry.entry_id)
-            return self.async_abort(reason="reauth_successful")
-        if existing_entry:
-            return self.async_abort(reason="already_configured")
 
         return self.async_create_entry(title=host, data=config_data)
 
@@ -262,14 +227,10 @@ class SynologyDSMFlowHandler(ConfigFlow, domain=DOMAIN):
         self.context["title_placeholders"] = self.discovered_conf
         return await self.async_step_user()
 
-    async def async_step_reauth(
+    async def async_step_import(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Perform reauth upon an API authentication error."""
-        self.reauth_conf = self.context.get("data", {})
-        self.reauth_reason = self.context.get(EXCEPTION_DETAILS)
-        if user_input is None:
-            return await self.async_step_user()
+        """Import a config entry."""
         return await self.async_step_user(user_input)
 
     async def async_step_link(self, user_input: dict[str, Any]) -> FlowResult:

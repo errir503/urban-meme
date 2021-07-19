@@ -19,7 +19,6 @@ from homeassistant.components.alarm_control_panel.const import (
     SUPPORT_ALARM_ARM_NIGHT,
 )
 import homeassistant.components.climate.const as climate
-from homeassistant.components.lock import STATE_LOCKING, STATE_UNLOCKING
 import homeassistant.components.media_player.const as media_player
 from homeassistant.const import (
     ATTR_SUPPORTED_FEATURES,
@@ -447,11 +446,9 @@ class AlexaLockController(AlexaCapability):
         if name != "lockState":
             raise UnsupportedProperty(name)
 
-        # If its unlocking its still locked and not unlocked yet
-        if self.entity.state in (STATE_UNLOCKING, STATE_LOCKED):
+        if self.entity.state == STATE_LOCKED:
             return "LOCKED"
-        # If its locking its still unlocked and not locked yet
-        if self.entity.state in (STATE_LOCKING, STATE_UNLOCKED):
+        if self.entity.state == STATE_UNLOCKED:
             return "UNLOCKED"
         return "JAMMED"
 

@@ -22,9 +22,15 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 class AtagWaterHeater(AtagEntity, WaterHeaterEntity):
     """Representation of an ATAG water heater."""
 
-    _attr_operation_list = OPERATION_LIST
-    _attr_supported_features = SUPPORT_FLAGS_HEATER
-    _attr_temperature_unit = TEMP_CELSIUS
+    @property
+    def supported_features(self):
+        """Return the list of supported features."""
+        return SUPPORT_FLAGS_HEATER
+
+    @property
+    def temperature_unit(self):
+        """Return the unit of measurement."""
+        return TEMP_CELSIUS
 
     @property
     def current_temperature(self):
@@ -36,6 +42,11 @@ class AtagWaterHeater(AtagEntity, WaterHeaterEntity):
         """Return current operation."""
         operation = self.coordinator.data.dhw.current_operation
         return operation if operation in self.operation_list else STATE_OFF
+
+    @property
+    def operation_list(self):
+        """List of available operation modes."""
+        return OPERATION_LIST
 
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""

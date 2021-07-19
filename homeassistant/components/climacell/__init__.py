@@ -35,6 +35,7 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from .const import (
+    ATTR_FIELD,
     ATTRIBUTION,
     CC_ATTR_CLOUD_COVER,
     CC_ATTR_CONDITION,
@@ -222,7 +223,10 @@ class ClimaCellDataUpdateCoordinator(DataUpdateCoordinator):
                         CC_V3_ATTR_WIND_GUST,
                         CC_V3_ATTR_CLOUD_COVER,
                         CC_V3_ATTR_PRECIPITATION_TYPE,
-                        *(sensor_type.field for sensor_type in CC_V3_SENSOR_TYPES),
+                        *[
+                            sensor_type[ATTR_FIELD]
+                            for sensor_type in CC_V3_SENSOR_TYPES
+                        ],
                     ]
                 )
                 data[FORECASTS][HOURLY] = await self._api.forecast_hourly(
@@ -279,7 +283,7 @@ class ClimaCellDataUpdateCoordinator(DataUpdateCoordinator):
                         CC_ATTR_WIND_GUST,
                         CC_ATTR_CLOUD_COVER,
                         CC_ATTR_PRECIPITATION_TYPE,
-                        *(sensor_type.field for sensor_type in CC_SENSOR_TYPES),
+                        *[sensor_type[ATTR_FIELD] for sensor_type in CC_SENSOR_TYPES],
                     ],
                     [
                         CC_ATTR_TEMPERATURE_LOW,

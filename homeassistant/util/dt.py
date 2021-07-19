@@ -13,9 +13,9 @@ import ciso8601
 from homeassistant.const import MATCH_ALL
 
 if sys.version_info[:2] >= (3, 9):
-    import zoneinfo
+    import zoneinfo  # pylint: disable=import-error
 else:
-    from backports import zoneinfo
+    from backports import zoneinfo  # pylint: disable=import-error
 
 DATE_STR_FORMAT = "%Y-%m-%d"
 UTC = dt.timezone.utc

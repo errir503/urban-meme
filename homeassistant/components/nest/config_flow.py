@@ -17,13 +17,11 @@ import asyncio
 from collections import OrderedDict
 import logging
 import os
-from typing import Any
 
 import async_timeout
 import voluptuous as vol
 
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.data_entry_flow import FlowResult
+from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_entry_oauth2_flow
 from homeassistant.util.json import load_json
@@ -81,13 +79,13 @@ class NestFlowHandler(
         self._reauth = False
 
     @classmethod
-    def register_sdm_api(cls, hass: HomeAssistant) -> None:
+    def register_sdm_api(cls, hass):
         """Configure the flow handler to use the SDM API."""
         if DOMAIN not in hass.data:
             hass.data[DOMAIN] = {}
         hass.data[DOMAIN][DATA_SDM] = {}
 
-    def is_sdm_api(self) -> bool:
+    def is_sdm_api(self):
         """Return true if this flow is setup to use SDM API."""
         return DOMAIN in self.hass.data and DATA_SDM in self.hass.data[DOMAIN]
 
@@ -106,7 +104,7 @@ class NestFlowHandler(
             "prompt": "consent",
         }
 
-    async def async_oauth_create_entry(self, data: dict[str, Any]) -> FlowResult:
+    async def async_oauth_create_entry(self, data: dict) -> dict:
         """Create an entry for the SDM flow."""
         assert self.is_sdm_api(), "Step only supported for SDM API"
         data[DATA_SDM] = {}
@@ -130,17 +128,13 @@ class NestFlowHandler(
 
         return await super().async_oauth_create_entry(data)
 
-    async def async_step_reauth(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_reauth(self, user_input=None):
         """Perform reauth upon an API authentication error."""
         assert self.is_sdm_api(), "Step only supported for SDM API"
         self._reauth = True  # Forces update of existing config entry
         return await self.async_step_reauth_confirm()
 
-    async def async_step_reauth_confirm(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_reauth_confirm(self, user_input=None):
         """Confirm reauth dialog."""
         assert self.is_sdm_api(), "Step only supported for SDM API"
         if user_input is None:
@@ -150,9 +144,7 @@ class NestFlowHandler(
             )
         return await self.async_step_user()
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_user(self, user_input=None):
         """Handle a flow initialized by the user."""
         if self.is_sdm_api():
             # Reauth will update an existing entry
@@ -161,9 +153,7 @@ class NestFlowHandler(
             return await super().async_step_user(user_input)
         return await self.async_step_init(user_input)
 
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_init(self, user_input=None):
         """Handle a flow start."""
         assert not self.is_sdm_api(), "Step only supported for legacy API"
 
@@ -188,9 +178,7 @@ class NestFlowHandler(
             data_schema=vol.Schema({vol.Required("flow_impl"): vol.In(list(flows))}),
         )
 
-    async def async_step_link(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_link(self, user_input=None):
         """Attempt to link with the Nest account.
 
         Route the user to a website to authenticate with Nest. Depending on
@@ -237,7 +225,7 @@ class NestFlowHandler(
             errors=errors,
         )
 
-    async def async_step_import(self, info: dict[str, Any]) -> FlowResult:
+    async def async_step_import(self, info):
         """Import existing auth from Nest."""
         assert not self.is_sdm_api(), "Step only supported for legacy API"
 
@@ -247,7 +235,7 @@ class NestFlowHandler(
         config_path = info["nest_conf_path"]
 
         if not await self.hass.async_add_executor_job(os.path.isfile, config_path):
-            self.flow_impl = DOMAIN  # type: ignore
+            self.flow_impl = DOMAIN
             return await self.async_step_link()
 
         flow = self.hass.data[DATA_FLOW_IMPL][DOMAIN]
@@ -258,9 +246,7 @@ class NestFlowHandler(
         )
 
     @callback
-    def _entry_from_tokens(
-        self, title: str, flow: dict[str, Any], tokens: list[Any] | dict[Any, Any]
-    ) -> FlowResult:
+    def _entry_from_tokens(self, title, flow, tokens):
         """Create an entry from tokens."""
         return self.async_create_entry(
             title=title, data={"tokens": tokens, "impl_domain": flow["domain"]}

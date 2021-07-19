@@ -1,8 +1,7 @@
 {
     "config": {
         "error": {
-            "cannot_connect": "Sikertelen csatlakoz\u00e1s",
-            "powered_off": "A projektor be van kapcsolva? A kezdeti konfigur\u00e1l\u00e1shoz be kell kapcsolnia a kivet\u00edt\u0151t."
+            "cannot_connect": "Sikertelen csatlakoz\u00e1s"
         },
         "step": {
             "user": {

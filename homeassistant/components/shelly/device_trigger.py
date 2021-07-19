@@ -1,8 +1,6 @@
 """Provides device triggers for Shelly."""
 from __future__ import annotations
 
-from typing import Any, Final
-
 import voluptuous as vol
 
 from homeassistant.components.automation import AutomationActionType
@@ -22,7 +20,6 @@ from homeassistant.const import (
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 
-from . import get_device_wrapper
 from .const import (
     ATTR_CHANNEL,
     ATTR_CLICK_TYPE,
@@ -34,9 +31,9 @@ from .const import (
     SHBTN_MODELS,
     SUPPORTED_INPUTS_EVENTS_TYPES,
 )
-from .utils import get_input_triggers
+from .utils import get_device_wrapper, get_input_triggers
 
-TRIGGER_SCHEMA: Final = DEVICE_TRIGGER_BASE_SCHEMA.extend(
+TRIGGER_SCHEMA = DEVICE_TRIGGER_BASE_SCHEMA.extend(
     {
         vol.Required(CONF_TYPE): vol.In(SUPPORTED_INPUTS_EVENTS_TYPES),
         vol.Required(CONF_SUBTYPE): vol.In(INPUTS_EVENTS_SUBTYPES),
@@ -44,9 +41,7 @@ TRIGGER_SCHEMA: Final = DEVICE_TRIGGER_BASE_SCHEMA.extend(
 )
 
 
-async def async_validate_trigger_config(
-    hass: HomeAssistant, config: dict[str, Any]
-) -> dict[str, Any]:
+async def async_validate_trigger_config(hass, config):
     """Validate config."""
     config = TRIGGER_SCHEMA(config)
 
@@ -67,9 +62,7 @@ async def async_validate_trigger_config(
     )
 
 
-async def async_get_triggers(
-    hass: HomeAssistant, device_id: str
-) -> list[dict[str, str]]:
+async def async_get_triggers(hass: HomeAssistant, device_id: str) -> list[dict]:
     """List device triggers for Shelly devices."""
     triggers = []
 

@@ -50,23 +50,25 @@ async def async_setup_entry(
             )
         )
 
-    for sensor_key, sensor in CONNECTION_SENSORS.items():
-        entities.append(FreeboxSensor(router, sensor_key, sensor))
+    for sensor_key in CONNECTION_SENSORS:
+        entities.append(
+            FreeboxSensor(router, sensor_key, CONNECTION_SENSORS[sensor_key])
+        )
 
-    for sensor_key, sensor in CALL_SENSORS.items():
-        entities.append(FreeboxCallSensor(router, sensor_key, sensor))
+    for sensor_key in CALL_SENSORS:
+        entities.append(FreeboxCallSensor(router, sensor_key, CALL_SENSORS[sensor_key]))
 
     _LOGGER.debug("%s - %s - %s disk(s)", router.name, router.mac, len(router.disks))
     for disk in router.disks.values():
         for partition in disk["partitions"]:
-            for sensor_key, sensor in DISK_PARTITION_SENSORS.items():
+            for sensor_key in DISK_PARTITION_SENSORS:
                 entities.append(
                     FreeboxDiskSensor(
                         router,
                         disk,
                         partition,
                         sensor_key,
-                        sensor,
+                        DISK_PARTITION_SENSORS[sensor_key],
                     )
                 )
 

@@ -75,16 +75,27 @@ class AtagEntity(CoordinatorEntity):
         super().__init__(coordinator)
 
         self._id = atag_id
-        self._attr_name = DOMAIN.title()
-        self._attr_unique_id = f"{coordinator.data.id}-{atag_id}"
+        self._name = DOMAIN.title()
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return info for device registry."""
+        device = self.coordinator.data.id
+        version = self.coordinator.data.apiversion
         return {
-            "identifiers": {(DOMAIN, self.coordinator.data.id)},
+            "identifiers": {(DOMAIN, device)},
             "name": "Atag Thermostat",
             "model": "Atag One",
-            "sw_version": self.coordinator.data.apiversion,
+            "sw_version": version,
             "manufacturer": "Atag",
         }
+
+    @property
+    def name(self) -> str:
+        """Return the name of the entity."""
+        return self._name
+
+    @property
+    def unique_id(self):
+        """Return a unique ID to use for this entity."""
+        return f"{self.coordinator.data.id}-{self._id}"

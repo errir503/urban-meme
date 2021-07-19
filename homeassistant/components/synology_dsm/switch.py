@@ -44,9 +44,9 @@ async def async_setup_entry(
         await coordinator.async_refresh()
         entities += [
             SynoDSMSurveillanceHomeModeToggle(
-                api, sensor_type, switch, version, coordinator
+                api, sensor_type, SURVEILLANCE_SWITCH[sensor_type], version, coordinator
             )
-            for sensor_type, switch in SURVEILLANCE_SWITCH.items()
+            for sensor_type in SURVEILLANCE_SWITCH
         ]
 
     async_add_entities(entities, True)

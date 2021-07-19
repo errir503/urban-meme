@@ -1,7 +1,7 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Konto wurde bereits konfiguriert"
+            "already_configured": "Dieses Konto ist bereits konfiguriert."
         },
         "error": {
             "cannot_connect": "Verbindung fehlgeschlagen",
@@ -15,7 +15,7 @@
                     "password": "Passwort",
                     "username": "Benutzername"
                 },
-                "description": "Gib deine Zugangsdaten ein.",
+                "description": "Geben Sie Ihre Zugangsdaten ein.",
                 "title": "Garmin Connect"
             }
         }

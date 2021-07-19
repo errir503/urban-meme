@@ -15,9 +15,9 @@
                     "name": "Name",
                     "password": "Passwort",
                     "port": "Port",
-                    "ssl": "Verwendet ein SSL-Zertifikat",
+                    "ssl": "Nutzt ein SSL-Zertifikat",
                     "username": "Benutzername",
-                    "verify_ssl": "SSL-Zertifikat \u00fcberpr\u00fcfen"
+                    "verify_ssl": "SSL-Zertifikat verfizieren"
                 },
                 "title": "Mit NZBGet verbinden"
             }

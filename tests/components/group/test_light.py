@@ -44,7 +44,6 @@ from homeassistant.const import (
     STATE_ON,
     STATE_UNAVAILABLE,
 )
-from homeassistant.helpers import entity_registry as er
 from homeassistant.setup import async_setup_component
 
 
@@ -59,7 +58,6 @@ async def test_default_state(hass):
                 "platform": DOMAIN,
                 "entities": ["light.kitchen", "light.bedroom"],
                 "name": "Bedroom Group",
-                "unique_id": "unique_identifier",
             }
         },
     )
@@ -78,11 +76,6 @@ async def test_default_state(hass):
     assert state.attributes.get(ATTR_WHITE_VALUE) is None
     assert state.attributes.get(ATTR_EFFECT_LIST) is None
     assert state.attributes.get(ATTR_EFFECT) is None
-
-    entity_registry = er.async_get(hass)
-    entry = entity_registry.async_get("light.bedroom_group")
-    assert entry
-    assert entry.unique_id == "unique_identifier"
 
 
 async def test_state_reporting(hass):
@@ -1071,7 +1064,7 @@ async def test_invalid_service_calls(hass):
     """Test invalid service call arguments get discarded."""
     add_entities = MagicMock()
     await group.async_setup_platform(
-        hass, {"name": "test", "entities": ["light.test1", "light.test2"]}, add_entities
+        hass, {"entities": ["light.test1", "light.test2"]}, add_entities
     )
     await hass.async_block_till_done()
     await hass.async_start()

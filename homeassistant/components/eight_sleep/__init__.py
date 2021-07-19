@@ -148,7 +148,8 @@ async def async_setup(hass, config):
     sensors = []
     binary_sensors = []
     if eight.users:
-        for obj in eight.users.values():
+        for user in eight.users:
+            obj = eight.users[user]
             for sensor in SENSORS:
                 sensors.append(f"{obj.side}_{sensor}")
             binary_sensors.append(f"{obj.side}_presence")

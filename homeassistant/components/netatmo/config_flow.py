@@ -1,6 +1,4 @@
 """Config flow for Netatmo."""
-from __future__ import annotations
-
 import logging
 import uuid
 
@@ -9,7 +7,6 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_SHOW_ON_MAP
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import config_entry_oauth2_flow, config_validation as cv
 
 from .const import (
@@ -35,9 +32,7 @@ class NetatmoFlowHandler(
 
     @staticmethod
     @callback
-    def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
-    ) -> config_entries.OptionsFlow:
+    def async_get_options_flow(config_entry):
         """Get the options flow for this handler."""
         return NetatmoOptionsFlowHandler(config_entry)
 
@@ -67,7 +62,7 @@ class NetatmoFlowHandler(
 
         return {"scope": " ".join(scopes)}
 
-    async def async_step_user(self, user_input: dict | None = None) -> FlowResult:
+    async def async_step_user(self, user_input=None):
         """Handle a flow start."""
         await self.async_set_unique_id(DOMAIN)
 
@@ -86,19 +81,17 @@ class NetatmoOptionsFlowHandler(config_entries.OptionsFlow):
         self.options = dict(config_entry.options)
         self.options.setdefault(CONF_WEATHER_AREAS, {})
 
-    async def async_step_init(self, user_input: dict | None = None) -> FlowResult:
+    async def async_step_init(self, user_input=None):
         """Manage the Netatmo options."""
         return await self.async_step_public_weather_areas()
 
-    async def async_step_public_weather_areas(
-        self, user_input: dict | None = None
-    ) -> FlowResult:
+    async def async_step_public_weather_areas(self, user_input=None):
         """Manage configuration of Netatmo public weather areas."""
-        errors: dict = {}
+        errors = {}
 
         if user_input is not None:
             new_client = user_input.pop(CONF_NEW_AREA, None)
-            areas = user_input.pop(CONF_WEATHER_AREAS, [])
+            areas = user_input.pop(CONF_WEATHER_AREAS, None)
             user_input[CONF_WEATHER_AREAS] = {
                 area: self.options[CONF_WEATHER_AREAS][area] for area in areas
             }
@@ -117,7 +110,7 @@ class NetatmoOptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Optional(
                     CONF_WEATHER_AREAS,
                     default=weather_areas,
-                ): cv.multi_select({wa: None for wa in weather_areas}),
+                ): cv.multi_select(weather_areas),
                 vol.Optional(CONF_NEW_AREA): str,
             }
         )
@@ -127,7 +120,7 @@ class NetatmoOptionsFlowHandler(config_entries.OptionsFlow):
             errors=errors,
         )
 
-    async def async_step_public_weather(self, user_input: dict) -> FlowResult:
+    async def async_step_public_weather(self, user_input=None):
         """Manage configuration of Netatmo public weather sensors."""
         if user_input is not None and CONF_NEW_AREA not in user_input:
             self.options[CONF_WEATHER_AREAS][
@@ -188,17 +181,17 @@ class NetatmoOptionsFlowHandler(config_entries.OptionsFlow):
 
         return self.async_show_form(step_id="public_weather", data_schema=data_schema)
 
-    def _create_options_entry(self) -> FlowResult:
+    def _create_options_entry(self):
         """Update config entry options."""
         return self.async_create_entry(
             title="Netatmo Public Weather", data=self.options
         )
 
 
-def fix_coordinates(user_input: dict) -> dict:
+def fix_coordinates(user_input):
     """Fix coordinates if they don't comply with the Netatmo API."""
     # Ensure coordinates have acceptable length for the Netatmo API
-    for coordinate in (CONF_LAT_NE, CONF_LAT_SW, CONF_LON_NE, CONF_LON_SW):
+    for coordinate in [CONF_LAT_NE, CONF_LAT_SW, CONF_LON_NE, CONF_LON_SW]:
         if len(str(user_input[coordinate]).split(".")[1]) < 7:
             user_input[coordinate] = user_input[coordinate] + 0.0000001
 

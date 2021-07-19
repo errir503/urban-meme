@@ -12,9 +12,6 @@ from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntity
 from homeassistant.const import (
     CONF_MONITORED_CONDITIONS,
     CONF_NAME,
-    DEVICE_CLASS_HUMIDITY,
-    DEVICE_CLASS_PRESSURE,
-    DEVICE_CLASS_TEMPERATURE,
     PERCENTAGE,
     TEMP_FAHRENHEIT,
 )
@@ -51,9 +48,9 @@ SENSOR_TEMP = "temperature"
 SENSOR_HUMID = "humidity"
 SENSOR_PRESS = "pressure"
 SENSOR_TYPES = {
-    SENSOR_TEMP: ["Temperature", None, DEVICE_CLASS_TEMPERATURE],
-    SENSOR_HUMID: ["Humidity", PERCENTAGE, DEVICE_CLASS_HUMIDITY],
-    SENSOR_PRESS: ["Pressure", "mb", DEVICE_CLASS_PRESSURE],
+    SENSOR_TEMP: ["Temperature", None],
+    SENSOR_HUMID: ["Humidity", PERCENTAGE],
+    SENSOR_PRESS: ["Pressure", "mb"],
 }
 DEFAULT_MONITORED = [SENSOR_TEMP, SENSOR_HUMID, SENSOR_PRESS]
 
@@ -142,25 +139,41 @@ class BME280Sensor(SensorEntity):
 
     def __init__(self, bme280_client, sensor_type, temp_unit, name):
         """Initialize the sensor."""
-        self._attr_name = f"{name} {SENSOR_TYPES[sensor_type][0]}"
+        self.client_name = name
+        self._name = SENSOR_TYPES[sensor_type][0]
         self.bme280_client = bme280_client
         self.temp_unit = temp_unit
         self.type = sensor_type
-        self._attr_unit_of_measurement = SENSOR_TYPES[sensor_type][1]
-        self._attr_device_class = SENSOR_TYPES[sensor_type][2]
+        self._state = None
+        self._unit_of_measurement = SENSOR_TYPES[sensor_type][1]
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return f"{self.client_name} {self._name}"
+
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+        return self._state
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement of the sensor."""
+        return self._unit_of_measurement
 
     async def async_update(self):
         """Get the latest data from the BME280 and update the states."""
         await self.hass.async_add_executor_job(self.bme280_client.update)
         if self.bme280_client.sensor.sample_ok:
             if self.type == SENSOR_TEMP:
+                temperature = round(self.bme280_client.sensor.temperature, 2)
                 if self.temp_unit == TEMP_FAHRENHEIT:
-                    self._attr_state = round(celsius_to_fahrenheit(self.state), 2)
-                else:
-                    self._attr_state = round(self.bme280_client.sensor.temperature, 2)
+                    temperature = round(celsius_to_fahrenheit(temperature), 2)
+                self._state = temperature
             elif self.type == SENSOR_HUMID:
-                self._attr_state = round(self.bme280_client.sensor.humidity, 1)
+                self._state = round(self.bme280_client.sensor.humidity, 1)
             elif self.type == SENSOR_PRESS:
-                self._attr_state = round(self.bme280_client.sensor.pressure, 1)
+                self._state = round(self.bme280_client.sensor.pressure, 1)
         else:
             _LOGGER.warning("Bad update of sensor.%s", self.name)

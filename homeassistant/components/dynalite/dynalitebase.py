@@ -43,7 +43,7 @@ class DynaliteBase(Entity):
         """Initialize the base class."""
         self._device = device
         self._bridge = bridge
-        self._unsub_dispatchers: list[Callable[[], None]] = []
+        self._unsub_dispatchers = []
 
     @property
     def name(self) -> str:

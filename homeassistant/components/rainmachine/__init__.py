@@ -19,6 +19,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import aiohttp_client, config_validation as cv
 import homeassistant.helpers.device_registry as dr
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -129,13 +130,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             raise UpdateFailed(err) from err
 
     controller_init_tasks = []
-    for api_category in (
+    for api_category in [
         DATA_PROGRAMS,
         DATA_PROVISION_SETTINGS,
         DATA_RESTRICTIONS_CURRENT,
         DATA_RESTRICTIONS_UNIVERSAL,
         DATA_ZONES,
-    ):
+    ]:
         coordinator = hass.data[DOMAIN][DATA_COORDINATOR][entry.entry_id][
             api_category
         ] = DataUpdateCoordinator(
@@ -173,32 +174,48 @@ class RainMachineEntity(CoordinatorEntity):
     """Define a generic RainMachine entity."""
 
     def __init__(
-        self,
-        coordinator: DataUpdateCoordinator,
-        controller: Controller,
-        entity_type: str,
+        self, coordinator: DataUpdateCoordinator, controller: Controller
     ) -> None:
         """Initialize."""
         super().__init__(coordinator)
-
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, controller.mac)},
-            "connections": {(dr.CONNECTION_NETWORK_MAC, controller.mac)},
-            "name": controller.name,
-            "manufacturer": "RainMachine",
-            "model": (
-                f"Version {controller.hardware_version} "
-                f"(API: {controller.api_version})"
-            ),
-            "sw_version": controller.software_version,
-        }
-        self._attr_extra_state_attributes = {ATTR_ATTRIBUTION: DEFAULT_ATTRIBUTION}
+        self._attrs = {ATTR_ATTRIBUTION: DEFAULT_ATTRIBUTION}
+        self._controller = controller
+        self._device_class = None
         # The colons are removed from the device MAC simply because that value
         # (unnecessarily) makes up the existing unique ID formula and we want to avoid
         # a breaking change:
-        self._attr_unique_id = f"{controller.mac.replace(':', '')}_{entity_type}"
-        self._controller = controller
-        self._entity_type = entity_type
+        self._unique_id = controller.mac.replace(":", "")
+        self._name = None
+
+    @property
+    def device_class(self) -> str:
+        """Return the device class."""
+        return self._device_class
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device registry information for this entity."""
+        return {
+            "identifiers": {(DOMAIN, self._controller.mac)},
+            "connections": {(dr.CONNECTION_NETWORK_MAC, self._controller.mac)},
+            "name": self._controller.name,
+            "manufacturer": "RainMachine",
+            "model": (
+                f"Version {self._controller.hardware_version} "
+                f"(API: {self._controller.api_version})"
+            ),
+            "sw_version": self._controller.software_version,
+        }
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        """Return the state attributes."""
+        return self._attrs
+
+    @property
+    def name(self) -> str:
+        """Return the name of the entity."""
+        return self._name
 
     @callback
     def _handle_coordinator_update(self):
