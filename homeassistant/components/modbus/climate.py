@@ -16,6 +16,8 @@ from homeassistant.const import (
     CONF_OFFSET,
     CONF_STRUCTURE,
     CONF_TEMPERATURE_UNIT,
+    PRECISION_TENTHS,
+    PRECISION_WHOLE,
     TEMP_CELSIUS,
     TEMP_FAHRENHEIT,
 )
@@ -40,6 +42,7 @@ from .const import (
     CONF_SWAP_WORD,
     CONF_SWAP_WORD_BYTE,
     CONF_TARGET_TEMP,
+    DEFAULT_STRUCT_FORMAT,
     MODBUS_DOMAIN,
 )
 from .modbus import ModbusHub
@@ -134,6 +137,11 @@ class ModbusThermostat(BasePlatform, RestoreEntity, ClimateEntity):
         return TEMP_FAHRENHEIT if self._unit == "F" else TEMP_CELSIUS
 
     @property
+    def precision(self) -> float:
+        """Return the precision of the system."""
+        return PRECISION_TENTHS if self._precision >= 1 else PRECISION_WHOLE
+
+    @property
     def min_temp(self):
         """Return the minimum temperature."""
         return self._min_temp
@@ -156,7 +164,8 @@ class ModbusThermostat(BasePlatform, RestoreEntity, ClimateEntity):
             (kwargs.get(ATTR_TEMPERATURE) - self._offset) / self._scale
         )
         byte_string = struct.pack(self._structure, target_temperature)
-        register_value = struct.unpack(">h", byte_string[0:2])[0]
+        struct_string = f">{DEFAULT_STRUCT_FORMAT[self._data_type]}"
+        register_value = struct.unpack(struct_string, byte_string)[0]
         result = await self._hub.async_pymodbus_call(
             self._slave,
             self._target_temperature_register,
