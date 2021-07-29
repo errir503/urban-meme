@@ -136,7 +136,6 @@ IGNORED_MODULES: Final[list[str]] = [
     "homeassistant.components.profiler.*",
     "homeassistant.components.proxmoxve.*",
     "homeassistant.components.rachio.*",
-    "homeassistant.components.recollect_waste.*",
     "homeassistant.components.reddit.*",
     "homeassistant.components.ring.*",
     "homeassistant.components.rpi_power.*",
@@ -193,7 +192,6 @@ IGNORED_MODULES: Final[list[str]] = [
     "homeassistant.components.xiaomi_miio.*",
     "homeassistant.components.yamaha.*",
     "homeassistant.components.yeelight.*",
-    "homeassistant.components.zerproc.*",
     "homeassistant.components.zha.*",
     "homeassistant.components.zwave.*",
 ]
