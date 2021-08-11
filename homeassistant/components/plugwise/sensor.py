@@ -272,12 +272,12 @@ class SmileSensor(SmileGateway, SensorEntity):
         return self._icon
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of this entity."""
         return self._state
 
     @property
-    def native_unit_of_measurement(self):
+    def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
         return self._unit_of_measurement
 

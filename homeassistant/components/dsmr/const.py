@@ -9,7 +9,6 @@ from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT
 from homeassistant.const import (
     DEVICE_CLASS_CURRENT,
     DEVICE_CLASS_ENERGY,
-    DEVICE_CLASS_GAS,
     DEVICE_CLASS_POWER,
     DEVICE_CLASS_VOLTAGE,
 )
@@ -257,7 +256,6 @@ SENSORS: tuple[DSMRSensorEntityDescription, ...] = (
         is_gas=True,
         force_update=True,
         icon="mdi:fire",
-        device_class=DEVICE_CLASS_GAS,
         last_reset=dt.utc_from_timestamp(0),
         state_class=STATE_CLASS_MEASUREMENT,
     ),
@@ -268,7 +266,6 @@ SENSORS: tuple[DSMRSensorEntityDescription, ...] = (
         is_gas=True,
         force_update=True,
         icon="mdi:fire",
-        device_class=DEVICE_CLASS_GAS,
         last_reset=dt.utc_from_timestamp(0),
         state_class=STATE_CLASS_MEASUREMENT,
     ),
@@ -279,7 +276,6 @@ SENSORS: tuple[DSMRSensorEntityDescription, ...] = (
         is_gas=True,
         force_update=True,
         icon="mdi:fire",
-        device_class=DEVICE_CLASS_GAS,
         last_reset=dt.utc_from_timestamp(0),
         state_class=STATE_CLASS_MEASUREMENT,
     ),

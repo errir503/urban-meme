@@ -77,7 +77,7 @@ class ZestimateDataSensor(SensorEntity):
         return f"{self._name} {self.address}"
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the sensor."""
         try:
             return round(float(self._state), 1)

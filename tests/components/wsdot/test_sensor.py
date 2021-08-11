@@ -35,9 +35,6 @@ async def test_setup(hass, requests_mock):
 
     def add_entities(new_entities, update_before_add=False):
         """Mock add entities."""
-        for entity in new_entities:
-            entity.hass = hass
-
         if update_before_add:
             for entity in new_entities:
                 entity.update()

@@ -165,7 +165,7 @@ class EmailContentSensor(SensorEntity):
         return self._name
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the current email state."""
         return self._message
 

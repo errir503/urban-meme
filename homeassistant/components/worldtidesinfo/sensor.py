@@ -88,7 +88,7 @@ class WorldTidesInfoSensor(SensorEntity):
         return attr
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the device."""
         if self.data:
             if "High" in str(self.data["extremes"][0]["type"]):

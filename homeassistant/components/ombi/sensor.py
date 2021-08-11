@@ -53,7 +53,7 @@ class OmbiSensor(SensorEntity):
         return self._icon
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the sensor."""
         return self._state
 

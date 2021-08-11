@@ -139,7 +139,7 @@ class MQTTRoomSensor(SensorEntity):
         return {ATTR_DISTANCE: self._distance}
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the current room of the entity."""
         return self._state
 

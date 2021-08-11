@@ -121,9 +121,7 @@ def port_fixture():
 @pytest.fixture(name="sensor")
 def sensor_fixture(hass, port):
     """Sensor fixture."""
-    sensor = mfi.MfiSensor(port, hass)
-    sensor.hass = hass
-    return sensor
+    return mfi.MfiSensor(port, hass)
 
 
 async def test_name(port, sensor):

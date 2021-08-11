@@ -51,9 +51,7 @@ class MeteoclimaticSensor(CoordinatorEntity, SensorEntity):
             f"{station.name} {SENSOR_TYPES[sensor_type][SENSOR_TYPE_NAME]}"
         )
         self._attr_unique_id = f"{station.code}_{sensor_type}"
-        self._attr_native_unit_of_measurement = SENSOR_TYPES[sensor_type].get(
-            SENSOR_TYPE_UNIT
-        )
+        self._attr_unit_of_measurement = SENSOR_TYPES[sensor_type].get(SENSOR_TYPE_UNIT)
 
     @property
     def device_info(self):
@@ -67,7 +65,7 @@ class MeteoclimaticSensor(CoordinatorEntity, SensorEntity):
         }
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the sensor."""
         return (
             getattr(self.coordinator.data["weather"], self._type)

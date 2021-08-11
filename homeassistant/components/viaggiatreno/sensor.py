@@ -103,7 +103,7 @@ class ViaggiaTrenoSensor(SensorEntity):
         return self._name
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the sensor."""
         return self._state
 
@@ -113,7 +113,7 @@ class ViaggiaTrenoSensor(SensorEntity):
         return self._icon
 
     @property
-    def native_unit_of_measurement(self):
+    def unit_of_measurement(self):
         """Return the unit of measurement."""
         return self._unit
 

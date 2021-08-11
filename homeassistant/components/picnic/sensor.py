@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ATTRIBUTION
 from homeassistant.core import HomeAssistant
@@ -31,7 +30,7 @@ async def async_setup_entry(
     return True
 
 
-class PicnicSensor(SensorEntity, CoordinatorEntity):
+class PicnicSensor(CoordinatorEntity):
     """The CoordinatorEntity subclass representing Picnic sensors."""
 
     def __init__(
@@ -50,7 +49,7 @@ class PicnicSensor(SensorEntity, CoordinatorEntity):
         self._service_unique_id = config_entry.unique_id
 
     @property
-    def native_unit_of_measurement(self) -> str | None:
+    def unit_of_measurement(self) -> str | None:
         """Return the unit this state is expressed in."""
         return self.properties.get("unit")
 
@@ -65,7 +64,7 @@ class PicnicSensor(SensorEntity, CoordinatorEntity):
         return self._to_capitalized_name(self.sensor_type)
 
     @property
-    def native_value(self) -> StateType:
+    def state(self) -> StateType:
         """Return the state of the entity."""
         data_set = (
             self.coordinator.data.get(self.properties["data_type"], {})

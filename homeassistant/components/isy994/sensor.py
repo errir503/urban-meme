@@ -67,7 +67,7 @@ class ISYSensorEntity(ISYNodeEntity, SensorEntity):
         return UOM_FRIENDLY_NAME.get(uom)
 
     @property
-    def native_value(self) -> str:
+    def state(self) -> str:
         """Get the state of the ISY994 sensor device."""
         value = self._node.status
         if value == ISY_VALUE_UNKNOWN:
@@ -97,7 +97,7 @@ class ISYSensorEntity(ISYNodeEntity, SensorEntity):
         return value
 
     @property
-    def native_unit_of_measurement(self) -> str:
+    def unit_of_measurement(self) -> str:
         """Get the Home Assistant unit of measurement for the device."""
         raw_units = self.raw_unit_of_measurement
         # Check if this is a known index pair UOM
@@ -117,7 +117,7 @@ class ISYSensorVariableEntity(ISYEntity, SensorEntity):
         self._name = vname
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the variable."""
         return convert_isy_value_to_hass(self._node.status, "", self._node.prec)
 

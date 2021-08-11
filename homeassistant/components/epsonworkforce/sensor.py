@@ -20,37 +20,37 @@ SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
         key="black",
         name="Ink level Black",
         icon="mdi:water",
-        native_unit_of_measurement=PERCENTAGE,
+        unit_of_measurement=PERCENTAGE,
     ),
     SensorEntityDescription(
         key="photoblack",
         name="Ink level Photoblack",
         icon="mdi:water",
-        native_unit_of_measurement=PERCENTAGE,
+        unit_of_measurement=PERCENTAGE,
     ),
     SensorEntityDescription(
         key="magenta",
         name="Ink level Magenta",
         icon="mdi:water",
-        native_unit_of_measurement=PERCENTAGE,
+        unit_of_measurement=PERCENTAGE,
     ),
     SensorEntityDescription(
         key="cyan",
         name="Ink level Cyan",
         icon="mdi:water",
-        native_unit_of_measurement=PERCENTAGE,
+        unit_of_measurement=PERCENTAGE,
     ),
     SensorEntityDescription(
         key="yellow",
         name="Ink level Yellow",
         icon="mdi:water",
-        native_unit_of_measurement=PERCENTAGE,
+        unit_of_measurement=PERCENTAGE,
     ),
     SensorEntityDescription(
         key="clean",
         name="Cleaning level",
         icon="mdi:water",
-        native_unit_of_measurement=PERCENTAGE,
+        unit_of_measurement=PERCENTAGE,
     ),
 )
 MONITORED_CONDITIONS: list[str] = [desc.key for desc in SENSOR_TYPES]
@@ -92,7 +92,7 @@ class EpsonPrinterCartridge(SensorEntity):
         self.entity_description = description
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the device."""
         return self._api.getSensorValue(self.entity_description.key)
 

@@ -50,7 +50,7 @@ class PocketCastsSensor(SensorEntity):
         return SENSOR_NAME
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the sensor state."""
         return self._state
 

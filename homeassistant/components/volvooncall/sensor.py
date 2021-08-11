@@ -15,11 +15,11 @@ class VolvoSensor(VolvoEntity, SensorEntity):
     """Representation of a Volvo sensor."""
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state."""
         return self.instrument.state
 
     @property
-    def native_unit_of_measurement(self):
+    def unit_of_measurement(self):
         """Return the unit of measurement."""
         return self.instrument.unit

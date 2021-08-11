@@ -146,7 +146,7 @@ class NextBusDepartureSensor(SensorEntity):
         return self._name
 
     @property
-    def native_value(self):
+    def state(self):
         """Return current state of the sensor."""
         return self._state
 

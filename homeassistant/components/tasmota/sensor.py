@@ -258,7 +258,7 @@ class TasmotaSensor(TasmotaAvailability, TasmotaDiscoveryUpdate, SensorEntity):
         return class_or_icon.get(ICON)
 
     @property
-    def native_value(self) -> str | None:
+    def state(self) -> str | None:
         """Return the state of the entity."""
         if self._state_timestamp and self.device_class == DEVICE_CLASS_TIMESTAMP:
             return self._state_timestamp.isoformat()
@@ -270,6 +270,6 @@ class TasmotaSensor(TasmotaAvailability, TasmotaDiscoveryUpdate, SensorEntity):
         return True
 
     @property
-    def native_unit_of_measurement(self) -> str | None:
+    def unit_of_measurement(self) -> str | None:
         """Return the unit this state is expressed in."""
         return SENSOR_UNIT_MAP.get(self._tasmota_entity.unit, self._tasmota_entity.unit)

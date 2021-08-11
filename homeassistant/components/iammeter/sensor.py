@@ -86,7 +86,7 @@ class IamMeter(CoordinatorEntity, SensorEntity):
         self.dev_name = dev_name
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the sensor."""
         return self.coordinator.data.data[self.sensor_name]
 
@@ -106,6 +106,6 @@ class IamMeter(CoordinatorEntity, SensorEntity):
         return "mdi:flash"
 
     @property
-    def native_unit_of_measurement(self):
+    def unit_of_measurement(self):
         """Return the unit of measurement."""
         return self.unit

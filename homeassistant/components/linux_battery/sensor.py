@@ -90,12 +90,12 @@ class LinuxBatterySensor(SensorEntity):
         return DEVICE_CLASS_BATTERY
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the sensor."""
         return self._battery_stat.capacity
 
     @property
-    def native_unit_of_measurement(self):
+    def unit_of_measurement(self):
         """Return the unit the value is expressed in."""
         return PERCENTAGE
 

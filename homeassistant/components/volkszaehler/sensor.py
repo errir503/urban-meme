@@ -97,7 +97,7 @@ class VolkszaehlerSensor(SensorEntity):
         return SENSOR_TYPES[self.type][2]
 
     @property
-    def native_unit_of_measurement(self):
+    def unit_of_measurement(self):
         """Return the unit the value is expressed in."""
         return SENSOR_TYPES[self.type][1]
 
@@ -107,7 +107,7 @@ class VolkszaehlerSensor(SensorEntity):
         return self.vz_api.available
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the resources."""
         return self._state
 

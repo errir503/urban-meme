@@ -37,11 +37,11 @@ class XS1Sensor(XS1DeviceEntity, SensorEntity):
         return self.device.name()
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the sensor."""
         return self.device.value()
 
     @property
-    def native_unit_of_measurement(self):
+    def unit_of_measurement(self):
         """Return the unit of measurement."""
         return self.device.unit()

@@ -36,7 +36,7 @@ class LitterRobotPropertySensor(LitterRobotEntity, SensorEntity):
         self.sensor_attribute = sensor_attribute
 
     @property
-    def native_value(self) -> str:
+    def state(self) -> str:
         """Return the state."""
         return getattr(self.robot, self.sensor_attribute)
 
@@ -45,7 +45,7 @@ class LitterRobotWasteSensor(LitterRobotPropertySensor):
     """Litter-Robot waste sensor."""
 
     @property
-    def native_unit_of_measurement(self) -> str:
+    def unit_of_measurement(self) -> str:
         """Return unit of measurement."""
         return PERCENTAGE
 
@@ -59,10 +59,10 @@ class LitterRobotSleepTimeSensor(LitterRobotPropertySensor):
     """Litter-Robot sleep time sensor."""
 
     @property
-    def native_value(self) -> str | None:
+    def state(self) -> str | None:
         """Return the state."""
         if self.robot.sleep_mode_enabled:
-            return super().native_value.isoformat()
+            return super().state.isoformat()
         return None
 
     @property

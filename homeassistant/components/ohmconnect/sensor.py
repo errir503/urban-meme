@@ -48,7 +48,7 @@ class OhmconnectSensor(SensorEntity):
         return self._name
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the sensor."""
         if self._data.get("active") == "True":
             return "Active"

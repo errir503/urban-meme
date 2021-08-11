@@ -84,7 +84,7 @@ class SwissPublicTransportSensor(SensorEntity):
         return self._name
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the sensor."""
         return (
             self._opendata.connections[0]["departure"]

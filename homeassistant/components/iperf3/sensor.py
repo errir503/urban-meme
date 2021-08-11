@@ -41,12 +41,12 @@ class Iperf3Sensor(RestoreEntity, SensorEntity):
         return self._name
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the device."""
         return self._state
 
     @property
-    def native_unit_of_measurement(self):
+    def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
         return self._unit_of_measurement
 

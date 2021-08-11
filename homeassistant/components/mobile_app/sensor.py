@@ -74,11 +74,11 @@ class MobileAppSensor(MobileAppEntity, SensorEntity):
     """Representation of an mobile app sensor."""
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the sensor."""
         return self._config[ATTR_SENSOR_STATE]
 
     @property
-    def native_unit_of_measurement(self):
+    def unit_of_measurement(self):
         """Return the unit of measurement this sensor expresses itself in."""
         return self._config.get(ATTR_SENSOR_UOM)

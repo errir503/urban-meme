@@ -63,7 +63,7 @@ class PiHoleSensor(PiHoleEntity, SensorEntity):
         self._attr_unique_id = f"{self._server_unique_id}/{description.name}"
 
     @property
-    def native_value(self) -> Any:
+    def state(self) -> Any:
         """Return the state of the device."""
         try:
             return round(self.api.data[self.entity_description.key], 2)

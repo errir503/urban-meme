@@ -331,12 +331,12 @@ class SystemMonitorSensor(SensorEntity):
         return self.sensor_type[SENSOR_TYPE_ICON]  # type: ignore[no-any-return]
 
     @property
-    def native_value(self) -> str | None:
+    def state(self) -> str | None:
         """Return the state of the device."""
         return self.data.state
 
     @property
-    def native_unit_of_measurement(self) -> str | None:
+    def unit_of_measurement(self) -> str | None:
         """Return the unit of measurement of this entity, if any."""
         return self.sensor_type[SENSOR_TYPE_UOM]  # type: ignore[no-any-return]
 

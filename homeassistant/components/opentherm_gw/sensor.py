@@ -156,12 +156,12 @@ class OpenThermSensor(SensorEntity):
         return self._device_class
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the device."""
         return self._value
 
     @property
-    def native_unit_of_measurement(self):
+    def unit_of_measurement(self):
         """Return the unit of measurement."""
         return self._unit
 

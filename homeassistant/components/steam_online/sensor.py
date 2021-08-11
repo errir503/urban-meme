@@ -99,7 +99,7 @@ class SteamSensor(SensorEntity):
         return f"sensor.steam_{self._account}"
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the sensor."""
         return self._state
 

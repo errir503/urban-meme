@@ -69,7 +69,7 @@ class StarlineSensor(StarlineEntity, SensorEntity):
         return self._icon
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the sensor."""
         if self._key == "battery":
             return self._device.battery_level
@@ -90,7 +90,7 @@ class StarlineSensor(StarlineEntity, SensorEntity):
         return None
 
     @property
-    def native_unit_of_measurement(self):
+    def unit_of_measurement(self):
         """Get the unit of measurement."""
         if self._key == "balance":
             return self._device.balance.get("currency") or "₽"

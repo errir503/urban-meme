@@ -176,10 +176,10 @@ class LaCrosseTemperature(LaCrosseSensor):
     """Implementation of a Lacrosse temperature sensor."""
 
     _attr_device_class = DEVICE_CLASS_TEMPERATURE
-    _attr_native_unit_of_measurement = TEMP_CELSIUS
+    _attr_unit_of_measurement = TEMP_CELSIUS
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the sensor."""
         return self._temperature
 
@@ -187,11 +187,11 @@ class LaCrosseTemperature(LaCrosseSensor):
 class LaCrosseHumidity(LaCrosseSensor):
     """Implementation of a Lacrosse humidity sensor."""
 
-    _attr_native_unit_of_measurement = PERCENTAGE
+    _attr_unit_of_measurement = PERCENTAGE
     _attr_icon = "mdi:water-percent"
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the sensor."""
         return self._humidity
 
@@ -200,7 +200,7 @@ class LaCrosseBattery(LaCrosseSensor):
     """Implementation of a Lacrosse battery sensor."""
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the sensor."""
         if self._low_battery is None:
             return None

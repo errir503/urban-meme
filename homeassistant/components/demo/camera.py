@@ -8,12 +8,7 @@ from homeassistant.components.camera import SUPPORT_ON_OFF, Camera
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the Demo camera platform."""
-    async_add_entities(
-        [
-            DemoCamera("Demo camera", "image/jpg"),
-            DemoCamera("Demo camera png", "image/png"),
-        ]
-    )
+    async_add_entities([DemoCamera("Demo camera")])
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -24,11 +19,10 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 class DemoCamera(Camera):
     """The representation of a Demo camera."""
 
-    def __init__(self, name, content_type):
+    def __init__(self, name):
         """Initialize demo camera component."""
         super().__init__()
         self._name = name
-        self.content_type = content_type
         self._motion_status = False
         self.is_streaming = True
         self._images_index = 0
@@ -38,8 +32,7 @@ class DemoCamera(Camera):
     ) -> bytes:
         """Return a faked still image response."""
         self._images_index = (self._images_index + 1) % 4
-        ext = "jpg" if self.content_type == "image/jpg" else "png"
-        image_path = Path(__file__).parent / f"demo_{self._images_index}.{ext}"
+        image_path = Path(__file__).parent / f"demo_{self._images_index}.jpg"
 
         return await self.hass.async_add_executor_job(image_path.read_bytes)
 

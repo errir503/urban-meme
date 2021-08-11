@@ -75,7 +75,7 @@ class ModemCalleridSensor(SensorEntity):
         return ICON
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the device."""
         return self._state
 

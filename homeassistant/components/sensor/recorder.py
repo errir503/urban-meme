@@ -11,7 +11,6 @@ from homeassistant.components.sensor import (
     ATTR_STATE_CLASS,
     DEVICE_CLASS_BATTERY,
     DEVICE_CLASS_ENERGY,
-    DEVICE_CLASS_GAS,
     DEVICE_CLASS_HUMIDITY,
     DEVICE_CLASS_MONETARY,
     DEVICE_CLASS_PRESSURE,
@@ -36,14 +35,11 @@ from homeassistant.const import (
     TEMP_CELSIUS,
     TEMP_FAHRENHEIT,
     TEMP_KELVIN,
-    VOLUME_CUBIC_FEET,
-    VOLUME_CUBIC_METERS,
 )
 from homeassistant.core import HomeAssistant, State
 import homeassistant.util.dt as dt_util
 import homeassistant.util.pressure as pressure_util
 import homeassistant.util.temperature as temperature_util
-import homeassistant.util.volume as volume_util
 
 from . import ATTR_LAST_RESET, DOMAIN
 
@@ -57,7 +53,6 @@ DEVICE_CLASS_OR_UNIT_STATISTICS = {
     DEVICE_CLASS_POWER: {"mean", "min", "max"},
     DEVICE_CLASS_PRESSURE: {"mean", "min", "max"},
     DEVICE_CLASS_TEMPERATURE: {"mean", "min", "max"},
-    DEVICE_CLASS_GAS: {"sum"},
     PERCENTAGE: {"mean", "min", "max"},
 }
 
@@ -67,7 +62,6 @@ DEVICE_CLASS_UNITS = {
     DEVICE_CLASS_POWER: POWER_WATT,
     DEVICE_CLASS_PRESSURE: PRESSURE_PA,
     DEVICE_CLASS_TEMPERATURE: TEMP_CELSIUS,
-    DEVICE_CLASS_GAS: VOLUME_CUBIC_METERS,
 }
 
 UNIT_CONVERSIONS: dict[str, dict[str, Callable]] = {
@@ -97,11 +91,6 @@ UNIT_CONVERSIONS: dict[str, dict[str, Callable]] = {
         TEMP_CELSIUS: lambda x: x,
         TEMP_FAHRENHEIT: temperature_util.fahrenheit_to_celsius,
         TEMP_KELVIN: temperature_util.kelvin_to_celsius,
-    },
-    # Convert volume to cubic meter
-    DEVICE_CLASS_GAS: {
-        VOLUME_CUBIC_METERS: lambda x: x,
-        VOLUME_CUBIC_FEET: volume_util.cubic_feet_to_cubic_meter,
     },
 }
 

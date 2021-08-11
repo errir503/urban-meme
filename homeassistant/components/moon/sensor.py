@@ -60,7 +60,7 @@ class MoonSensor(SensorEntity):
         return "moon__phase"
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the device."""
         if self._state == 0:
             return STATE_NEW_MOON

@@ -53,12 +53,12 @@ class VeraSensor(VeraDevice[veraApi.VeraSensor], SensorEntity):
         self.entity_id = ENTITY_ID_FORMAT.format(self.vera_id)
 
     @property
-    def native_value(self) -> str:
+    def state(self) -> str:
         """Return the name of the sensor."""
         return self.current_value
 
     @property
-    def native_unit_of_measurement(self) -> str | None:
+    def unit_of_measurement(self) -> str | None:
         """Return the unit of measurement of this entity, if any."""
 
         if self.vera_device.category == veraApi.CATEGORY_TEMPERATURE_SENSOR:

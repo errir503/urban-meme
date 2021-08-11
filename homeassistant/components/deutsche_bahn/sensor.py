@@ -59,7 +59,7 @@ class DeutscheBahnSensor(SensorEntity):
         return ICON
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the departure time of the next train."""
         return self._state
 

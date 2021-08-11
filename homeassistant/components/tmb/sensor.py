@@ -85,7 +85,7 @@ class TMBSensor(SensorEntity):
         return ICON
 
     @property
-    def native_unit_of_measurement(self):
+    def unit_of_measurement(self):
         """Return the unit of measurement."""
         return self._unit
 
@@ -95,7 +95,7 @@ class TMBSensor(SensorEntity):
         return f"{self._stop}_{self._line}"
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the next departure time."""
         return self._state
 

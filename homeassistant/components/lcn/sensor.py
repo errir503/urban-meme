@@ -93,12 +93,12 @@ class LcnVariableSensor(LcnEntity, SensorEntity):
             await self.device_connection.cancel_status_request_handler(self.variable)
 
     @property
-    def native_value(self) -> str | None:
+    def state(self) -> str | None:
         """Return the state of the entity."""
         return self._value
 
     @property
-    def native_unit_of_measurement(self) -> str:
+    def unit_of_measurement(self) -> str:
         """Return the unit of measurement of this entity, if any."""
         return cast(str, self.unit.value)
 
@@ -145,7 +145,7 @@ class LcnLedLogicSensor(LcnEntity, SensorEntity):
             await self.device_connection.cancel_status_request_handler(self.source)
 
     @property
-    def native_value(self) -> str | None:
+    def state(self) -> str | None:
         """Return the state of the entity."""
         return self._value
 

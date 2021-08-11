@@ -172,7 +172,7 @@ class MinMaxSensor(SensorEntity):
         return self._name
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the sensor."""
         if self._unit_of_measurement_mismatch:
             return None
@@ -181,7 +181,7 @@ class MinMaxSensor(SensorEntity):
         )
 
     @property
-    def native_unit_of_measurement(self):
+    def unit_of_measurement(self):
         """Return the unit the value is expressed in."""
         if self._unit_of_measurement_mismatch:
             return "ERR"

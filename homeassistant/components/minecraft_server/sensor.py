@@ -70,12 +70,12 @@ class MinecraftServerSensorEntity(MinecraftServerEntity, SensorEntity):
         return self._server.online
 
     @property
-    def native_value(self) -> Any:
+    def state(self) -> Any:
         """Return sensor state."""
         return self._state
 
     @property
-    def native_unit_of_measurement(self) -> str:
+    def unit_of_measurement(self) -> str:
         """Return sensor measurement unit."""
         return self._unit
 

@@ -108,7 +108,7 @@ class DiscoverYandexTransport(SensorEntity):
         self._attrs = attrs
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the sensor."""
         return self._state
 

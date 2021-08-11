@@ -113,12 +113,12 @@ class TravisCISensor(SensorEntity):
         return self._name
 
     @property
-    def native_unit_of_measurement(self):
+    def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
         return SENSOR_TYPES[self._sensor_type][1]
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the sensor."""
         return self._state
 

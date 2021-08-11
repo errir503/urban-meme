@@ -31,11 +31,11 @@ class TcpSensor(TcpEntity, SensorEntity):
     """Implementation of a TCP socket based sensor."""
 
     @property
-    def native_value(self) -> StateType:
+    def state(self) -> StateType:
         """Return the state of the device."""
         return self._state
 
     @property
-    def native_unit_of_measurement(self) -> str | None:
+    def unit_of_measurement(self) -> str | None:
         """Return the unit of measurement of this entity."""
         return self._config[CONF_UNIT_OF_MEASUREMENT]

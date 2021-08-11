@@ -214,7 +214,7 @@ class MqttSensor(MqttEntity, SensorEntity):
         self.async_write_ha_state()
 
     @property
-    def native_unit_of_measurement(self):
+    def unit_of_measurement(self):
         """Return the unit this state is expressed in."""
         return self._config.get(CONF_UNIT_OF_MEASUREMENT)
 
@@ -224,7 +224,7 @@ class MqttSensor(MqttEntity, SensorEntity):
         return self._config[CONF_FORCE_UPDATE]
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the entity."""
         return self._state
 

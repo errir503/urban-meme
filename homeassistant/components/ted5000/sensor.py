@@ -79,12 +79,12 @@ class Ted5000Sensor(SensorEntity):
         return self._name
 
     @property
-    def native_unit_of_measurement(self):
+    def unit_of_measurement(self):
         """Return the unit the value is expressed in."""
         return self._unit
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state of the resources."""
         with suppress(KeyError):
             return self._gateway.data[self._mtu][self._unit]

@@ -31,7 +31,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Validate the user input allows us to connect."""
         websession = aiohttp_client.async_get_clientsession(self.hass)
         try:
-            await pymyq.login(username, password, websession, True)
+            await pymyq.login(username, password, websession)
         except InvalidCredentialsError:
             return {CONF_PASSWORD: "invalid_auth"}
         except MyQError:

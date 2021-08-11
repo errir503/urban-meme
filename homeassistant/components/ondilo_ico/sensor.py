@@ -28,49 +28,49 @@ SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
         key="temperature",
         name="Temperature",
-        native_unit_of_measurement=TEMP_CELSIUS,
+        unit_of_measurement=TEMP_CELSIUS,
         icon=None,
         device_class=DEVICE_CLASS_TEMPERATURE,
     ),
     SensorEntityDescription(
         key="orp",
         name="Oxydo Reduction Potential",
-        native_unit_of_measurement=ELECTRIC_POTENTIAL_MILLIVOLT,
+        unit_of_measurement=ELECTRIC_POTENTIAL_MILLIVOLT,
         icon="mdi:pool",
         device_class=None,
     ),
     SensorEntityDescription(
         key="ph",
         name="pH",
-        native_unit_of_measurement=None,
+        unit_of_measurement=None,
         icon="mdi:pool",
         device_class=None,
     ),
     SensorEntityDescription(
         key="tds",
         name="TDS",
-        native_unit_of_measurement=CONCENTRATION_PARTS_PER_MILLION,
+        unit_of_measurement=CONCENTRATION_PARTS_PER_MILLION,
         icon="mdi:pool",
         device_class=None,
     ),
     SensorEntityDescription(
         key="battery",
         name="Battery",
-        native_unit_of_measurement=PERCENTAGE,
+        unit_of_measurement=PERCENTAGE,
         icon=None,
         device_class=DEVICE_CLASS_BATTERY,
     ),
     SensorEntityDescription(
         key="rssi",
         name="RSSI",
-        native_unit_of_measurement=PERCENTAGE,
+        unit_of_measurement=PERCENTAGE,
         icon=None,
         device_class=DEVICE_CLASS_SIGNAL_STRENGTH,
     ),
     SensorEntityDescription(
         key="salt",
         name="Salt",
-        native_unit_of_measurement="mg/L",
+        unit_of_measurement="mg/L",
         icon="mdi:pool",
         device_class=None,
     ),
@@ -164,7 +164,7 @@ class OndiloICO(CoordinatorEntity, SensorEntity):
         )
 
     @property
-    def native_value(self):
+    def state(self):
         """Last value of the sensor."""
         return self._devdata()["value"]
 

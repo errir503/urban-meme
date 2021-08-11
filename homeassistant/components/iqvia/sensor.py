@@ -104,7 +104,7 @@ class ForecastSensor(IQVIAEntity):
     @callback
     def update_from_latest_data(self):
         """Update the sensor."""
-        if not self.available:
+        if not self.coordinator.data:
             return
 
         data = self.coordinator.data.get("Location", {})
@@ -120,7 +120,6 @@ class ForecastSensor(IQVIAEntity):
             if i["minimum"] <= average <= i["maximum"]
         ]
 
-        self._attr_native_value = average
         self._attr_extra_state_attributes.update(
             {
                 ATTR_CITY: data["City"].title(),
@@ -135,16 +134,14 @@ class ForecastSensor(IQVIAEntity):
             outlook_coordinator = self.hass.data[DOMAIN][DATA_COORDINATOR][
                 self._entry.entry_id
             ][TYPE_ALLERGY_OUTLOOK]
-
-            if not outlook_coordinator.last_update_success:
-                return
-
             self._attr_extra_state_attributes[
                 ATTR_OUTLOOK
             ] = outlook_coordinator.data.get("Outlook")
             self._attr_extra_state_attributes[
                 ATTR_SEASON
             ] = outlook_coordinator.data.get("Season")
+
+        self._attr_state = average
 
 
 class IndexSensor(IQVIAEntity):
@@ -213,4 +210,4 @@ class IndexSensor(IQVIAEntity):
                     f"{attrs['Name'].lower()}_index"
                 ] = attrs["Index"]
 
-        self._attr_native_value = period["Index"]
+        self._attr_state = period["Index"]

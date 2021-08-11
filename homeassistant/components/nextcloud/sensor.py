@@ -34,7 +34,7 @@ class NextcloudSensor(SensorEntity):
         return self._name
 
     @property
-    def native_value(self):
+    def state(self):
         """Return the state for this sensor."""
         return self._state
 
