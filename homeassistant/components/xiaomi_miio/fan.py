@@ -10,19 +10,11 @@ from miio.airpurifier_miot import OperationMode as AirpurifierMiotOperationMode
 import voluptuous as vol
 
 from homeassistant.components.fan import (
-    PLATFORM_SCHEMA,
     SUPPORT_PRESET_MODE,
     SUPPORT_SET_SPEED,
     FanEntity,
 )
-from homeassistant.config_entries import SOURCE_IMPORT
-from homeassistant.const import (
-    ATTR_ENTITY_ID,
-    ATTR_MODE,
-    CONF_HOST,
-    CONF_NAME,
-    CONF_TOKEN,
-)
+from homeassistant.const import ATTR_ENTITY_ID, ATTR_MODE
 from homeassistant.core import callback
 import homeassistant.helpers.config_validation as cv
 from homeassistant.util.percentage import (
@@ -43,9 +35,6 @@ from .const import (
     FEATURE_FLAGS_AIRPURIFIER_V3,
     FEATURE_RESET_FILTER,
     FEATURE_SET_EXTRA_FEATURES,
-    FEATURE_SET_FAN_LEVEL,
-    FEATURE_SET_FAVORITE_LEVEL,
-    FEATURE_SET_VOLUME,
     KEY_COORDINATOR,
     KEY_DEVICE,
     MODEL_AIRPURIFIER_2H,
@@ -53,13 +42,9 @@ from .const import (
     MODEL_AIRPURIFIER_PRO,
     MODEL_AIRPURIFIER_PRO_V7,
     MODEL_AIRPURIFIER_V3,
-    MODELS_FAN,
     MODELS_PURIFIER_MIOT,
     SERVICE_RESET_FILTER,
     SERVICE_SET_EXTRA_FEATURES,
-    SERVICE_SET_FAN_LEVEL,
-    SERVICE_SET_FAVORITE_LEVEL,
-    SERVICE_SET_VOLUME,
 )
 from .device import XiaomiCoordinatedMiioEntity
 
@@ -70,22 +55,10 @@ DATA_KEY = "fan.xiaomi_miio"
 
 CONF_MODEL = "model"
 
-
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
-    {
-        vol.Required(CONF_HOST): cv.string,
-        vol.Required(CONF_TOKEN): vol.All(cv.string, vol.Length(min=32, max=32)),
-        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-        vol.Optional(CONF_MODEL): vol.In(MODELS_FAN),
-    }
-)
-
 ATTR_MODEL = "model"
 
 # Air Purifier
-ATTR_FAVORITE_LEVEL = "favorite_level"
 ATTR_BRIGHTNESS = "brightness"
-ATTR_LEVEL = "level"
 ATTR_FAN_LEVEL = "fan_level"
 ATTR_SLEEP_TIME = "sleep_time"
 ATTR_SLEEP_LEARN_COUNT = "sleep_mode_learn_count"
@@ -93,14 +66,12 @@ ATTR_EXTRA_FEATURES = "extra_features"
 ATTR_FEATURES = "features"
 ATTR_TURBO_MODE_SUPPORTED = "turbo_mode_supported"
 ATTR_SLEEP_MODE = "sleep_mode"
-ATTR_VOLUME = "volume"
 ATTR_USE_TIME = "use_time"
 ATTR_BUTTON_PRESSED = "button_pressed"
 
 # Map attributes to properties of the state object
 AVAILABLE_ATTRIBUTES_AIRPURIFIER_COMMON = {
     ATTR_MODE: "mode",
-    ATTR_FAVORITE_LEVEL: "favorite_level",
     ATTR_EXTRA_FEATURES: "extra_features",
     ATTR_TURBO_MODE_SUPPORTED: "turbo_mode_supported",
     ATTR_BUTTON_PRESSED: "button_pressed",
@@ -117,27 +88,20 @@ AVAILABLE_ATTRIBUTES_AIRPURIFIER = {
 AVAILABLE_ATTRIBUTES_AIRPURIFIER_PRO = {
     **AVAILABLE_ATTRIBUTES_AIRPURIFIER_COMMON,
     ATTR_USE_TIME: "use_time",
-    ATTR_VOLUME: "volume",
     ATTR_SLEEP_TIME: "sleep_time",
     ATTR_SLEEP_LEARN_COUNT: "sleep_mode_learn_count",
 }
 
 AVAILABLE_ATTRIBUTES_AIRPURIFIER_MIOT = {
     ATTR_MODE: "mode",
-    ATTR_FAVORITE_LEVEL: "favorite_level",
     ATTR_USE_TIME: "use_time",
-    ATTR_FAN_LEVEL: "fan_level",
 }
 
-AVAILABLE_ATTRIBUTES_AIRPURIFIER_PRO_V7 = {
-    **AVAILABLE_ATTRIBUTES_AIRPURIFIER_COMMON,
-    ATTR_VOLUME: "volume",
-}
+AVAILABLE_ATTRIBUTES_AIRPURIFIER_PRO_V7 = AVAILABLE_ATTRIBUTES_AIRPURIFIER_COMMON
 
 AVAILABLE_ATTRIBUTES_AIRPURIFIER_V3 = {
     # Common set isn't used here. It's a very basic version of the device.
     ATTR_MODE: "mode",
-    ATTR_VOLUME: "volume",
     ATTR_SLEEP_TIME: "sleep_time",
     ATTR_SLEEP_LEARN_COUNT: "sleep_mode_learn_count",
     ATTR_EXTRA_FEATURES: "extra_features",
@@ -183,53 +147,17 @@ PRESET_MODES_AIRFRESH = ["Auto", "Interval"]
 
 AIRPURIFIER_SERVICE_SCHEMA = vol.Schema({vol.Optional(ATTR_ENTITY_ID): cv.entity_ids})
 
-SERVICE_SCHEMA_FAVORITE_LEVEL = AIRPURIFIER_SERVICE_SCHEMA.extend(
-    {vol.Required(ATTR_LEVEL): vol.All(vol.Coerce(int), vol.Clamp(min=0, max=17))}
-)
-
-SERVICE_SCHEMA_FAN_LEVEL = AIRPURIFIER_SERVICE_SCHEMA.extend(
-    {vol.Required(ATTR_LEVEL): vol.All(vol.Coerce(int), vol.Clamp(min=1, max=3))}
-)
-
-SERVICE_SCHEMA_VOLUME = AIRPURIFIER_SERVICE_SCHEMA.extend(
-    {vol.Required(ATTR_VOLUME): vol.All(vol.Coerce(int), vol.Clamp(min=0, max=100))}
-)
-
 SERVICE_SCHEMA_EXTRA_FEATURES = AIRPURIFIER_SERVICE_SCHEMA.extend(
     {vol.Required(ATTR_FEATURES): cv.positive_int}
 )
 
 SERVICE_TO_METHOD = {
     SERVICE_RESET_FILTER: {"method": "async_reset_filter"},
-    SERVICE_SET_FAVORITE_LEVEL: {
-        "method": "async_set_favorite_level",
-        "schema": SERVICE_SCHEMA_FAVORITE_LEVEL,
-    },
-    SERVICE_SET_FAN_LEVEL: {
-        "method": "async_set_fan_level",
-        "schema": SERVICE_SCHEMA_FAN_LEVEL,
-    },
-    SERVICE_SET_VOLUME: {"method": "async_set_volume", "schema": SERVICE_SCHEMA_VOLUME},
     SERVICE_SET_EXTRA_FEATURES: {
         "method": "async_set_extra_features",
         "schema": SERVICE_SCHEMA_EXTRA_FEATURES,
     },
 }
-
-
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-    """Import Miio configuration from YAML."""
-    _LOGGER.warning(
-        "Loading Xiaomi Miio Fan via platform setup is deprecated. "
-        "Please remove it from your configuration"
-    )
-    hass.async_create_task(
-        hass.config_entries.flow.async_init(
-            DOMAIN,
-            context={"source": SOURCE_IMPORT},
-            data=config,
-        )
-    )
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -545,39 +473,6 @@ class XiaomiAirPurifier(XiaomiGenericDevice):
             "Setting operation mode of the miio device failed.",
             self._device.set_mode,
             self.PRESET_MODE_MAPPING[preset_mode],
-        )
-
-    async def async_set_favorite_level(self, level: int = 1):
-        """Set the favorite level."""
-        if self._device_features & FEATURE_SET_FAVORITE_LEVEL == 0:
-            return
-
-        await self._try_command(
-            "Setting the favorite level of the miio device failed.",
-            self._device.set_favorite_level,
-            level,
-        )
-
-    async def async_set_fan_level(self, level: int = 1):
-        """Set the favorite level."""
-        if self._device_features & FEATURE_SET_FAN_LEVEL == 0:
-            return
-
-        await self._try_command(
-            "Setting the fan level of the miio device failed.",
-            self._device.set_fan_level,
-            level,
-        )
-
-    async def async_set_volume(self, volume: int = 50):
-        """Set the sound volume."""
-        if self._device_features & FEATURE_SET_VOLUME == 0:
-            return
-
-        await self._try_command(
-            "Setting the sound volume of the miio device failed.",
-            self._device.set_volume,
-            volume,
         )
 
     async def async_set_extra_features(self, features: int = 1):
