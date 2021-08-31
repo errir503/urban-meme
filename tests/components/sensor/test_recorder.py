@@ -258,7 +258,7 @@ def test_compile_hourly_sum_statistics_amount(
                 "min": None,
                 "last_reset": process_timestamp_to_utc_isoformat(four),
                 "state": approx(factor * seq[5]),
-                "sum": approx(factor * 10.0),
+                "sum": approx(factor * 40.0),
             },
             {
                 "statistic_id": "sensor.test1",
@@ -268,11 +268,14 @@ def test_compile_hourly_sum_statistics_amount(
                 "min": None,
                 "last_reset": process_timestamp_to_utc_isoformat(four),
                 "state": approx(factor * seq[8]),
-                "sum": approx(factor * 40.0),
+                "sum": approx(factor * 70.0),
             },
         ]
     }
     assert "Error while processing event StatisticsTask" not in caplog.text
+    assert "Detected new cycle for sensor.test1, last_reset set to" in caplog.text
+    assert "Compiling initial sum statistics for sensor.test1" in caplog.text
+    assert "Detected new cycle for sensor.test1, value dropped" not in caplog.text
 
 
 @pytest.mark.parametrize(
@@ -353,6 +356,9 @@ def test_compile_hourly_sum_statistics_total_increasing(
         ]
     }
     assert "Error while processing event StatisticsTask" not in caplog.text
+    assert "Detected new cycle for sensor.test1, last_reset set to" not in caplog.text
+    assert "Compiling initial sum statistics for sensor.test1" in caplog.text
+    assert "Detected new cycle for sensor.test1, value dropped" in caplog.text
 
 
 @pytest.mark.parametrize(
@@ -512,7 +518,7 @@ def test_compile_hourly_energy_statistics_unsupported(hass_recorder, caplog):
                 "min": None,
                 "last_reset": process_timestamp_to_utc_isoformat(four),
                 "state": approx(40.0),
-                "sum": approx(10.0),
+                "sum": approx(40.0),
             },
             {
                 "statistic_id": "sensor.test1",
@@ -522,7 +528,7 @@ def test_compile_hourly_energy_statistics_unsupported(hass_recorder, caplog):
                 "min": None,
                 "last_reset": process_timestamp_to_utc_isoformat(four),
                 "state": approx(70.0),
-                "sum": approx(40.0),
+                "sum": approx(70.0),
             },
         ]
     }
@@ -595,7 +601,7 @@ def test_compile_hourly_energy_statistics_multiple(hass_recorder, caplog):
                 "min": None,
                 "last_reset": process_timestamp_to_utc_isoformat(four),
                 "state": approx(40.0),
-                "sum": approx(10.0),
+                "sum": approx(40.0),
             },
             {
                 "statistic_id": "sensor.test1",
@@ -605,7 +611,7 @@ def test_compile_hourly_energy_statistics_multiple(hass_recorder, caplog):
                 "min": None,
                 "last_reset": process_timestamp_to_utc_isoformat(four),
                 "state": approx(70.0),
-                "sum": approx(40.0),
+                "sum": approx(70.0),
             },
         ],
         "sensor.test2": [
@@ -627,7 +633,7 @@ def test_compile_hourly_energy_statistics_multiple(hass_recorder, caplog):
                 "min": None,
                 "last_reset": process_timestamp_to_utc_isoformat(four),
                 "state": approx(45.0),
-                "sum": approx(-95.0),
+                "sum": approx(-65.0),
             },
             {
                 "statistic_id": "sensor.test2",
@@ -637,7 +643,7 @@ def test_compile_hourly_energy_statistics_multiple(hass_recorder, caplog):
                 "min": None,
                 "last_reset": process_timestamp_to_utc_isoformat(four),
                 "state": approx(75.0),
-                "sum": approx(-65.0),
+                "sum": approx(-35.0),
             },
         ],
         "sensor.test3": [
@@ -659,7 +665,7 @@ def test_compile_hourly_energy_statistics_multiple(hass_recorder, caplog):
                 "min": None,
                 "last_reset": process_timestamp_to_utc_isoformat(four),
                 "state": approx(50.0 / 1000),
-                "sum": approx(30.0 / 1000),
+                "sum": approx(60.0 / 1000),
             },
             {
                 "statistic_id": "sensor.test3",
@@ -669,7 +675,7 @@ def test_compile_hourly_energy_statistics_multiple(hass_recorder, caplog):
                 "min": None,
                 "last_reset": process_timestamp_to_utc_isoformat(four),
                 "state": approx(90.0 / 1000),
-                "sum": approx(70.0 / 1000),
+                "sum": approx(100.0 / 1000),
             },
         ],
     }
