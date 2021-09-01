@@ -76,6 +76,11 @@ class RenaultVehicleProxy:
         """Return a device description for device registry."""
         return self._device_info
 
+    @property
+    def vehicle(self) -> RenaultVehicle:
+        """Return the underlying vehicle."""
+        return self._vehicle
+
     async def async_initialise(self) -> None:
         """Load available coordinators."""
         self.coordinators = {
@@ -132,6 +137,11 @@ COORDINATORS: tuple[RenaultCoordinatorDescription, ...] = (
         endpoint="hvac-status",
         key="hvac_status",
         update_method=lambda x: x.get_hvac_status,
+    ),
+    RenaultCoordinatorDescription(
+        endpoint="location",
+        key="location",
+        update_method=lambda x: x.get_location,
     ),
     RenaultCoordinatorDescription(
         endpoint="battery-status",
