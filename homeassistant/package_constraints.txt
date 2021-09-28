@@ -4,13 +4,13 @@ aiodiscover==1.4.2
 aiohttp==3.7.4.post0
 aiohttp_cors==0.7.0
 astral==2.2
-async-upnp-client==0.22.1
+async-upnp-client==0.22.3
 async_timeout==3.0.1
 attrs==21.2.0
 awesomeversion==21.8.1
 backports.zoneinfo;python_version<"3.9"
 bcrypt==3.1.7
-certifi>=2020.12.5
+certifi>=2021.5.30
 ciso8601==2.2.0
 cryptography==3.4.8
 emoji==1.5.0
@@ -26,7 +26,7 @@ pyserial==3.5
 python-slugify==4.0.1
 pyudev==0.22.0
 pyyaml==5.4.1
-requests==2.25.1
+requests==2.26.0
 scapy==2.4.5
 sqlalchemy==1.4.23
 voluptuous-serialize==2.4.0
