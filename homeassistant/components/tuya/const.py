@@ -84,36 +84,6 @@ TUYA_RESPONSE_MSG = "msg"
 TUYA_RESPONSE_SUCCESS = "success"
 TUYA_RESPONSE_PLATFORM_URL = "platform_url"
 
-TUYA_SUPPORTED_PRODUCT_CATEGORIES = (
-    "bh",  # Smart Kettle
-    "cwysj",  # Pet Water Feeder
-    "cz",  # Socket
-    "dc",  # Light string
-    "dd",  # Light strip
-    "dj",  # Light
-    "dlq",  # Breaker
-    "fs",  # Fan
-    "fs",  # Fan
-    "fwl",  # Ambient light
-    "jsq",  # Humidifier's light
-    "kfj",  # Coffee maker
-    "kg",  # Switch
-    "kj",  # Air Purifier
-    "kt",  # Air conditioner
-    "ldcg",  # Luminance Sensor
-    "mcs",  # Door Window Sensor
-    "pc",  # Power Strip
-    "pir",  # PIR Detector
-    "qn",  # Heater
-    "sgbj",  # Siren Alarm
-    "sos",  # SOS Button
-    "sp",  # Smart Camera
-    "wk",  # Thermostat
-    "xdd",  # Ceiling Light
-    "xxj",  # Diffuser
-    "zd",  # Vibration Sensor
-)
-
 TUYA_SMART_APP = "tuyaSmart"
 SMARTLIFE_APP = "smartlife"
 
@@ -121,7 +91,9 @@ PLATFORMS = [
     "binary_sensor",
     "camera",
     "climate",
+    "cover",
     "fan",
+    "humidifier",
     "light",
     "number",
     "scene",
@@ -129,7 +101,17 @@ PLATFORMS = [
     "sensor",
     "siren",
     "switch",
+    "vacuum",
 ]
+
+
+class WorkMode(str, Enum):
+    """Work modes."""
+
+    COLOUR = "colour"
+    MUSIC = "music"
+    SCENE = "scene"
+    WHITE = "white"
 
 
 class DPCode(str, Enum):
@@ -141,22 +123,36 @@ class DPCode(str, Enum):
     ALARM_SWITCH = "alarm_switch"  # Alarm switch
     ALARM_TIME = "alarm_time"  # Alarm time
     ALARM_VOLUME = "alarm_volume"  # Alarm volume
+    ANGLE_HORIZONTAL = "angle_horizontal"
+    ANGLE_VERTICAL = "angle_vertical"
     ANION = "anion"  # Ionizer unit
     BATTERY_PERCENTAGE = "battery_percentage"  # Battery percentage
     BATTERY_STATE = "battery_state"  # Battery state
+    BRIGHT_CONTROLLER = "bright_controller"
     BRIGHT_STATE = "bright_state"  # Brightness status
     BRIGHT_VALUE = "bright_value"  # Brightness
+    BRIGHT_VALUE_1 = "bright_value_1"
+    BRIGHT_VALUE_2 = "bright_value_2"
+    BRIGHT_VALUE_V2 = "bright_value_v2"
     C_F = "c_f"  # Temperature unit switching
     CHILD_LOCK = "child_lock"  # Child lock
     CO2_VALUE = "co2_value"  # CO2 concentration
+    COLOR_DATA_V2 = "color_data_v2"
     COLOUR_DATA = "colour_data"  # Colored light mode
     COLOUR_DATA_V2 = "colour_data_v2"  # Colored light mode
     CONCENTRATION_SET = "concentration_set"  # Concentration setting
+    CONTROL = "control"
+    CONTROL_2 = "control_2"
+    CONTROL_3 = "control_3"
     CUP_NUMBER = "cup_number"  # NUmber of cups
     CUR_CURRENT = "cur_current"  # Actual current
     CUR_POWER = "cur_power"  # Actual power
     CUR_VOLTAGE = "cur_voltage"  # Actual voltage
+    DEHUMIDITY_SET_VALUE = "dehumidify_set_value"
     DOORCONTACT_STATE = "doorcontact_state"  # Status of door window sensor
+    DOORCONTACT_STATE_2 = "doorcontact_state_3"
+    DOORCONTACT_STATE_3 = "doorcontact_state_3"
+    ELECTRICITY_LEFT = "electricity_left"
     FAN_DIRECTION = "fan_direction"  # Fan direction
     FAN_SPEED_ENUM = "fan_speed_enum"  # Speed mode
     FAN_SPEED_PERCENT = "fan_speed_percent"  # Stepless speed
@@ -170,17 +166,29 @@ class DPCode(str, Enum):
     MODE = "mode"  # Working mode / Mode
     MOTION_SWITCH = "motion_switch"  # Motion switch
     MUFFLING = "muffling"  # Muffling
+    PAUSE = "pause"
+    PERCENT_CONTROL = "percent_control"
+    PERCENT_CONTROL_2 = "percent_control_2"
+    PERCENT_CONTROL_3 = "percent_control_3"
+    PERCENT_STATE = "percent_state"
+    PERCENT_STATE_2 = "percent_state_2"
+    PERCENT_STATE_3 = "percent_state_3"
     PIR = "pir"  # Motion sensor
     POWDER_SET = "powder_set"  # Powder
+    POWER_GO = "power_go"
     PUMP_RESET = "pump_reset"  # Water pump reset
     RECORD_SWITCH = "record_switch"  # Recording switch
+    SEEK = "seek"
     SENSITIVITY = "sensitivity"  # Sensitivity
     SHAKE = "shake"  # Oscillating
+    SHOCK_STATE = "shock_state"  # Vibration status
+    SITUATION_SET = "situation_set"
     SOS = "sos"  # Emergency State
     SOS_STATE = "sos_state"  # Emergency mode
-    SHOCK_STATE = "shock_state"  # Vibration status
     SPEED = "speed"  # Speed level
     START = "start"  # Start
+    STATUS = "status"
+    SUCTION = "suction"
     SWING = "swing"  # Swing mode
     SWITCH = "switch"  # Switch
     SWITCH_1 = "switch_1"  # Switch 1
@@ -190,8 +198,12 @@ class DPCode(str, Enum):
     SWITCH_5 = "switch_5"  # Switch 5
     SWITCH_6 = "switch_6"  # Switch 6
     SWITCH_BACKLIGHT = "switch_backlight"  # Backlight switch
+    SWITCH_CHARGE = "switch_charge"
+    SWITCH_CONTROLLER = "switch_controller"
     SWITCH_HORIZONTAL = "switch_horizontal"  # Horizontal swing flap switch
     SWITCH_LED = "switch_led"  # Switch
+    SWITCH_LED_1 = "switch_led_1"
+    SWITCH_LED_2 = "switch_led_2"
     SWITCH_SPRAY = "switch_spray"  # Spraying switch
     SWITCH_USB1 = "switch_usb1"  # USB 1
     SWITCH_USB2 = "switch_usb2"  # USB 2
@@ -201,12 +213,14 @@ class DPCode(str, Enum):
     SWITCH_USB6 = "switch_usb6"  # USB 6
     SWITCH_VERTICAL = "switch_vertical"  # Vertical swing flap switch
     SWITCH_VOICE = "switch_voice"  # Voice switch
+    TEMP_CONTROLLER = "temp_controller"
     TEMP_CURRENT = "temp_current"  # Current temperature in °C
     TEMP_CURRENT_F = "temp_current_f"  # Current temperature in °F
     TEMP_SET = "temp_set"  # Set the temperature in °C
     TEMP_SET_F = "temp_set_f"  # Set the temperature in °F
     TEMP_UNIT_CONVERT = "temp_unit_convert"  # Temperature unit switching
     TEMP_VALUE = "temp_value"  # Color temperature
+    TEMP_VALUE_V2 = "temp_value_v2"
     TEMPER_ALARM = "temper_alarm"  # Tamper alarm
     UV = "uv"  # UV sterilization
     WARM = "warm"  # Heat preservation
