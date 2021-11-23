@@ -766,7 +766,7 @@ class HomeKit:
             manufacturer=MANUFACTURER,
             name=accessory_friendly_name(self._entry_title, self.driver.accessory),
             model=f"HomeKit {hk_mode_name}",
-            entry_type="service",
+            entry_type=device_registry.DeviceEntryType.SERVICE,
         )
 
     @callback
@@ -859,7 +859,7 @@ class HomeKit:
             ent_reg_ent is None
             or ent_reg_ent.device_id is None
             or ent_reg_ent.device_id not in device_lookup
-            or ent_reg_ent.device_class
+            or (ent_reg_ent.device_class or ent_reg_ent.original_device_class)
             in (DEVICE_CLASS_BATTERY_CHARGING, DEVICE_CLASS_BATTERY)
         ):
             return
