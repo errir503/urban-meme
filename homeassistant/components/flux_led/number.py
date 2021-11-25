@@ -13,9 +13,9 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import FluxLedUpdateCoordinator
-from .const import DOMAIN, EFFECT_SUPPORT_MODES
+from .const import DOMAIN, EFFECT_SPEED_SUPPORT_MODES
 from .entity import FluxEntity
-from .util import _hass_color_modes
+from .util import _effect_brightness, _hass_color_modes
 
 
 async def async_setup_entry(
@@ -27,7 +27,7 @@ async def async_setup_entry(
     coordinator: FluxLedUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
 
     color_modes = _hass_color_modes(coordinator.device)
-    if not color_modes.intersection(EFFECT_SUPPORT_MODES):
+    if not color_modes.intersection(EFFECT_SPEED_SUPPORT_MODES):
         return
 
     async_add_entities(
@@ -75,5 +75,7 @@ class FluxNumber(FluxEntity, CoordinatorEntity, NumberEntity):
             )
         if self._device.original_addressable and not self._device.is_on:
             raise HomeAssistantError("Speed can only be adjusted when the light is on")
-        await self._device.async_set_effect(current_effect, new_speed)
+        await self._device.async_set_effect(
+            current_effect, new_speed, _effect_brightness(self._device.brightness)
+        )
         await self.coordinator.async_request_refresh()

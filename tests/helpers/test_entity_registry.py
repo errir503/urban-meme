@@ -96,6 +96,7 @@ def test_get_or_create_updates_data(registry):
         disabled_by=er.DISABLED_HASS,
         entity_category="config",
         icon=None,
+        id=orig_entry.id,
         name=None,
         original_device_class="mock-device-class",
         original_icon="initial-original_icon",
@@ -135,6 +136,7 @@ def test_get_or_create_updates_data(registry):
         disabled_by=er.DISABLED_HASS,  # Should not be updated
         entity_category="config",
         icon=None,
+        id=orig_entry.id,
         name=None,
         original_device_class="new-mock-device-class",
         original_icon="updated-original_icon",
@@ -418,8 +420,8 @@ async def test_migration_yaml_to_json(hass):
 
 
 @pytest.mark.parametrize("load_registries", [False])
-async def test_migration_1_1_to_1_2(hass, hass_storage):
-    """Test migration from version 1.1 to 1.2."""
+async def test_migration_1_1(hass, hass_storage):
+    """Test migration from version 1.1."""
     hass_storage[er.STORAGE_KEY] = {
         "version": 1,
         "minor_version": 1,
@@ -848,7 +850,9 @@ async def test_disable_device_disables_entities(hass, registry):
     assert entry2.disabled
     assert entry3.disabled
 
-    device_registry.async_update_device(device_entry.id, disabled_by=er.DISABLED_USER)
+    device_registry.async_update_device(
+        device_entry.id, disabled_by=dr.DeviceEntryDisabler.USER
+    )
     await hass.async_block_till_done()
 
     entry1 = registry.async_get(entry1.entity_id)
