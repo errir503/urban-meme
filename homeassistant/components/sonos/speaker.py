@@ -46,6 +46,7 @@ from .const import (
     SONOS_CHECK_ACTIVITY,
     SONOS_CREATE_ALARM,
     SONOS_CREATE_BATTERY,
+    SONOS_CREATE_LEVELS,
     SONOS_CREATE_MEDIA_PLAYER,
     SONOS_CREATE_SWITCHES,
     SONOS_ENTITY_CREATED,
@@ -63,6 +64,7 @@ from .const import (
 from .favorites import SonosFavorites
 from .helpers import soco_error
 
+NEVER_TIME = -1200.0
 EVENT_CHARGING = {
     "CHARGING": True,
     "NOT_CHARGING": False,
@@ -158,7 +160,6 @@ class SonosSpeaker:
         self.available = True
 
         # Synchronization helpers
-        self._is_ready: bool = False
         self._platforms_ready: set[str] = set()
 
         # Subscriptions and events
@@ -166,7 +167,7 @@ class SonosSpeaker:
         self._subscriptions: list[SubscriptionBase] = []
         self._resubscription_lock: asyncio.Lock | None = None
         self._event_dispatchers: dict[str, Callable] = {}
-        self._last_activity: datetime.datetime | None = None
+        self._last_activity: float = NEVER_TIME
 
         # Scheduled callback handles
         self._poll_timer: Callable | None = None
@@ -192,8 +193,8 @@ class SonosSpeaker:
         self.night_mode: bool | None = None
         self.dialog_mode: bool | None = None
         self.cross_fade: bool | None = None
-        self.bass_level: int | None = None
-        self.treble_level: int | None = None
+        self.bass: int | None = None
+        self.treble: int | None = None
 
         # Misc features
         self.buttons_enabled: bool | None = None
@@ -233,6 +234,8 @@ class SonosSpeaker:
             self.async_setup_dispatchers(entry), self.hass.loop
         )
         future.result(timeout=10)
+
+        dispatcher_send(self.hass, SONOS_CREATE_LEVELS, self)
 
         if battery_info := fetch_battery_info_or_none(self.soco):
             self.battery_info = battery_info
@@ -277,7 +280,6 @@ class SonosSpeaker:
         if self._platforms_ready == PLATFORMS:
             self._resubscription_lock = asyncio.Lock()
             await self.async_subscribe()
-            self._is_ready = True
 
     def write_entity_states(self) -> None:
         """Write states for associated SonosEntity instances."""
@@ -490,11 +492,11 @@ class SonosSpeaker:
         if "dialog_level" in variables:
             self.dialog_mode = variables["dialog_level"] == "1"
 
-        if "bass_level" in variables:
-            self.bass_level = variables["bass_level"]
+        if "bass" in variables:
+            self.bass = variables["bass"]
 
-        if "treble_level" in variables:
-            self.treble_level = variables["treble_level"]
+        if "treble" in variables:
+            self.treble = variables["treble"]
 
         self.async_write_entity_states()
 
@@ -962,20 +964,22 @@ class SonosSpeaker:
     #
     # Media and playback state handlers
     #
+    @soco_error()
     def update_volume(self) -> None:
         """Update information about current volume settings."""
         self.volume = self.soco.volume
         self.muted = self.soco.mute
         self.night_mode = self.soco.night_mode
         self.dialog_mode = self.soco.dialog_mode
-        self.bass_level = self.soco.bass
-        self.treble_level = self.soco.treble
+        self.bass = self.soco.bass
+        self.treble = self.soco.treble
 
         try:
             self.cross_fade = self.soco.cross_fade
         except SoCoSlaveException:
             pass
 
+    @soco_error()
     def update_media(self, event: SonosEvent | None = None) -> None:
         """Update information about currently playing media."""
         variables = event and event.variables

@@ -385,6 +385,14 @@ SWITCHES: dict[str, tuple[SwitchEntityDescription, ...]] = {
             entity_category=ENTITY_CATEGORY_CONFIG,
         ),
     ),
+    # Fingerbot
+    "szjqr": (
+        SwitchEntityDescription(
+            key=DPCode.SWITCH,
+            name="Switch",
+            icon="mdi:cursor-pointer",
+        ),
+    ),
     # IoT Switch?
     # Note: Undocumented
     "tdq": (
@@ -447,6 +455,14 @@ SWITCHES: dict[str, tuple[SwitchEntityDescription, ...]] = {
             name="Voice",
             icon="mdi:account-voice",
             entity_category=ENTITY_CATEGORY_CONFIG,
+        ),
+    ),
+    # Smart Electricity Meter
+    # https://developer.tuya.com/en/docs/iot/smart-meter?id=Kaiuz4gv6ack7
+    "zndb": (
+        SwitchEntityDescription(
+            key=DPCode.SWITCH,
+            name="Switch",
         ),
     ),
 }

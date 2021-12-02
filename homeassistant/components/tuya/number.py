@@ -209,6 +209,27 @@ NUMBERS: dict[str, tuple[NumberEntityDescription, ...]] = {
             entity_category=ENTITY_CATEGORY_CONFIG,
         ),
     ),
+    # Fingerbot
+    "szjqr": (
+        NumberEntityDescription(
+            key=DPCode.ARM_DOWN_PERCENT,
+            name="Move Down %",
+            icon="mdi:arrow-down-bold",
+            entity_category=ENTITY_CATEGORY_CONFIG,
+        ),
+        NumberEntityDescription(
+            key=DPCode.ARM_UP_PERCENT,
+            name="Move Up %",
+            icon="mdi:arrow-up-bold",
+            entity_category=ENTITY_CATEGORY_CONFIG,
+        ),
+        NumberEntityDescription(
+            key=DPCode.CLICK_SUSTAIN_TIME,
+            name="Down Delay",
+            icon="mdi:timer",
+            entity_category=ENTITY_CATEGORY_CONFIG,
+        ),
+    ),
 }
 
 
@@ -286,7 +307,7 @@ class TuyaNumberEntity(TuyaEntity, NumberEntity):
         value = self.device.status.get(self.entity_description.key)
 
         # Scale integer/float value
-        if value and isinstance(self._type_data, IntegerTypeData):
+        if value is not None and isinstance(self._type_data, IntegerTypeData):
             return self._type_data.scale_value(value)
 
         return None

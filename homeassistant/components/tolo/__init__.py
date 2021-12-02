@@ -22,7 +22,15 @@ from homeassistant.helpers.update_coordinator import (
 
 from .const import DEFAULT_RETRY_COUNT, DEFAULT_RETRY_TIMEOUT, DOMAIN
 
-PLATFORMS = ["binary_sensor", "button", "climate", "light", "select", "sensor"]
+PLATFORMS = [
+    "binary_sensor",
+    "button",
+    "climate",
+    "fan",
+    "light",
+    "select",
+    "sensor",
+]
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -64,7 +72,7 @@ class ToloSaunaUpdateCoordinator(DataUpdateCoordinator[ToloSaunaData]):
             hass=hass,
             logger=_LOGGER,
             name=f"{entry.title} ({entry.data[CONF_HOST]}) Data Update Coordinator",
-            update_interval=timedelta(seconds=3),
+            update_interval=timedelta(seconds=5),
         )
 
     async def _async_update_data(self) -> ToloSaunaData:
@@ -78,9 +86,9 @@ class ToloSaunaUpdateCoordinator(DataUpdateCoordinator[ToloSaunaData]):
             settings = self.client.get_settings_info(
                 resend_timeout=DEFAULT_RETRY_TIMEOUT, retries=DEFAULT_RETRY_COUNT
             )
-            return ToloSaunaData(status, settings)
         except ResponseTimedOutError as error:
             raise UpdateFailed("communication timeout") from error
+        return ToloSaunaData(status, settings)
 
 
 class ToloSaunaCoordinatorEntity(CoordinatorEntity):
