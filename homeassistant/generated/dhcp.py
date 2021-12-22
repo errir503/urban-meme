@@ -176,6 +176,18 @@ DHCP = [
         "macaddress": "18B430*"
     },
     {
+        "domain": "nest",
+        "macaddress": "641666*"
+    },
+    {
+        "domain": "nest",
+        "macaddress": "D8EB46*"
+    },
+    {
+        "domain": "nest",
+        "macaddress": "1C53F9*"
+    },
+    {
         "domain": "nexia",
         "hostname": "xl857-*",
         "macaddress": "000231*"
@@ -519,6 +531,10 @@ DHCP = [
     {
         "domain": "tuya",
         "macaddress": "D81F12*"
+    },
+    {
+        "domain": "twinkly",
+        "hostname": "twinkly_*"
     },
     {
         "domain": "verisure",
