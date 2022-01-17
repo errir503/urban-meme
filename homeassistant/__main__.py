@@ -5,7 +5,6 @@ import argparse
 import faulthandler
 import os
 import platform
-import subprocess
 import sys
 import threading
 
@@ -214,7 +213,9 @@ def cmdline() -> list[str]:
     if os.path.basename(sys.argv[0]) == "__main__.py":
         modulepath = os.path.dirname(sys.argv[0])
         os.environ["PYTHONPATH"] = os.path.dirname(modulepath)
-        return [sys.executable] + [arg for arg in sys.argv if arg != "--daemon"]
+        return [sys.executable, "-m", "homeassistant"] + [
+            arg for arg in sys.argv[1:] if arg != "--daemon"
+        ]
 
     return [arg for arg in sys.argv if arg != "--daemon"]
 
@@ -264,19 +265,6 @@ def try_to_restart() -> None:
 def main() -> int:
     """Start Home Assistant."""
     validate_python()
-
-    # Run a simple daemon runner process on Windows to handle restarts
-    if os.name == "nt" and "--runner" not in sys.argv:
-        nt_args = cmdline() + ["--runner"]
-        while True:
-            try:
-                subprocess.check_call(nt_args)
-                sys.exit(0)
-            except KeyboardInterrupt:
-                sys.exit(0)
-            except subprocess.CalledProcessError as exc:
-                if exc.returncode != RESTART_EXIT_CODE:
-                    sys.exit(exc.returncode)
 
     args = get_arguments()
 
