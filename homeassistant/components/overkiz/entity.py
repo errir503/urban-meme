@@ -96,14 +96,21 @@ class OverkizDescriptiveEntity(OverkizEntity):
         """Initialize the device."""
         super().__init__(device_url, coordinator)
         self.entity_description = description
-        self._attr_name = f"{super().name} {self.entity_description.name}"
         self._attr_unique_id = f"{super().unique_id}-{self.entity_description.key}"
 
+        if self.entity_description.name:
+            self._attr_name = f"{super().name} {self.entity_description.name}"
 
-# Used by translations of state and select sensors
+
+# Used by state translations for sensor and select entities
 @unique
 class OverkizDeviceClass(StrEnum):
     """Device class for Overkiz specific devices."""
 
-    OPEN_CLOSED_PEDESTRIAN = "overkiz__open_closed_pedestrian"
+    BATTERY = "overkiz__battery"
+    DISCRETE_RSSI_LEVEL = "overkiz__discrete_rssi_level"
     MEMORIZED_SIMPLE_VOLUME = "overkiz__memorized_simple_volume"
+    OPEN_CLOSED_PEDESTRIAN = "overkiz__open_closed_pedestrian"
+    PRIORITY_LOCK_ORIGINATOR = "overkiz__priority_lock_originator"
+    SENSOR_DEFECT = "overkiz__sensor_defect"
+    SENSOR_ROOM = "overkiz__sensor_room"
