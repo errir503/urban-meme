@@ -19,10 +19,11 @@ from homeassistant.const import (
     CONF_USERNAME,
     CONF_VERIFY_SSL,
 )
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.typing import DiscoveryInfoType
+from homeassistant.loader import async_get_integration
 
 from .const import (
     CONF_ALL_UPDATES,
@@ -38,6 +39,17 @@ from .discovery import async_start_discovery
 from .utils import _async_short_mac, _async_unifi_mac_from_hass
 
 _LOGGER = logging.getLogger(__name__)
+
+
+async def async_local_user_documentation_url(hass: HomeAssistant) -> str:
+    """Get the documentation url for creating a local user."""
+    integration = await async_get_integration(hass, DOMAIN)
+    return f"{integration.documentation}#local-user"
+
+
+def _host_is_direct_connect(host: str) -> bool:
+    """Check if a host is a unifi direct connect domain."""
+    return host.endswith(".ui.direct")
 
 
 class ProtectFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -66,7 +78,7 @@ class ProtectFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         # Discovery requires an additional check so we use
         # SSDP and DHCP to tell us to start it so it only
         # runs on networks where unifi devices are present.
-        await async_start_discovery(self.hass)
+        async_start_discovery(self.hass)
         return self.async_abort(reason="discovery_started")
 
     async def async_step_discovery(
@@ -74,10 +86,33 @@ class ProtectFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> FlowResult:
         """Handle discovery."""
         self._discovered_device = discovery_info
-        mac = _async_unifi_mac_from_hass(discovery_info["mac"])
+        mac = _async_unifi_mac_from_hass(discovery_info["hw_addr"])
         await self.async_set_unique_id(mac)
+        for entry in self._async_current_entries(include_ignore=False):
+            if entry.unique_id != mac:
+                continue
+            new_host = None
+            if (
+                _host_is_direct_connect(entry.data[CONF_HOST])
+                and discovery_info["direct_connect_domain"]
+                and entry.data[CONF_HOST] != discovery_info["direct_connect_domain"]
+            ):
+                new_host = discovery_info["direct_connect_domain"]
+            elif (
+                not _host_is_direct_connect(entry.data[CONF_HOST])
+                and entry.data[CONF_HOST] != discovery_info["source_ip"]
+            ):
+                new_host = discovery_info["source_ip"]
+            if new_host:
+                self.hass.config_entries.async_update_entry(
+                    entry, data={**entry.data, CONF_HOST: new_host}
+                )
+                self.hass.async_create_task(
+                    self.hass.config_entries.async_reload(entry.entry_id)
+                )
+            return self.async_abort(reason="already_configured")
         self._abort_if_unique_id_configured(
-            updates={CONF_HOST: discovery_info["ip_address"]}
+            updates={CONF_HOST: discovery_info["source_ip"]}
         )
         return await self.async_step_discovery_confirm()
 
@@ -88,29 +123,37 @@ class ProtectFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
         discovery_info = self._discovered_device
         if user_input is not None:
-            user_input[CONF_HOST] = discovery_info["ip_address"]
             user_input[CONF_PORT] = DEFAULT_PORT
-            nvr_data, errors = await self._async_get_nvr_data(user_input)
+            nvr_data = None
+            if discovery_info["direct_connect_domain"]:
+                user_input[CONF_HOST] = discovery_info["direct_connect_domain"]
+                user_input[CONF_VERIFY_SSL] = True
+                nvr_data, errors = await self._async_get_nvr_data(user_input)
+            if not nvr_data or errors:
+                user_input[CONF_HOST] = discovery_info["source_ip"]
+                user_input[CONF_VERIFY_SSL] = False
+                nvr_data, errors = await self._async_get_nvr_data(user_input)
             if nvr_data and not errors:
                 return self._async_create_entry(nvr_data.name, user_input)
 
         placeholders = {
             "name": discovery_info["hostname"]
             or discovery_info["platform"]
-            or f"NVR {_async_short_mac(discovery_info['mac'])}",
-            "ip_address": discovery_info["ip_address"],
+            or f"NVR {_async_short_mac(discovery_info['hw_addr'])}",
+            "ip_address": discovery_info["source_ip"],
         }
         self.context["title_placeholders"] = placeholders
         user_input = user_input or {}
         return self.async_show_form(
             step_id="discovery_confirm",
-            description_placeholders=placeholders,
+            description_placeholders={
+                **placeholders,
+                "local_user_documentation_url": await async_local_user_documentation_url(
+                    self.hass
+                ),
+            },
             data_schema=vol.Schema(
                 {
-                    vol.Required(
-                        CONF_VERIFY_SSL,
-                        default=user_input.get(CONF_VERIFY_SSL, DEFAULT_VERIFY_SSL),
-                    ): bool,
                     vol.Required(
                         CONF_USERNAME, default=user_input.get(CONF_USERNAME)
                     ): str,
@@ -238,6 +281,11 @@ class ProtectFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         user_input = user_input or {}
         return self.async_show_form(
             step_id="user",
+            description_placeholders={
+                "local_user_documentation_url": await async_local_user_documentation_url(
+                    self.hass
+                )
+            },
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_HOST, default=user_input.get(CONF_HOST)): str,
