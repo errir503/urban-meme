@@ -502,6 +502,12 @@ SWITCHES: dict[str, tuple[SwitchEntityDescription, ...]] = {
             entity_category=EntityCategory.CONFIG,
         ),
         SwitchEntityDescription(
+            key=DPCode.FAN_COOL,
+            name="Natural Wind",
+            icon="mdi:weather-windy",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        SwitchEntityDescription(
             key=DPCode.FAN_BEEP,
             name="Sound",
             icon="mdi:minus-circle",
@@ -511,6 +517,22 @@ SWITCHES: dict[str, tuple[SwitchEntityDescription, ...]] = {
             key=DPCode.CHILD_LOCK,
             name="Child Lock",
             icon="mdi:account-lock",
+            entity_category=EntityCategory.CONFIG,
+        ),
+    ),
+    # Curtain
+    # https://developer.tuya.com/en/docs/iot/f?id=K9gf46o5mtfyc
+    "cl": (
+        SwitchEntityDescription(
+            key=DPCode.CONTROL_BACK,
+            name="Reverse",
+            icon="mdi:swap-horizontal",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        SwitchEntityDescription(
+            key=DPCode.OPPOSITE,
+            name="Reverse",
+            icon="mdi:swap-horizontal",
             entity_category=EntityCategory.CONFIG,
         ),
     ),

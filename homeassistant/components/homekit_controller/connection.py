@@ -48,36 +48,6 @@ def valid_serial_number(serial):
         return True
 
 
-def get_accessory_information(accessory):
-    """Obtain the accessory information service of a HomeKit device."""
-    result = {}
-    for service in accessory["services"]:
-        stype = service["type"].upper()
-        if ServicesTypes.get_short(stype) != "accessory-information":
-            continue
-        for characteristic in service["characteristics"]:
-            ctype = CharacteristicsTypes.get_short(characteristic["type"])
-            if "value" in characteristic:
-                result[ctype] = characteristic["value"]
-    return result
-
-
-def get_bridge_information(accessories):
-    """Return the accessory info for the bridge."""
-    for accessory in accessories:
-        if accessory["aid"] == 1:
-            return get_accessory_information(accessory)
-    return get_accessory_information(accessories[0])
-
-
-def get_accessory_name(accessory_info):
-    """Return the name field of an accessory."""
-    for field in ("name", "model", "manufacturer"):
-        if field in accessory_info:
-            return accessory_info[field]
-    return None
-
-
 class HKDevice:
     """HomeKit device."""
 
@@ -522,17 +492,16 @@ class HKDevice:
     async def async_load_platforms(self):
         """Load any platforms needed by this HomeKit device."""
         tasks = []
-        for accessory in self.accessories:
-            for service in accessory["services"]:
-                stype = ServicesTypes.get_short(service["type"].upper())
-                if stype in HOMEKIT_ACCESSORY_DISPATCH:
-                    platform = HOMEKIT_ACCESSORY_DISPATCH[stype]
+        for accessory in self.entity_map.accessories:
+            for service in accessory.services:
+                if service.type in HOMEKIT_ACCESSORY_DISPATCH:
+                    platform = HOMEKIT_ACCESSORY_DISPATCH[service.type]
                     if platform not in self.platforms:
                         tasks.append(self.async_load_platform(platform))
 
-                for char in service["characteristics"]:
-                    if char["type"].upper() in CHARACTERISTIC_PLATFORMS:
-                        platform = CHARACTERISTIC_PLATFORMS[char["type"].upper()]
+                for char in service.characteristics:
+                    if char.type in CHARACTERISTIC_PLATFORMS:
+                        platform = CHARACTERISTIC_PLATFORMS[char.type]
                         if platform not in self.platforms:
                             tasks.append(self.async_load_platform(platform))
 
@@ -642,13 +611,3 @@ class HKDevice:
         This id is random and will change if a device undergoes a hard reset.
         """
         return self.pairing_data["AccessoryPairingID"]
-
-    @property
-    def connection_info(self):
-        """Return accessory information for the main accessory."""
-        return get_bridge_information(self.accessories)
-
-    @property
-    def name(self):
-        """Name of the bridge accessory."""
-        return get_accessory_name(self.connection_info) or self.unique_id
