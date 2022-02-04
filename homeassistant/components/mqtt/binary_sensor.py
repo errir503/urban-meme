@@ -20,6 +20,8 @@ from homeassistant.const import (
     CONF_PAYLOAD_OFF,
     CONF_PAYLOAD_ON,
     CONF_VALUE_TEMPLATE,
+    STATE_UNAVAILABLE,
+    STATE_UNKNOWN,
 )
 from homeassistant.core import HomeAssistant, callback
 import homeassistant.helpers.config_validation as cv
@@ -27,6 +29,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 import homeassistant.helpers.event as evt
 from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.reload import async_setup_reload_service
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.util import dt as dt_util
 
@@ -96,7 +99,7 @@ async def _async_setup_entity(
     async_add_entities([MqttBinarySensor(hass, config, config_entry, discovery_data)])
 
 
-class MqttBinarySensor(MqttEntity, BinarySensorEntity):
+class MqttBinarySensor(MqttEntity, BinarySensorEntity, RestoreEntity):
     """Representation a binary sensor that is updated by MQTT."""
 
     _entity_id_format = binary_sensor.ENTITY_ID_FORMAT
@@ -114,6 +117,42 @@ class MqttBinarySensor(MqttEntity, BinarySensorEntity):
 
         MqttEntity.__init__(self, hass, config, config_entry, discovery_data)
 
+    async def async_added_to_hass(self) -> None:
+        """Restore state for entities with expire_after set."""
+        await super().async_added_to_hass()
+        if (
+            (expire_after := self._config.get(CONF_EXPIRE_AFTER)) is not None
+            and expire_after > 0
+            and (last_state := await self.async_get_last_state()) is not None
+            and last_state.state not in [STATE_UNKNOWN, STATE_UNAVAILABLE]
+        ):
+            expiration_at = last_state.last_changed + timedelta(seconds=expire_after)
+            if expiration_at < (time_now := dt_util.utcnow()):
+                # Skip reactivating the binary_sensor
+                _LOGGER.debug("Skip state recovery after reload for %s", self.entity_id)
+                return
+            self._expired = False
+            self._state = last_state.state
+
+            self._expiration_trigger = async_track_point_in_utc_time(
+                self.hass, self._value_is_expired, expiration_at
+            )
+            _LOGGER.debug(
+                "State recovered after reload for %s, remaining time before expiring %s",
+                self.entity_id,
+                expiration_at - time_now,
+            )
+
+    async def async_will_remove_from_hass(self) -> None:
+        """Remove exprire triggers."""
+        # Clean up expire triggers
+        if self._expiration_trigger:
+            _LOGGER.debug("Clean up expire after trigger for %s", self.entity_id)
+            self._expiration_trigger()
+            self._expiration_trigger = None
+            self._expired = False
+        await MqttEntity.async_will_remove_from_hass(self)
+
     @staticmethod
     def config_schema():
         """Return the config schema."""
@@ -125,7 +164,7 @@ class MqttBinarySensor(MqttEntity, BinarySensorEntity):
             entity=self,
         ).async_render_with_possible_json_value
 
-    async def _subscribe_topics(self):
+    def _prepare_subscribe_topics(self):
         """(Re)Subscribe to topics."""
 
         @callback
@@ -202,7 +241,7 @@ class MqttBinarySensor(MqttEntity, BinarySensorEntity):
 
             self.async_write_ha_state()
 
-        self._sub_state = await subscription.async_subscribe_topics(
+        self._sub_state = subscription.async_prepare_subscribe_topics(
             self.hass,
             self._sub_state,
             {
@@ -214,6 +253,10 @@ class MqttBinarySensor(MqttEntity, BinarySensorEntity):
                 }
             },
         )
+
+    async def _subscribe_topics(self):
+        """(Re)Subscribe to topics."""
+        await subscription.async_subscribe_topics(self.hass, self._sub_state)
 
     @callback
     def _value_is_expired(self, *_):
