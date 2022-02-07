@@ -365,6 +365,7 @@ FLOWS = [
     "wiffi",
     "wilight",
     "withings",
+    "wiz",
     "wled",
     "wolflink",
     "xbox",
@@ -377,5 +378,6 @@ FLOWS = [
     "zerproc",
     "zha",
     "zwave",
-    "zwave_js"
+    "zwave_js",
+    "zwave_me"
 ]
