@@ -8,18 +8,29 @@ from homeassistant.components.group import DOMAIN, async_setup_entry
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import RESULT_TYPE_CREATE_ENTRY, RESULT_TYPE_FORM
 
+from tests.common import MockConfigEntry
+
 
 @pytest.mark.parametrize(
-    "group_type,group_state,member_state,member_attributes",
+    "group_type,group_state,member_state,member_attributes,extra_input,extra_options,extra_attrs",
     (
-        ("cover", "open", "open", {}),
-        ("fan", "on", "on", {}),
-        ("light", "on", "on", {}),
-        ("media_player", "on", "on", {}),
+        ("binary_sensor", "on", "on", {}, {}, {"all": False}, {}),
+        ("binary_sensor", "on", "on", {}, {"all": True}, {"all": True}, {}),
+        ("cover", "open", "open", {}, {}, {}, {}),
+        ("fan", "on", "on", {}, {}, {}, {}),
+        ("light", "on", "on", {}, {}, {}, {}),
+        ("media_player", "on", "on", {}, {}, {}, {}),
     ),
 )
 async def test_config_flow(
-    hass: HomeAssistant, group_type, group_state, member_state, member_attributes
+    hass: HomeAssistant,
+    group_type,
+    group_state,
+    member_state,
+    member_attributes,
+    extra_input,
+    extra_options,
+    extra_attrs,
 ) -> None:
     """Test the config flow."""
     members = [f"{group_type}.one", f"{group_type}.two"]
@@ -48,6 +59,7 @@ async def test_config_flow(
             {
                 "name": "Living Room",
                 "entities": members,
+                **extra_input,
             },
         )
         await hass.async_block_till_done()
@@ -59,6 +71,7 @@ async def test_config_flow(
         "group_type": group_type,
         "entities": members,
         "name": "Living Room",
+        **extra_options,
     }
     assert len(mock_setup_entry.mock_calls) == 1
 
@@ -68,11 +81,14 @@ async def test_config_flow(
         "group_type": group_type,
         "name": "Living Room",
         "entities": members,
+        **extra_options,
     }
 
     state = hass.states.get(f"{group_type}.living_room")
     assert state.state == group_state
     assert state.attributes["entity_id"] == members
+    for key in extra_attrs:
+        assert state.attributes[key] == extra_attrs[key]
 
 
 def get_suggested(schema, key):
@@ -87,10 +103,18 @@ def get_suggested(schema, key):
 
 
 @pytest.mark.parametrize(
-    "group_type,member_state",
-    (("cover", "open"), ("fan", "on"), ("light", "on"), ("media_player", "on")),
+    "group_type,member_state,extra_options",
+    (
+        ("binary_sensor", "on", {"all": False}),
+        ("cover", "open", {}),
+        ("fan", "on", {}),
+        ("light", "on", {}),
+        ("media_player", "on", {}),
+    ),
 )
-async def test_options(hass: HomeAssistant, group_type, member_state) -> None:
+async def test_options(
+    hass: HomeAssistant, group_type, member_state, extra_options
+) -> None:
     """Test reconfiguring."""
     members1 = [f"{group_type}.one", f"{group_type}.two"]
     members2 = [f"{group_type}.four", f"{group_type}.five"]
@@ -100,49 +124,30 @@ async def test_options(hass: HomeAssistant, group_type, member_state) -> None:
     for member in members2:
         hass.states.async_set(member, member_state, {})
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
-    )
-    assert result["type"] == RESULT_TYPE_FORM
-    assert result["errors"] is None
-
-    assert get_suggested(result["data_schema"].schema, "group_type") is None
-
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        {"group_type": group_type},
-    )
-    await hass.async_block_till_done()
-    assert result["type"] == RESULT_TYPE_FORM
-    assert result["step_id"] == group_type
-
-    assert get_suggested(result["data_schema"].schema, "entities") is None
-    assert get_suggested(result["data_schema"].schema, "name") is None
-
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        {
-            "name": "Bed Room",
+    switch_as_x_config_entry = MockConfigEntry(
+        data={},
+        domain=DOMAIN,
+        options={
             "entities": members1,
+            "group_type": group_type,
+            "name": "Bed Room",
+            **extra_options,
         },
+        title="Bed Room",
     )
+    switch_as_x_config_entry.add_to_hass(hass)
+
+    assert await hass.config_entries.async_setup(switch_as_x_config_entry.entry_id)
     await hass.async_block_till_done()
 
-    assert result["type"] == RESULT_TYPE_CREATE_ENTRY
     state = hass.states.get(f"{group_type}.bed_room")
     assert state.attributes["entity_id"] == members1
 
     config_entry = hass.config_entries.async_entries(DOMAIN)[0]
-    assert config_entry.data == {}
-    assert config_entry.options == {
-        "group_type": group_type,
-        "entities": members1,
-        "name": "Bed Room",
-    }
 
     result = await hass.config_entries.options.async_init(config_entry.entry_id)
     assert result["type"] == RESULT_TYPE_FORM
-    assert result["step_id"] == f"{group_type}_options"
+    assert result["step_id"] == group_type
     assert get_suggested(result["data_schema"].schema, "entities") == members1
     assert "name" not in result["data_schema"].schema
 
@@ -157,12 +162,14 @@ async def test_options(hass: HomeAssistant, group_type, member_state) -> None:
         "group_type": group_type,
         "entities": members2,
         "name": "Bed Room",
+        **extra_options,
     }
     assert config_entry.data == {}
     assert config_entry.options == {
         "group_type": group_type,
         "entities": members2,
         "name": "Bed Room",
+        **extra_options,
     }
     assert config_entry.title == "Bed Room"
 

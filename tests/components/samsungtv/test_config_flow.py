@@ -6,7 +6,12 @@ import pytest
 from samsungctl.exceptions import AccessDenied, UnhandledResponse
 from samsungtvws.async_remote import SamsungTVWSAsyncRemote
 from samsungtvws.exceptions import ConnectionFailure, HttpApiError
-from websockets.exceptions import WebSocketException, WebSocketProtocolError
+from websockets import frames
+from websockets.exceptions import (
+    ConnectionClosedError,
+    WebSocketException,
+    WebSocketProtocolError,
+)
 
 from homeassistant import config_entries
 from homeassistant.components import dhcp, ssdp, zeroconf
@@ -281,6 +286,26 @@ async def test_user_websocket_not_supported(hass: HomeAssistant) -> None:
         )
         assert result["type"] == "abort"
         assert result["reason"] == RESULT_NOT_SUPPORTED
+
+
+async def test_user_websocket_access_denied(
+    hass: HomeAssistant, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test starting a flow by user for not supported device."""
+    with patch(
+        "homeassistant.components.samsungtv.bridge.Remote",
+        side_effect=OSError("Boom"),
+    ), patch(
+        "homeassistant.components.samsungtv.bridge.SamsungTVWSAsyncRemote.open",
+        side_effect=ConnectionClosedError(rcvd=None, sent=frames.Close(1002, "")),
+    ):
+        # websocket device not supported
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}, data=MOCK_USER_DATA
+        )
+    assert result["type"] == "abort"
+    assert result["reason"] == RESULT_NOT_SUPPORTED
+    assert "Please check the Device Connection Manager on your TV" in caplog.text
 
 
 async def test_user_not_successful(hass: HomeAssistant) -> None:
@@ -1403,3 +1428,71 @@ async def test_update_incorrect_udn_matching_mac_unique_id_added_from_ssdp(
     assert result["reason"] == "already_configured"
     assert entry.data[CONF_MAC] == "aa:bb:ww:ii:ff:ii"
     assert entry.unique_id == "be9554b9-c9fb-41f4-8920-22da015376a4"
+
+
+@pytest.mark.usefixtures("remotews")
+async def test_update_incorrect_udn_matching_mac_from_dhcp(
+    hass: HomeAssistant,
+) -> None:
+    """Test that DHCP updates the wrong udn from ssdp via mac match."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={**MOCK_WS_ENTRY, CONF_MAC: "aa:bb:ww:ii:ff:ii"},
+        source=config_entries.SOURCE_SSDP,
+        unique_id="0d1cef00-00dc-1000-9c80-4844f7b172de",
+    )
+    entry.add_to_hass(hass)
+    with patch(
+        "homeassistant.components.samsungtv.async_setup",
+        return_value=True,
+    ) as mock_setup, patch(
+        "homeassistant.components.samsungtv.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry:
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": config_entries.SOURCE_DHCP},
+            data=MOCK_DHCP_DATA,
+        )
+        await hass.async_block_till_done()
+        assert len(mock_setup.mock_calls) == 1
+        assert len(mock_setup_entry.mock_calls) == 1
+
+    assert result["type"] == "abort"
+    assert result["reason"] == "already_configured"
+    assert entry.data[CONF_MAC] == "aa:bb:ww:ii:ff:ii"
+    assert entry.unique_id == "be9554b9-c9fb-41f4-8920-22da015376a4"
+
+
+@pytest.mark.usefixtures("remotews")
+async def test_no_update_incorrect_udn_not_matching_mac_from_dhcp(
+    hass: HomeAssistant,
+) -> None:
+    """Test that DHCP does not update the wrong udn from ssdp via host match."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={**MOCK_WS_ENTRY, CONF_MAC: "aa:bb:ss:ss:dd:pp"},
+        source=config_entries.SOURCE_SSDP,
+        unique_id="0d1cef00-00dc-1000-9c80-4844f7b172de",
+    )
+    entry.add_to_hass(hass)
+    with patch(
+        "homeassistant.components.samsungtv.async_setup",
+        return_value=True,
+    ) as mock_setup, patch(
+        "homeassistant.components.samsungtv.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry:
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": config_entries.SOURCE_DHCP},
+            data=MOCK_DHCP_DATA,
+        )
+        await hass.async_block_till_done()
+        assert len(mock_setup.mock_calls) == 0
+        assert len(mock_setup_entry.mock_calls) == 0
+
+    assert result["type"] == "form"
+    assert result["step_id"] == "confirm"
+    assert entry.data[CONF_MAC] == "aa:bb:ss:ss:dd:pp"
+    assert entry.unique_id == "0d1cef00-00dc-1000-9c80-4844f7b172de"
