@@ -11,6 +11,7 @@ from homeassistant.components.forecast_solar.const import (
     CONF_AZIMUTH,
     CONF_DAMPING,
     CONF_DECLINATION,
+    CONF_INVERTER_SIZE,
     CONF_MODULES_POWER,
     DOMAIN,
 )
@@ -38,13 +39,17 @@ def mock_config_entry() -> MockConfigEntry:
             CONF_AZIMUTH: 190,
             CONF_MODULES_POWER: 5100,
             CONF_DAMPING: 0.5,
+            CONF_INVERTER_SIZE: 2000,
         },
     )
 
 
 @pytest.fixture
-def mock_forecast_solar() -> Generator[None, MagicMock, None]:
-    """Return a mocked Forecast.Solar client."""
+def mock_forecast_solar(hass) -> Generator[None, MagicMock, None]:
+    """Return a mocked Forecast.Solar client.
+
+    hass fixture included because it sets the time zone.
+    """
     with patch(
         "homeassistant.components.forecast_solar.ForecastSolar", autospec=True
     ) as forecast_solar_mock:
