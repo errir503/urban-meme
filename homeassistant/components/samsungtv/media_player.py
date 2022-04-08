@@ -24,21 +24,11 @@ from wakeonlan import send_magic_packet
 from homeassistant.components.media_player import (
     MediaPlayerDeviceClass,
     MediaPlayerEntity,
+    MediaPlayerEntityFeature,
 )
 from homeassistant.components.media_player.const import (
     MEDIA_TYPE_APP,
     MEDIA_TYPE_CHANNEL,
-    SUPPORT_NEXT_TRACK,
-    SUPPORT_PAUSE,
-    SUPPORT_PLAY,
-    SUPPORT_PLAY_MEDIA,
-    SUPPORT_PREVIOUS_TRACK,
-    SUPPORT_SELECT_SOURCE,
-    SUPPORT_TURN_OFF,
-    SUPPORT_TURN_ON,
-    SUPPORT_VOLUME_MUTE,
-    SUPPORT_VOLUME_SET,
-    SUPPORT_VOLUME_STEP,
 )
 from homeassistant.config_entries import SOURCE_REAUTH, ConfigEntry
 from homeassistant.const import (
@@ -72,15 +62,15 @@ from .const import (
 SOURCES = {"TV": "KEY_TV", "HDMI": "KEY_HDMI"}
 
 SUPPORT_SAMSUNGTV = (
-    SUPPORT_PAUSE
-    | SUPPORT_VOLUME_STEP
-    | SUPPORT_VOLUME_MUTE
-    | SUPPORT_PREVIOUS_TRACK
-    | SUPPORT_SELECT_SOURCE
-    | SUPPORT_NEXT_TRACK
-    | SUPPORT_TURN_OFF
-    | SUPPORT_PLAY
-    | SUPPORT_PLAY_MEDIA
+    MediaPlayerEntityFeature.PAUSE
+    | MediaPlayerEntityFeature.VOLUME_STEP
+    | MediaPlayerEntityFeature.VOLUME_MUTE
+    | MediaPlayerEntityFeature.PREVIOUS_TRACK
+    | MediaPlayerEntityFeature.SELECT_SOURCE
+    | MediaPlayerEntityFeature.NEXT_TRACK
+    | MediaPlayerEntityFeature.TURN_OFF
+    | MediaPlayerEntityFeature.PLAY
+    | MediaPlayerEntityFeature.PLAY_MEDIA
 )
 
 # Since the TV will take a few seconds to go to sleep
@@ -145,9 +135,9 @@ class SamsungTVDevice(MediaPlayerEntity):
         self._attr_supported_features = SUPPORT_SAMSUNGTV
         if self._on_script or self._mac:
             # Add turn-on if on_script or mac is available
-            self._attr_supported_features |= SUPPORT_TURN_ON
+            self._attr_supported_features |= MediaPlayerEntityFeature.TURN_ON
         if self._ssdp_rendering_control_location:
-            self._attr_supported_features |= SUPPORT_VOLUME_SET
+            self._attr_supported_features |= MediaPlayerEntityFeature.VOLUME_SET
 
         self._attr_device_info = DeviceInfo(
             name=self.name,
@@ -273,7 +263,10 @@ class SamsungTVDevice(MediaPlayerEntity):
         if self._dmr_device is None:
             session = async_get_clientsession(self.hass)
             upnp_requester = AiohttpSessionRequester(session)
-            upnp_factory = UpnpFactory(upnp_requester)
+            # Set non_strict to avoid invalid data sent by Samsung TV:
+            # Got invalid value for <UpnpStateVariable(PlaybackStorageMedium, string)>:
+            # NETWORK,NONE
+            upnp_factory = UpnpFactory(upnp_requester, non_strict=True)
             upnp_device: UpnpDevice | None = None
             with contextlib.suppress(UpnpConnectionError):
                 upnp_device = await upnp_factory.async_create_device(
