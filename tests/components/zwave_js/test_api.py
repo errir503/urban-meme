@@ -28,7 +28,10 @@ from zwave_js_server.model.controller import (
 )
 from zwave_js_server.model.node import Node
 
-from homeassistant.components.websocket_api.const import ERR_NOT_FOUND
+from homeassistant.components.websocket_api.const import (
+    ERR_INVALID_FORMAT,
+    ERR_NOT_FOUND,
+)
 from homeassistant.components.zwave_js.api import (
     ADDITIONAL_PROPERTIES,
     APPLICATION_VERSION,
@@ -82,14 +85,19 @@ def get_device(hass, node):
     return dev_reg.async_get_device({device_id})
 
 
-async def test_network_status(hass, integration, hass_ws_client):
+async def test_network_status(hass, multisensor_6, integration, hass_ws_client):
     """Test the network status websocket command."""
     entry = integration
     ws_client = await hass_ws_client(hass)
 
+    # Try API call with entry ID
     with patch("zwave_js_server.model.controller.Controller.async_get_state"):
         await ws_client.send_json(
-            {ID: 2, TYPE: "zwave_js/network_status", ENTRY_ID: entry.entry_id}
+            {
+                ID: 1,
+                TYPE: "zwave_js/network_status",
+                ENTRY_ID: entry.entry_id,
+            }
         )
         msg = await ws_client.receive_json()
         result = msg["result"]
@@ -98,17 +106,93 @@ async def test_network_status(hass, integration, hass_ws_client):
     assert result["client"]["server_version"] == "1.0.0"
     assert result["controller"]["inclusion_state"] == InclusionState.IDLE
 
-    # Test sending command with not loaded entry fails
+    # Try API call with device ID
+    dev_reg = dr.async_get(hass)
+    device = dev_reg.async_get_device(
+        identifiers={(DOMAIN, "3245146787-52")},
+    )
+    assert device
+    with patch("zwave_js_server.model.controller.Controller.async_get_state"):
+        await ws_client.send_json(
+            {
+                ID: 2,
+                TYPE: "zwave_js/network_status",
+                DEVICE_ID: device.id,
+            }
+        )
+        msg = await ws_client.receive_json()
+        result = msg["result"]
+
+    assert result["client"]["ws_server_url"] == "ws://test:3000/zjs"
+    assert result["client"]["server_version"] == "1.0.0"
+    assert result["controller"]["inclusion_state"] == InclusionState.IDLE
+
+    # Test sending command with invalid config entry ID fails
+    await ws_client.send_json(
+        {
+            ID: 3,
+            TYPE: "zwave_js/network_status",
+            ENTRY_ID: "fake_id",
+        }
+    )
+    msg = await ws_client.receive_json()
+
+    assert not msg["success"]
+    assert msg["error"]["code"] == ERR_NOT_FOUND
+
+    # Test sending command with invalid device ID fails
+    await ws_client.send_json(
+        {
+            ID: 4,
+            TYPE: "zwave_js/network_status",
+            DEVICE_ID: "fake_id",
+        }
+    )
+    msg = await ws_client.receive_json()
+
+    assert not msg["success"]
+    assert msg["error"]["code"] == ERR_NOT_FOUND
+
+    # Test sending command with not loaded entry fails with config entry ID
     await hass.config_entries.async_unload(entry.entry_id)
     await hass.async_block_till_done()
 
     await ws_client.send_json(
-        {ID: 3, TYPE: "zwave_js/network_status", ENTRY_ID: entry.entry_id}
+        {
+            ID: 5,
+            TYPE: "zwave_js/network_status",
+            ENTRY_ID: entry.entry_id,
+        }
     )
     msg = await ws_client.receive_json()
 
     assert not msg["success"]
     assert msg["error"]["code"] == ERR_NOT_LOADED
+
+    # Test sending command with not loaded entry fails with device ID
+    await ws_client.send_json(
+        {
+            ID: 6,
+            TYPE: "zwave_js/network_status",
+            DEVICE_ID: device.id,
+        }
+    )
+    msg = await ws_client.receive_json()
+
+    assert not msg["success"]
+    assert msg["error"]["code"] == ERR_NOT_LOADED
+
+    # Test sending command with no device ID or entry ID fails
+    await ws_client.send_json(
+        {
+            ID: 7,
+            TYPE: "zwave_js/network_status",
+        }
+    )
+    msg = await ws_client.receive_json()
+
+    assert not msg["success"]
+    assert msg["error"]["code"] == ERR_INVALID_FORMAT
 
 
 async def test_node_ready(
@@ -261,7 +345,6 @@ async def test_node_metadata(hass, wallmote_central_scene, integration, hass_ws_
         result["device_database_url"]
         == "https://devices.zwave-js.io/?jumpTo=0x0086:0x0002:0x0082:0.0"
     )
-    assert result["comments"] == [{"level": "info", "text": "test"}]
 
     # Test getting non-existent node fails
     await ws_client.send_json(
@@ -290,6 +373,26 @@ async def test_node_metadata(hass, wallmote_central_scene, integration, hass_ws_
 
     assert not msg["success"]
     assert msg["error"]["code"] == ERR_NOT_LOADED
+
+
+async def test_node_comments(hass, wallmote_central_scene, integration, hass_ws_client):
+    """Test the node comments websocket command."""
+    ws_client = await hass_ws_client(hass)
+
+    dev_reg = dr.async_get(hass)
+    device = dev_reg.async_get_device({(DOMAIN, "3245146787-35")})
+    assert device
+
+    await ws_client.send_json(
+        {
+            ID: 3,
+            TYPE: "zwave_js/node_comments",
+            DEVICE_ID: device.id,
+        }
+    )
+    msg = await ws_client.receive_json()
+    result = msg["result"]
+    assert result["comments"] == [{"level": "info", "text": "test"}]
 
 
 async def test_add_node(
@@ -1044,6 +1147,8 @@ async def test_get_provisioning_entries(hass, integration, client, hass_ws_clien
         {
             "dsk": "test",
             "security_classes": [SecurityClass.S2_UNAUTHENTICATED],
+            "requested_security_classes": None,
+            "status": 0,
             "additional_properties": {"fake": "test"},
         }
     ]
@@ -1132,6 +1237,8 @@ async def test_parse_qr_code_string(hass, integration, client, hass_ws_client):
         "max_inclusion_request_interval": 1,
         "uuid": "test",
         "supported_protocols": [Protocols.ZWAVE],
+        "status": 0,
+        "requested_security_classes": None,
         "additional_properties": {},
     }
 
@@ -3432,6 +3539,7 @@ async def test_check_for_config_updates(hass, client, integration, hass_ws_clien
     client.async_send_command.return_value = {
         "updateAvailable": True,
         "newVersion": "test",
+        "installedVersion": "test",
     }
     await ws_client.send_json(
         {
