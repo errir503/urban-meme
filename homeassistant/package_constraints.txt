@@ -8,7 +8,7 @@ async-upnp-client==0.31.2
 async_timeout==4.0.2
 atomicwrites==1.4.0
 attrs==21.2.0
-awesomeversion==22.5.2
+awesomeversion==22.6.0
 bcrypt==3.1.7
 certifi>=2021.5.30
 ciso8601==2.2.0
@@ -20,7 +20,7 @@ httpx==0.23.0
 ifaddr==0.1.7
 jinja2==3.1.2
 lru-dict==1.1.7
-orjson==3.7.2
+orjson==3.7.5
 paho-mqtt==1.6.1
 pillow==9.1.1
 pip>=21.0,<22.2
@@ -114,3 +114,7 @@ backoff<2.0
 # Breaking change in version
 # https://github.com/samuelcolvin/pydantic/issues/4092
 pydantic!=1.9.1
+
+# Pin charset-normalizer to 2.0.12 due to version conflict.
+# https://github.com/home-assistant/core/pull/74104
+charset-normalizer==2.0.12
