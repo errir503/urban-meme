@@ -9,7 +9,7 @@ from functools import cached_property
 import logging
 import random
 import time
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from zigpy import types
 import zigpy.device
@@ -30,6 +30,7 @@ from homeassistant.helpers.event import async_track_time_interval
 
 from . import channels
 from .const import (
+    ATTR_ACTIVE_COORDINATOR,
     ATTR_ARGS,
     ATTR_ATTRIBUTE,
     ATTR_AVAILABLE,
@@ -84,6 +85,8 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 _UPDATE_ALIVE_INTERVAL = (60, 90)
 _CHECKIN_GRACE_PERIODS = 2
+
+_ZHADeviceSelfT = TypeVar("_ZHADeviceSelfT", bound="ZHADevice")
 
 
 class DeviceStatus(Enum):
@@ -252,11 +255,19 @@ class ZHADevice(LogMixin):
 
     @property
     def is_coordinator(self) -> bool | None:
-        """Return true if this device represents the coordinator."""
+        """Return true if this device represents a coordinator."""
         if self._zigpy_device.node_desc is None:
             return None
 
         return self._zigpy_device.node_desc.is_coordinator
+
+    @property
+    def is_active_coordinator(self) -> bool:
+        """Return true if this device is the active coordinator."""
+        if not self.is_coordinator:
+            return False
+
+        return self.ieee == self.gateway.coordinator_ieee
 
     @property
     def is_end_device(self) -> bool | None:
@@ -331,12 +342,12 @@ class ZHADevice(LogMixin):
 
     @classmethod
     def new(
-        cls,
+        cls: type[_ZHADeviceSelfT],
         hass: HomeAssistant,
         zigpy_dev: zigpy.device.Device,
         gateway: ZHAGateway,
         restored: bool = False,
-    ):
+    ) -> _ZHADeviceSelfT:
         """Create new device."""
         zha_dev = cls(hass, zigpy_dev, gateway)
         zha_dev.channels = channels.Channels.new(zha_dev)
@@ -499,6 +510,7 @@ class ZHADevice(LogMixin):
         """Get ZHA device information."""
         device_info: dict[str, Any] = {}
         device_info.update(self.device_info)
+        device_info[ATTR_ACTIVE_COORDINATOR] = self.is_active_coordinator
         device_info["entities"] = [
             {
                 "entity_id": entity_ref.reference_id,
