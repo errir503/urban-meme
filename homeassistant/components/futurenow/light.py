@@ -1,8 +1,6 @@
 """Support for FutureNow Ethernet unit outputs as Lights."""
 from __future__ import annotations
 
-from typing import Any
-
 import pyfnip
 import voluptuous as vol
 
@@ -108,18 +106,18 @@ class FutureNowLight(LightEntity):
         return self._brightness
 
     @property
-    def color_mode(self) -> ColorMode:
+    def color_mode(self) -> str:
         """Return the color mode of the light."""
         if self._dimmable:
             return ColorMode.BRIGHTNESS
         return ColorMode.ONOFF
 
     @property
-    def supported_color_modes(self) -> set[ColorMode]:
+    def supported_color_modes(self) -> set[str] | None:
         """Flag supported color modes."""
         return {self.color_mode}
 
-    def turn_on(self, **kwargs: Any) -> None:
+    def turn_on(self, **kwargs):
         """Turn the light on."""
         if self._dimmable:
             level = kwargs.get(ATTR_BRIGHTNESS, self._last_brightness)
@@ -127,13 +125,13 @@ class FutureNowLight(LightEntity):
             level = 255
         self._light.turn_on(to_futurenow_level(level))
 
-    def turn_off(self, **kwargs: Any) -> None:
+    def turn_off(self, **kwargs):
         """Turn the light off."""
         self._light.turn_off()
         if self._brightness:
             self._last_brightness = self._brightness
 
-    def update(self) -> None:
+    def update(self):
         """Fetch new state data for this light."""
         state = int(self._light.is_on())
         self._state = bool(state)

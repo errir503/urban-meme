@@ -1,6 +1,4 @@
 """Platform for light integration."""
-from typing import Any
-
 from smarttub import SpaLight
 
 from homeassistant.components.light import (
@@ -127,7 +125,7 @@ class SmartTubLight(SmartTubEntity, LightEntity):
 
         return SpaLight.LightMode[effect.upper()]
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs):
         """Turn the light on."""
 
         mode = self._effect_to_light_mode(kwargs.get(ATTR_EFFECT, DEFAULT_LIGHT_EFFECT))
@@ -138,7 +136,7 @@ class SmartTubLight(SmartTubEntity, LightEntity):
         await self.light.set_mode(mode, intensity)
         await self.coordinator.async_request_refresh()
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
+    async def async_turn_off(self, **kwargs):
         """Turn the light off."""
         await self.light.set_mode(SpaLight.LightMode.OFF, 0)
         await self.coordinator.async_request_refresh()

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from pymystrom.bulb import MyStromBulb
 from pymystrom.exceptions import MyStromConnectionError
@@ -121,7 +120,7 @@ class MyStromLight(LightEntity):
         """Return true if light is on."""
         return self._state
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs):
         """Turn on the light."""
         brightness = kwargs.get(ATTR_BRIGHTNESS, 255)
         effect = kwargs.get(ATTR_EFFECT)
@@ -148,14 +147,14 @@ class MyStromLight(LightEntity):
         except MyStromConnectionError:
             _LOGGER.warning("No route to myStrom bulb")
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
+    async def async_turn_off(self, **kwargs):
         """Turn off the bulb."""
         try:
             await self._bulb.set_off()
         except MyStromConnectionError:
             _LOGGER.warning("The myStrom bulb not online")
 
-    async def async_update(self) -> None:
+    async def async_update(self):
         """Fetch new state data for this light."""
         try:
             await self._bulb.get_state()

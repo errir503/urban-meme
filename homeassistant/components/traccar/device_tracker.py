@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Awaitable, Callable
 from datetime import datetime, timedelta
 import logging
 
@@ -19,8 +20,7 @@ import voluptuous as vol
 from homeassistant.components.device_tracker import (
     CONF_SCAN_INTERVAL,
     PLATFORM_SCHEMA as PARENT_PLATFORM_SCHEMA,
-    AsyncSeeCallback,
-    SourceType,
+    SOURCE_TYPE_GPS,
 )
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
 from homeassistant.config_entries import ConfigEntry
@@ -174,7 +174,7 @@ async def async_setup_entry(
 async def async_setup_scanner(
     hass: HomeAssistant,
     config: ConfigType,
-    async_see: AsyncSeeCallback,
+    async_see: Callable[..., Awaitable[None]],
     discovery_info: DiscoveryInfoType | None = None,
 ) -> bool:
     """Validate the configuration and return a Traccar scanner."""
@@ -208,7 +208,7 @@ class TraccarScanner:
         self,
         api: ApiClient,
         hass: HomeAssistant,
-        async_see: AsyncSeeCallback,
+        async_see: Callable[..., Awaitable[None]],
         scan_interval: timedelta,
         max_accuracy: int,
         skip_accuracy_on: bool,
@@ -407,9 +407,9 @@ class TraccarEntity(TrackerEntity, RestoreEntity):
         return {"name": self._name, "identifiers": {(DOMAIN, self._unique_id)}}
 
     @property
-    def source_type(self) -> SourceType:
+    def source_type(self):
         """Return the source type, eg gps or router, of the device."""
-        return SourceType.GPS
+        return SOURCE_TYPE_GPS
 
     async def async_added_to_hass(self):
         """Register state update callback."""

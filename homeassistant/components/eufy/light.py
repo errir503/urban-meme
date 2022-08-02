@@ -1,8 +1,6 @@
 """Support for Eufy lights."""
 from __future__ import annotations
 
-from typing import Any
-
 import lakeside
 
 from homeassistant.components.light import (
@@ -61,7 +59,7 @@ class EufyLight(LightEntity):
             self._attr_supported_color_modes = {ColorMode.COLOR_TEMP, ColorMode.HS}
         self._bulb.connect()
 
-    def update(self) -> None:
+    def update(self):
         """Synchronise state from the bulb."""
         self._bulb.update()
         if self._bulb.power:
@@ -95,12 +93,12 @@ class EufyLight(LightEntity):
         return int(self._brightness * 255 / 100)
 
     @property
-    def min_mireds(self) -> int:
+    def min_mireds(self):
         """Return minimum supported color temperature."""
         return kelvin_to_mired(EUFY_MAX_KELVIN)
 
     @property
-    def max_mireds(self) -> int:
+    def max_mireds(self):
         """Return maximum supported color temperature."""
         return kelvin_to_mired(EUFY_MIN_KELVIN)
 
@@ -118,7 +116,7 @@ class EufyLight(LightEntity):
         return self._hs
 
     @property
-    def color_mode(self) -> ColorMode:
+    def color_mode(self) -> str | None:
         """Return the color mode of the light."""
         if self._type == "T1011":
             return ColorMode.BRIGHTNESS
@@ -129,7 +127,7 @@ class EufyLight(LightEntity):
             return ColorMode.COLOR_TEMP
         return ColorMode.HS
 
-    def turn_on(self, **kwargs: Any) -> None:
+    def turn_on(self, **kwargs):
         """Turn the specified light on."""
         brightness = kwargs.get(ATTR_BRIGHTNESS)
         colortemp = kwargs.get(ATTR_COLOR_TEMP)
@@ -171,7 +169,7 @@ class EufyLight(LightEntity):
                 power=True, brightness=brightness, temperature=temp, colors=rgb
             )
 
-    def turn_off(self, **kwargs: Any) -> None:
+    def turn_off(self, **kwargs):
         """Turn the specified light off."""
         try:
             self._bulb.set_state(power=False)

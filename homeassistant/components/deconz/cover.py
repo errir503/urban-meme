@@ -49,10 +49,11 @@ async def async_setup_entry(
     )
 
 
-class DeconzCover(DeconzDevice[Cover], CoverEntity):
+class DeconzCover(DeconzDevice, CoverEntity):
     """Representation of a deCONZ cover."""
 
     TYPE = DOMAIN
+    _device: Cover
 
     def __init__(self, cover_id: str, gateway: DeconzGateway) -> None:
         """Set up cover device."""

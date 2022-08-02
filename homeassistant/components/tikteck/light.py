@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 import tikteck
 import voluptuous as vol
@@ -112,7 +111,7 @@ class TikteckLight(LightEntity):
         """Set the bulb state."""
         return self._bulb.set_state(red, green, blue, brightness)
 
-    def turn_on(self, **kwargs: Any) -> None:
+    def turn_on(self, **kwargs):
         """Turn the specified light on."""
         self._state = True
 
@@ -129,7 +128,7 @@ class TikteckLight(LightEntity):
         self.set_state(rgb[0], rgb[1], rgb[2], self.brightness)
         self.schedule_update_ha_state()
 
-    def turn_off(self, **kwargs: Any) -> None:
+    def turn_off(self, **kwargs):
         """Turn the specified light off."""
         self._state = False
         self.set_state(0, 0, 0, 0)

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 from haphilipsjs import PhilipsTV
 from haphilipsjs.typing import AmbilightCurrentConfiguration
@@ -338,7 +337,7 @@ class PhilipsTVLightEntity(
         if await self._tv.setAmbilightCurrentConfiguration(config) is False:
             raise Exception("Failed to set ambilight mode")
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs) -> None:
         """Turn the bulb on."""
         brightness = kwargs.get(ATTR_BRIGHTNESS, self.brightness)
         hs_color = kwargs.get(ATTR_HS_COLOR, self.hs_color)
@@ -379,7 +378,7 @@ class PhilipsTVLightEntity(
         self._update_from_coordinator()
         self.async_write_ha_state()
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
+    async def async_turn_off(self, **kwargs) -> None:
         """Turn of ambilight."""
 
         if not self._tv.on:

@@ -1,12 +1,7 @@
 {
     "config": {
-        "abort": {
-            "already_configured": "Enheten \u00e4r redan konfigurerad"
-        },
         "error": {
-            "cannot_connect": "Det gick inte att ansluta.",
-            "invalid_pin": "Ogiltig PIN-kod",
-            "unknown": "Ov\u00e4ntat fel"
+            "invalid_pin": "Ogiltig PIN-kod"
         },
         "step": {
             "pair": {
@@ -14,18 +9,7 @@
                     "pin": "PIN-kod"
                 },
                 "title": "Para ihop"
-            },
-            "user": {
-                "data": {
-                    "api_version": "API-version",
-                    "host": "V\u00e4rd"
-                }
             }
-        }
-    },
-    "device_automation": {
-        "trigger_type": {
-            "turn_on": "Enheten uppmanas att sl\u00e5s p\u00e5"
         }
     }
 }

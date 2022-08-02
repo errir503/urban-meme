@@ -1,14 +1,4 @@
 {
-    "config": {
-        "step": {
-            "user": {
-                "data": {
-                    "host": "V\u00e4rd",
-                    "port": "Port"
-                }
-            }
-        }
-    },
     "options": {
         "step": {
             "device_selection": {

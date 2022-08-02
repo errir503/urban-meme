@@ -7,7 +7,6 @@ from datetime import timedelta
 from functools import partial
 import logging
 from math import ceil
-from typing import Any
 
 from miio import (
     Ceil,
@@ -293,7 +292,7 @@ class XiaomiPhilipsAbstractLight(XiaomiMiioEntity, LightEntity):
 
             return False
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs):
         """Turn the light on."""
         if ATTR_BRIGHTNESS in kwargs:
             brightness = kwargs[ATTR_BRIGHTNESS]
@@ -312,11 +311,11 @@ class XiaomiPhilipsAbstractLight(XiaomiMiioEntity, LightEntity):
         else:
             await self._try_command("Turning the light on failed.", self._device.on)
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
+    async def async_turn_off(self, **kwargs):
         """Turn the light off."""
         await self._try_command("Turning the light off failed.", self._device.off)
 
-    async def async_update(self) -> None:
+    async def async_update(self):
         """Fetch state from the device."""
         try:
             state = await self.hass.async_add_executor_job(self._device.status)
@@ -342,7 +341,7 @@ class XiaomiPhilipsGenericLight(XiaomiPhilipsAbstractLight):
 
         self._state_attrs.update({ATTR_SCENE: None, ATTR_DELAYED_TURN_OFF: None})
 
-    async def async_update(self) -> None:
+    async def async_update(self):
         """Fetch state from the device."""
         try:
             state = await self.hass.async_add_executor_job(self._device.status)
@@ -431,7 +430,7 @@ class XiaomiPhilipsBulb(XiaomiPhilipsGenericLight):
         """Return the warmest color_temp that this light supports."""
         return 333
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs):
         """Turn the light on."""
         if ATTR_COLOR_TEMP in kwargs:
             color_temp = kwargs[ATTR_COLOR_TEMP]
@@ -498,7 +497,7 @@ class XiaomiPhilipsBulb(XiaomiPhilipsGenericLight):
         else:
             await self._try_command("Turning the light on failed.", self._device.on)
 
-    async def async_update(self) -> None:
+    async def async_update(self):
         """Fetch state from the device."""
         try:
             state = await self.hass.async_add_executor_job(self._device.status)
@@ -557,7 +556,7 @@ class XiaomiPhilipsCeilingLamp(XiaomiPhilipsBulb):
         """Return the warmest color_temp that this light supports."""
         return 370
 
-    async def async_update(self) -> None:
+    async def async_update(self):
         """Fetch state from the device."""
         try:
             state = await self.hass.async_add_executor_job(self._device.status)
@@ -603,7 +602,7 @@ class XiaomiPhilipsEyecareLamp(XiaomiPhilipsGenericLight):
             {ATTR_REMINDER: None, ATTR_NIGHT_LIGHT_MODE: None, ATTR_EYECARE_MODE: None}
         )
 
-    async def async_update(self) -> None:
+    async def async_update(self):
         """Fetch state from the device."""
         try:
             state = await self.hass.async_add_executor_job(self._device.status)
@@ -715,7 +714,7 @@ class XiaomiPhilipsEyecareLampAmbientLight(XiaomiPhilipsAbstractLight):
             unique_id = f"{unique_id}-ambient"
         super().__init__(name, device, entry, unique_id)
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs):
         """Turn the light on."""
         if ATTR_BRIGHTNESS in kwargs:
             brightness = kwargs[ATTR_BRIGHTNESS]
@@ -740,13 +739,13 @@ class XiaomiPhilipsEyecareLampAmbientLight(XiaomiPhilipsAbstractLight):
                 "Turning the ambient light on failed.", self._device.ambient_on
             )
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
+    async def async_turn_off(self, **kwargs):
         """Turn the light off."""
         await self._try_command(
             "Turning the ambient light off failed.", self._device.ambient_off
         )
 
-    async def async_update(self) -> None:
+    async def async_update(self):
         """Fetch state from the device."""
         try:
             state = await self.hass.async_add_executor_job(self._device.status)
@@ -806,7 +805,7 @@ class XiaomiPhilipsMoonlightLamp(XiaomiPhilipsBulb):
             return ColorMode.HS
         return ColorMode.COLOR_TEMP
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs):
         """Turn the light on."""
         if ATTR_COLOR_TEMP in kwargs:
             color_temp = kwargs[ATTR_COLOR_TEMP]
@@ -906,7 +905,7 @@ class XiaomiPhilipsMoonlightLamp(XiaomiPhilipsBulb):
         else:
             await self._try_command("Turning the light on failed.", self._device.on)
 
-    async def async_update(self) -> None:
+    async def async_update(self):
         """Fetch state from the device."""
         try:
             state = await self.hass.async_add_executor_job(self._device.status)
@@ -997,7 +996,7 @@ class XiaomiGatewayLight(LightEntity):
         """Return the hs color value."""
         return self._hs
 
-    def turn_on(self, **kwargs: Any) -> None:
+    def turn_on(self, **kwargs):
         """Turn the light on."""
         if ATTR_HS_COLOR in kwargs:
             rgb = color.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR])
@@ -1013,7 +1012,7 @@ class XiaomiGatewayLight(LightEntity):
 
         self.schedule_update_ha_state()
 
-    def turn_off(self, **kwargs: Any) -> None:
+    def turn_off(self, **kwargs):
         """Turn the light off."""
         self._gateway.light.set_rgb(0, self._rgb)
         self.schedule_update_ha_state()
@@ -1072,7 +1071,7 @@ class XiaomiGatewayBulb(XiaomiGatewayDevice, LightEntity):
         """Return max cct."""
         return self._sub_device.status["cct_max"]
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs):
         """Instruct the light to turn on."""
         await self.hass.async_add_executor_job(self._sub_device.on)
 
@@ -1088,6 +1087,6 @@ class XiaomiGatewayBulb(XiaomiGatewayDevice, LightEntity):
                 self._sub_device.set_brightness, brightness
             )
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
+    async def async_turn_off(self, **kwargsf):
         """Instruct the light to turn off."""
         await self.hass.async_add_executor_job(self._sub_device.off)

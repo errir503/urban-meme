@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import asyncio
-from functools import cache
 from importlib.metadata import PackageNotFoundError, version
 import logging
 import os
@@ -24,7 +23,6 @@ def is_virtual_env() -> bool:
     )
 
 
-@cache
 def is_docker_env() -> bool:
     """Return True if we run in a docker env."""
     return Path("/.dockerenv").exists()

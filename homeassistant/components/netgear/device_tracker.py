@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 
-from homeassistant.components.device_tracker import SourceType
+from homeassistant.components.device_tracker import SOURCE_TYPE_ROUTER
 from homeassistant.components.device_tracker.config_entry import ScannerEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
@@ -79,9 +79,9 @@ class NetgearScannerEntity(NetgearBaseEntity, ScannerEntity):
         return self._active
 
     @property
-    def source_type(self) -> SourceType:
+    def source_type(self) -> str:
         """Return the source type."""
-        return SourceType.ROUTER
+        return SOURCE_TYPE_ROUTER
 
     @property
     def ip_address(self) -> str:

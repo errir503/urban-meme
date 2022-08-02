@@ -1,8 +1,7 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Detta land \u00e4r redan konfigurerat.",
-            "cannot_connect": "Det gick inte att ansluta."
+            "already_configured": "Detta land \u00e4r redan konfigurerat."
         },
         "step": {
             "user": {

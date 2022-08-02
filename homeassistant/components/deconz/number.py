@@ -81,10 +81,11 @@ async def async_setup_entry(
     )
 
 
-class DeconzNumber(DeconzDevice[Presence], NumberEntity):
+class DeconzNumber(DeconzDevice, NumberEntity):
     """Representation of a deCONZ number entity."""
 
     TYPE = DOMAIN
+    _device: Presence
 
     def __init__(
         self,

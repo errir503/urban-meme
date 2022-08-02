@@ -49,10 +49,11 @@ async def async_setup_entry(
     )
 
 
-class DeconzFan(DeconzDevice[Light], FanEntity):
+class DeconzFan(DeconzDevice, FanEntity):
     """Representation of a deCONZ fan."""
 
     TYPE = DOMAIN
+    _device: Light
     _default_on_speed = LightFanSpeed.PERCENT_50
 
     _attr_supported_features = FanEntityFeature.SET_SPEED

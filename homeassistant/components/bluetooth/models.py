@@ -4,9 +4,10 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
-from typing import TYPE_CHECKING, Any, Final
+from typing import Any, Final
 
 from bleak import BleakScanner
+from bleak.backends.device import BLEDevice
 from bleak.backends.scanner import (
     AdvertisementData,
     AdvertisementDataCallback,
@@ -14,10 +15,6 @@ from bleak.backends.scanner import (
 )
 
 from homeassistant.core import CALLBACK_TYPE, callback as hass_callback
-
-if TYPE_CHECKING:
-    from bleak.backends.device import BLEDevice
-
 
 _LOGGER = logging.getLogger(__name__)
 

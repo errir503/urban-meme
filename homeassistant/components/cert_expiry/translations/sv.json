@@ -1,8 +1,7 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Tj\u00e4nsten har redan konfigurerats",
-            "import_failed": "Importering av konfiguration misslyckades"
+            "already_configured": "Tj\u00e4nsten har redan konfigurerats"
         },
         "error": {
             "connection_refused": "Anslutningen blev tillbakavisad under anslutning till v\u00e4rd.",

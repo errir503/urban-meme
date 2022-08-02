@@ -191,7 +191,6 @@ FLOWS = {
         "kostal_plenticore",
         "kraken",
         "kulersky",
-        "lacrosse_view",
         "launch_library",
         "laundrify",
         "lg_soundbar",

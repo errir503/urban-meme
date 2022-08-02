@@ -1,8 +1,5 @@
 {
     "config": {
-        "error": {
-            "cannot_connect": "Det gick inte att ansluta."
-        },
         "step": {
             "cloud": {
                 "data": {

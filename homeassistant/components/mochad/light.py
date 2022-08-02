@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from pymochad import device
 from pymochad.exceptions import MochadException
@@ -113,7 +112,7 @@ class MochadLight(LightEntity):
             self.light.send_cmd(f"bright {mochad_brightness}")
             self._controller.read_data()
 
-    def turn_on(self, **kwargs: Any) -> None:
+    def turn_on(self, **kwargs):
         """Send the command to turn the light on."""
         _LOGGER.debug("Reconnect %s:%s", self._controller.server, self._controller.port)
         brightness = kwargs.get(ATTR_BRIGHTNESS, 255)
@@ -138,7 +137,7 @@ class MochadLight(LightEntity):
             except (MochadException, OSError) as exc:
                 _LOGGER.error("Error with mochad communication: %s", exc)
 
-    def turn_off(self, **kwargs: Any) -> None:
+    def turn_off(self, **kwargs):
         """Send the command to turn the light on."""
         _LOGGER.debug("Reconnect %s:%s", self._controller.server, self._controller.port)
         with REQ_LOCK:

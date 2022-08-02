@@ -1,8 +1,6 @@
 """Support for LightwaveRF lights."""
 from __future__ import annotations
 
-from typing import Any
-
 from homeassistant.components.light import ATTR_BRIGHTNESS, ColorMode, LightEntity
 from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant
@@ -48,7 +46,7 @@ class LWRFLight(LightEntity):
         self._attr_brightness = MAX_BRIGHTNESS
         self._lwlink = lwlink
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs):
         """Turn the LightWave light on."""
         self._attr_is_on = True
 
@@ -64,7 +62,7 @@ class LWRFLight(LightEntity):
 
         self.async_write_ha_state()
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
+    async def async_turn_off(self, **kwargs):
         """Turn the LightWave light off."""
         self._attr_is_on = False
         self._lwlink.turn_off(self._device_id, self._attr_name)

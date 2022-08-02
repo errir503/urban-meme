@@ -1,15 +1,10 @@
 {
     "config": {
         "abort": {
-            "auth_fail": "Anv\u00e4ndarnamn eller l\u00f6senord \u00e4r felaktigt.",
-            "connection_error": "Det gick inte att ansluta till en ZoneMinder-server."
-        },
-        "create_entry": {
-            "default": "ZoneMinder-server har lagts till."
+            "auth_fail": "Anv\u00e4ndarnamn eller l\u00f6senord \u00e4r felaktigt."
         },
         "error": {
-            "auth_fail": "Anv\u00e4ndarnamn eller l\u00f6senord \u00e4r felaktigt.",
-            "connection_error": "Det gick inte att ansluta till en ZoneMinder-server."
+            "auth_fail": "Anv\u00e4ndarnamn eller l\u00f6senord \u00e4r felaktigt."
         },
         "step": {
             "user": {

@@ -6,7 +6,7 @@ from collections.abc import Callable, Coroutine, Sequence
 from datetime import datetime, timedelta
 import hashlib
 from types import ModuleType
-from typing import Any, Final, Protocol, final
+from typing import Any, Final, final
 
 import attr
 import voluptuous as vol
@@ -66,16 +66,19 @@ from .const import (
     LOGGER,
     PLATFORM_TYPE_LEGACY,
     SCAN_INTERVAL,
-    SourceType,
+    SOURCE_TYPE_BLUETOOTH,
+    SOURCE_TYPE_BLUETOOTH_LE,
+    SOURCE_TYPE_GPS,
+    SOURCE_TYPE_ROUTER,
 )
 
 SERVICE_SEE: Final = "see"
 
 SOURCE_TYPES: Final[tuple[str, ...]] = (
-    SourceType.GPS,
-    SourceType.ROUTER,
-    SourceType.BLUETOOTH,
-    SourceType.BLUETOOTH_LE,
+    SOURCE_TYPE_GPS,
+    SOURCE_TYPE_ROUTER,
+    SOURCE_TYPE_BLUETOOTH,
+    SOURCE_TYPE_BLUETOOTH_LE,
 )
 
 NEW_DEVICE_DEFAULTS_SCHEMA = vol.Any(
@@ -121,48 +124,6 @@ YAML_DEVICES: Final = "known_devices.yaml"
 EVENT_NEW_DEVICE: Final = "device_tracker_new_device"
 
 
-class SeeCallback(Protocol):
-    """Protocol type for DeviceTracker.see callback."""
-
-    def __call__(
-        self,
-        mac: str | None = None,
-        dev_id: str | None = None,
-        host_name: str | None = None,
-        location_name: str | None = None,
-        gps: GPSType | None = None,
-        gps_accuracy: int | None = None,
-        battery: int | None = None,
-        attributes: dict[str, Any] | None = None,
-        source_type: SourceType | str = SourceType.GPS,
-        picture: str | None = None,
-        icon: str | None = None,
-        consider_home: timedelta | None = None,
-    ) -> None:
-        """Define see type."""
-
-
-class AsyncSeeCallback(Protocol):
-    """Protocol type for DeviceTracker.async_see callback."""
-
-    async def __call__(
-        self,
-        mac: str | None = None,
-        dev_id: str | None = None,
-        host_name: str | None = None,
-        location_name: str | None = None,
-        gps: GPSType | None = None,
-        gps_accuracy: int | None = None,
-        battery: int | None = None,
-        attributes: dict[str, Any] | None = None,
-        source_type: SourceType | str = SourceType.GPS,
-        picture: str | None = None,
-        icon: str | None = None,
-        consider_home: timedelta | None = None,
-    ) -> None:
-        """Define async_see type."""
-
-
 def see(
     hass: HomeAssistant,
     mac: str | None = None,
@@ -172,7 +133,7 @@ def see(
     gps: GPSType | None = None,
     gps_accuracy: int | None = None,
     battery: int | None = None,
-    attributes: dict[str, Any] | None = None,
+    attributes: dict | None = None,
 ) -> None:
     """Call service to notify you see device."""
     data: dict[str, Any] = {
@@ -409,7 +370,7 @@ def async_setup_scanner_platform(
             kwargs: dict[str, Any] = {
                 "mac": mac,
                 "host_name": host_name,
-                "source_type": SourceType.ROUTER,
+                "source_type": SOURCE_TYPE_ROUTER,
                 "attributes": {
                     "scanner": scanner.__class__.__name__,
                     **extra_attributes,
@@ -486,8 +447,8 @@ class DeviceTracker:
         gps: GPSType | None = None,
         gps_accuracy: int | None = None,
         battery: int | None = None,
-        attributes: dict[str, Any] | None = None,
-        source_type: SourceType | str = SourceType.GPS,
+        attributes: dict | None = None,
+        source_type: str = SOURCE_TYPE_GPS,
         picture: str | None = None,
         icon: str | None = None,
         consider_home: timedelta | None = None,
@@ -519,8 +480,8 @@ class DeviceTracker:
         gps: GPSType | None = None,
         gps_accuracy: int | None = None,
         battery: int | None = None,
-        attributes: dict[str, Any] | None = None,
-        source_type: SourceType | str = SourceType.GPS,
+        attributes: dict | None = None,
+        source_type: str = SOURCE_TYPE_GPS,
         picture: str | None = None,
         icon: str | None = None,
         consider_home: timedelta | None = None,
@@ -706,7 +667,7 @@ class Device(RestoreEntity):
 
         self._icon = icon
 
-        self.source_type: SourceType | str | None = None
+        self.source_type: str | None = None
 
         self._attributes: dict[str, Any] = {}
 
@@ -759,7 +720,7 @@ class Device(RestoreEntity):
         gps_accuracy: int | None = None,
         battery: int | None = None,
         attributes: dict[str, Any] | None = None,
-        source_type: SourceType | str = SourceType.GPS,
+        source_type: str = SOURCE_TYPE_GPS,
         consider_home: timedelta | None = None,
     ) -> None:
         """Mark the device as seen."""
@@ -812,7 +773,7 @@ class Device(RestoreEntity):
             return
         if self.location_name:
             self._state = self.location_name
-        elif self.gps is not None and self.source_type == SourceType.GPS:
+        elif self.gps is not None and self.source_type == SOURCE_TYPE_GPS:
             zone_state = zone.async_active_zone(
                 self.hass, self.gps[0], self.gps[1], self.gps_accuracy
             )

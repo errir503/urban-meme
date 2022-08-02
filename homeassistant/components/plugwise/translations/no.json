@@ -1,8 +1,7 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Tjenesten er allerede konfigurert",
-            "anna_with_adam": "B\u00e5de Anna og Adam oppdaget. Legg til din Adam i stedet for din Anna"
+            "already_configured": "Tjenesten er allerede konfigurert"
         },
         "error": {
             "cannot_connect": "Tilkobling mislyktes",

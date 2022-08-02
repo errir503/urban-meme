@@ -22,7 +22,6 @@ from .const import (
     ATTR_CONTACT,
     ATTR_CURTAIN,
     ATTR_HYGROMETER,
-    ATTR_MOTION,
     ATTR_PLUG,
     CONF_RETRY_COUNT,
     DEFAULT_RETRY_COUNT,
@@ -36,7 +35,6 @@ PLATFORMS_BY_TYPE = {
     ATTR_CURTAIN: [Platform.COVER, Platform.BINARY_SENSOR, Platform.SENSOR],
     ATTR_HYGROMETER: [Platform.SENSOR],
     ATTR_CONTACT: [Platform.BINARY_SENSOR, Platform.SENSOR],
-    ATTR_MOTION: [Platform.BINARY_SENSOR, Platform.SENSOR],
 }
 CLASS_BY_DEVICE = {
     ATTR_CURTAIN: switchbot.SwitchbotCurtain,

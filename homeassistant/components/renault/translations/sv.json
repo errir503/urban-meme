@@ -3,11 +3,8 @@
         "step": {
             "user": {
                 "data": {
-                    "locale": "Plats",
-                    "password": "L\u00f6senord",
                     "username": "E-postadress"
-                },
-                "title": "St\u00e4ll in Renault-uppgifter"
+                }
             }
         }
     }

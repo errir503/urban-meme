@@ -1,15 +1,12 @@
 """Config flow for the Cert Expiry platform."""
 from __future__ import annotations
 
-from collections.abc import Mapping
 import logging
-from typing import Any
 
 import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PORT
-from homeassistant.data_entry_flow import FlowResult
 
 from .const import DEFAULT_PORT, DOMAIN
 from .errors import (
@@ -32,10 +29,7 @@ class CertexpiryConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Initialize the config flow."""
         self._errors: dict[str, str] = {}
 
-    async def _test_connection(
-        self,
-        user_input: Mapping[str, Any],
-    ):
+    async def _test_connection(self, user_input=None):
         """Test connection to the server and try to get the certificate."""
         try:
             await get_cert_expiry_timestamp(
@@ -54,10 +48,7 @@ class CertexpiryConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return True
         return False
 
-    async def async_step_user(
-        self,
-        user_input: Mapping[str, Any] | None = None,
-    ) -> FlowResult:
+    async def async_step_user(self, user_input=None):
         """Step when user initializes a integration."""
         self._errors = {}
         if user_input is not None:
@@ -94,10 +85,7 @@ class CertexpiryConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=self._errors,
         )
 
-    async def async_step_import(
-        self,
-        user_input: Mapping[str, Any] | None = None,
-    ) -> FlowResult:
+    async def async_step_import(self, user_input=None):
         """Import a config entry.
 
         Only host was required in the yaml file all other fields are optional

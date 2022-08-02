@@ -19,7 +19,7 @@ from aiounifi.events import (
 
 from homeassistant.components.device_tracker import DOMAIN
 from homeassistant.components.device_tracker.config_entry import ScannerEntity
-from homeassistant.components.device_tracker.const import SourceType
+from homeassistant.components.device_tracker.const import SOURCE_TYPE_ROUTER
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
@@ -276,9 +276,9 @@ class UniFiClientTracker(UniFiClientBase, ScannerEntity):
         return self._is_connected
 
     @property
-    def source_type(self) -> SourceType:
+    def source_type(self):
         """Return the source type of the client."""
-        return SourceType.ROUTER
+        return SOURCE_TYPE_ROUTER
 
     @property
     def unique_id(self) -> str:
@@ -406,9 +406,9 @@ class UniFiDeviceTracker(UniFiBase, ScannerEntity):
         return self._is_connected
 
     @property
-    def source_type(self) -> SourceType:
+    def source_type(self):
         """Return the source type of the device."""
-        return SourceType.ROUTER
+        return SOURCE_TYPE_ROUTER
 
     @property
     def name(self) -> str:

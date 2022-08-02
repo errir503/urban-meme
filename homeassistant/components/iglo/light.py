@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import math
-from typing import Any
 
 from iglo import Lamp
 from iglo.lamp import MODE_WHITE
@@ -87,14 +86,14 @@ class IGloLamp(LightEntity):
         return color_util.color_temperature_kelvin_to_mired(self._lamp.state()["white"])
 
     @property
-    def min_mireds(self) -> int:
+    def min_mireds(self):
         """Return the coldest color_temp that this light supports."""
         return math.ceil(
             color_util.color_temperature_kelvin_to_mired(self._lamp.max_kelvin)
         )
 
     @property
-    def max_mireds(self) -> int:
+    def max_mireds(self):
         """Return the warmest color_temp that this light supports."""
         return math.ceil(
             color_util.color_temperature_kelvin_to_mired(self._lamp.min_kelvin)
@@ -120,7 +119,7 @@ class IGloLamp(LightEntity):
         """Return true if light is on."""
         return self._lamp.state()["on"]
 
-    def turn_on(self, **kwargs: Any) -> None:
+    def turn_on(self, **kwargs):
         """Turn the light on."""
         if not self.is_on:
             self._lamp.switch(True)
@@ -146,6 +145,6 @@ class IGloLamp(LightEntity):
             self._lamp.effect(effect)
             return
 
-    def turn_off(self, **kwargs: Any) -> None:
+    def turn_off(self, **kwargs):
         """Turn the light off."""
         self._lamp.switch(False)

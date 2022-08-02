@@ -1,8 +1,7 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Layanan sudah dikonfigurasi",
-            "no_adapters": "Tidak ada adaptor Bluetooth yang ditemukan"
+            "already_configured": "Layanan sudah dikonfigurasi"
         },
         "flow_title": "{name}",
         "step": {
@@ -17,15 +16,6 @@
                     "address": "Perangkat"
                 },
                 "description": "Pilih perangkat untuk disiapkan"
-            }
-        }
-    },
-    "options": {
-        "step": {
-            "init": {
-                "data": {
-                    "adapter": "Adaptor Bluetooth yang digunakan untuk pemindaian"
-                }
             }
         }
     }

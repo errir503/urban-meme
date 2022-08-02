@@ -1,6 +1,5 @@
 """Support for Lutron Caseta lights."""
 from datetime import timedelta
-from typing import Any
 
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
@@ -70,13 +69,13 @@ class LutronCasetaLight(LutronCasetaDeviceUpdatableEntity, LightEntity):
             self.device_id, to_lutron_level(brightness), **args
         )
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs):
         """Turn the light on."""
         brightness = kwargs.pop(ATTR_BRIGHTNESS, 255)
 
         await self._set_brightness(brightness, **kwargs)
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
+    async def async_turn_off(self, **kwargs):
         """Turn the light off."""
         await self._set_brightness(0, **kwargs)
 

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 from datetime import datetime, timedelta
 import logging
 from typing import Final
@@ -19,11 +19,10 @@ from homeassistant.components.device_tracker.const import (
     CONF_TRACK_NEW,
     DEFAULT_TRACK_NEW,
     SCAN_INTERVAL,
-    SourceType,
+    SOURCE_TYPE_BLUETOOTH,
 )
 from homeassistant.components.device_tracker.legacy import (
     YAML_DEVICES,
-    AsyncSeeCallback,
     Device,
     async_load_config,
 )
@@ -79,7 +78,7 @@ def discover_devices(device_id: int) -> list[tuple[str, str]]:
 
 async def see_device(
     hass: HomeAssistant,
-    async_see: AsyncSeeCallback,
+    async_see: Callable[..., Awaitable[None]],
     mac: str,
     device_name: str,
     rssi: tuple[int] | None = None,
@@ -93,7 +92,7 @@ async def see_device(
         mac=f"{BT_PREFIX}{mac}",
         host_name=device_name,
         attributes=attributes,
-        source_type=SourceType.BLUETOOTH,
+        source_type=SOURCE_TYPE_BLUETOOTH,
     )
 
 
@@ -131,7 +130,7 @@ def lookup_name(mac: str) -> str | None:
 async def async_setup_scanner(
     hass: HomeAssistant,
     config: ConfigType,
-    async_see: AsyncSeeCallback,
+    async_see: Callable[..., Awaitable[None]],
     discovery_info: DiscoveryInfoType | None = None,
 ) -> bool:
     """Set up the Bluetooth Scanner."""

@@ -4,7 +4,6 @@ from __future__ import annotations
 from datetime import timedelta
 import logging
 import os
-from typing import Any
 
 import greenwavereality as greenwave
 import voluptuous as vol
@@ -100,17 +99,17 @@ class GreenwaveLight(LightEntity):
         """Return true if light is on."""
         return self._state
 
-    def turn_on(self, **kwargs: Any) -> None:
+    def turn_on(self, **kwargs):
         """Instruct the light to turn on."""
         temp_brightness = int((kwargs.get(ATTR_BRIGHTNESS, 255) / 255) * 100)
         greenwave.set_brightness(self._host, self._did, temp_brightness, self._token)
         greenwave.turn_on(self._host, self._did, self._token)
 
-    def turn_off(self, **kwargs: Any) -> None:
+    def turn_off(self, **kwargs):
         """Instruct the light to turn off."""
         greenwave.turn_off(self._host, self._did, self._token)
 
-    def update(self) -> None:
+    def update(self):
         """Fetch new state data for this light."""
         self._gatewaydata.update()
         bulbs = self._gatewaydata.greenwave

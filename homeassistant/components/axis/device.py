@@ -51,9 +51,7 @@ from .errors import AuthenticationRequired, CannotConnect
 class AxisNetworkDevice:
     """Manages a Axis device."""
 
-    def __init__(
-        self, hass: HomeAssistant, config_entry: ConfigEntry, api: axis.AxisDevice
-    ) -> None:
+    def __init__(self, hass, config_entry, api):
         """Initialize the device."""
         self.hass = hass
         self.config_entry = config_entry
@@ -169,11 +167,11 @@ class AxisNetworkDevice:
         This is a static method because a class method (bound method),
         can not be used with weak references.
         """
-        device: AxisNetworkDevice = hass.data[AXIS_DOMAIN][entry.unique_id]
+        device = hass.data[AXIS_DOMAIN][entry.unique_id]
         device.api.config.host = device.host
         async_dispatcher_send(hass, device.signal_new_address)
 
-    async def async_update_device_registry(self) -> None:
+    async def async_update_device_registry(self):
         """Update device registry."""
         device_registry = dr.async_get(self.hass)
         device_registry.async_get_or_create(
@@ -226,17 +224,17 @@ class AxisNetworkDevice:
                 async_when_setup(self.hass, MQTT_DOMAIN, self.async_use_mqtt)
 
     @callback
-    def disconnect_from_stream(self) -> None:
+    def disconnect_from_stream(self):
         """Stop stream."""
         if self.api.stream.state != STATE_STOPPED:
             self.api.stream.connection_status_callback.clear()
             self.api.stream.stop()
 
-    async def shutdown(self, event) -> None:
+    async def shutdown(self, event):
         """Stop the event stream."""
         self.disconnect_from_stream()
 
-    async def async_reset(self) -> bool:
+    async def async_reset(self):
         """Reset this device to default state."""
         self.disconnect_from_stream()
 

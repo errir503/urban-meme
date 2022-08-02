@@ -1,6 +1,7 @@
 """Support for FleetGO Platform."""
 from __future__ import annotations
 
+from collections.abc import Callable
 import logging
 
 import requests
@@ -9,7 +10,6 @@ import voluptuous as vol
 
 from homeassistant.components.device_tracker import (
     PLATFORM_SCHEMA as PARENT_PLATFORM_SCHEMA,
-    SeeCallback,
 )
 from homeassistant.const import (
     CONF_CLIENT_ID,
@@ -39,7 +39,7 @@ PLATFORM_SCHEMA = PARENT_PLATFORM_SCHEMA.extend(
 def setup_scanner(
     hass: HomeAssistant,
     config: ConfigType,
-    see: SeeCallback,
+    see: Callable[..., None],
     discovery_info: DiscoveryInfoType | None = None,
 ) -> bool:
     """Set up the DeviceScanner and check if login is valid."""
@@ -53,7 +53,7 @@ def setup_scanner(
 class FleetGoDeviceScanner:
     """Define a scanner for the FleetGO platform."""
 
-    def __init__(self, config, see: SeeCallback):
+    def __init__(self, config, see):
         """Initialize FleetGoDeviceScanner."""
         self._include = config.get(CONF_INCLUDE)
         self._see = see

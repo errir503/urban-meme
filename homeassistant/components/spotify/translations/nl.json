@@ -19,11 +19,6 @@
             }
         }
     },
-    "issues": {
-        "removed_yaml": {
-            "title": "De Spotify YAML-configuratie wordt verwijderd"
-        }
-    },
     "system_health": {
         "info": {
             "api_endpoint_reachable": "Spotify API-eindpunt is bereikbaar"

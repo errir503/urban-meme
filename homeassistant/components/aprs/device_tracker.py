@@ -1,6 +1,7 @@
 """Support for APRS device tracking."""
 from __future__ import annotations
 
+from collections.abc import Callable
 import logging
 import threading
 
@@ -11,7 +12,6 @@ import voluptuous as vol
 
 from homeassistant.components.device_tracker import (
     PLATFORM_SCHEMA as PARENT_PLATFORM_SCHEMA,
-    SeeCallback,
 )
 from homeassistant.const import (
     ATTR_GPS_ACCURACY,
@@ -87,7 +87,7 @@ def gps_accuracy(gps, posambiguity: int) -> int:
 def setup_scanner(
     hass: HomeAssistant,
     config: ConfigType,
-    see: SeeCallback,
+    see: Callable[..., None],
     discovery_info: DiscoveryInfoType | None = None,
 ) -> bool:
     """Set up the APRS tracker."""
@@ -123,13 +123,8 @@ class AprsListenerThread(threading.Thread):
     """APRS message listener."""
 
     def __init__(
-        self,
-        callsign: str,
-        password: str,
-        host: str,
-        server_filter: str,
-        see: SeeCallback,
-    ) -> None:
+        self, callsign: str, password: str, host: str, server_filter: str, see
+    ):
         """Initialize the class."""
         super().__init__()
 

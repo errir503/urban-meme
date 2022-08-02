@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 # pylint: disable=import-error
 from decora_wifi import DecoraWiFiSession
@@ -112,7 +111,7 @@ class DecoraWifiLight(LightEntity):
         return {self.color_mode}
 
     @property
-    def supported_features(self) -> int:
+    def supported_features(self):
         """Return supported features."""
         if self._switch.canSetLevel:
             return LightEntityFeature.TRANSITION
@@ -138,9 +137,9 @@ class DecoraWifiLight(LightEntity):
         """Return true if switch is on."""
         return self._switch.power == "ON"
 
-    def turn_on(self, **kwargs: Any) -> None:
+    def turn_on(self, **kwargs):
         """Instruct the switch to turn on & adjust brightness."""
-        attribs: dict[str, Any] = {"power": "ON"}
+        attribs = {"power": "ON"}
 
         if ATTR_BRIGHTNESS in kwargs:
             min_level = self._switch.data.get("minLevel", 0)
@@ -158,7 +157,7 @@ class DecoraWifiLight(LightEntity):
         except ValueError:
             _LOGGER.error("Failed to turn on myLeviton switch")
 
-    def turn_off(self, **kwargs: Any) -> None:
+    def turn_off(self, **kwargs):
         """Instruct the switch to turn off."""
         attribs = {"power": "OFF"}
         try:
@@ -166,7 +165,7 @@ class DecoraWifiLight(LightEntity):
         except ValueError:
             _LOGGER.error("Failed to turn off myLeviton switch")
 
-    def update(self) -> None:
+    def update(self):
         """Fetch new state data for this switch."""
         try:
             self._switch.refresh()

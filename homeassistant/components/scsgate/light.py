@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from scsgate.tasks import ToggleStatusTask
 import voluptuous as vol
@@ -77,7 +76,7 @@ class SCSGateLight(LightEntity):
         """Return true if light is on."""
         return self._toggled
 
-    def turn_on(self, **kwargs: Any) -> None:
+    def turn_on(self, **kwargs):
         """Turn the device on."""
 
         self._scsgate.append_task(ToggleStatusTask(target=self._scs_id, toggled=True))
@@ -85,7 +84,7 @@ class SCSGateLight(LightEntity):
         self._toggled = True
         self.schedule_update_ha_state()
 
-    def turn_off(self, **kwargs: Any) -> None:
+    def turn_off(self, **kwargs):
         """Turn the device off."""
 
         self._scsgate.append_task(ToggleStatusTask(target=self._scs_id, toggled=False))

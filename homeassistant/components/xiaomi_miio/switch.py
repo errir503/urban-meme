@@ -43,7 +43,6 @@ from .const import (
     FEATURE_FLAGS_AIRHUMIDIFIER_MJSSQ,
     FEATURE_FLAGS_AIRPURIFIER_2S,
     FEATURE_FLAGS_AIRPURIFIER_3C,
-    FEATURE_FLAGS_AIRPURIFIER_4,
     FEATURE_FLAGS_AIRPURIFIER_MIIO,
     FEATURE_FLAGS_AIRPURIFIER_MIOT,
     FEATURE_FLAGS_AIRPURIFIER_PRO,
@@ -56,7 +55,6 @@ from .const import (
     FEATURE_FLAGS_FAN_P9,
     FEATURE_FLAGS_FAN_P10_P11,
     FEATURE_FLAGS_FAN_ZA5,
-    FEATURE_SET_ANION,
     FEATURE_SET_AUTO_DETECT,
     FEATURE_SET_BUZZER,
     FEATURE_SET_CHILD_LOCK,
@@ -78,8 +76,6 @@ from .const import (
     MODEL_AIRPURIFIER_2H,
     MODEL_AIRPURIFIER_2S,
     MODEL_AIRPURIFIER_3C,
-    MODEL_AIRPURIFIER_4,
-    MODEL_AIRPURIFIER_4_PRO,
     MODEL_AIRPURIFIER_PRO,
     MODEL_AIRPURIFIER_PRO_V7,
     MODEL_AIRPURIFIER_V1,
@@ -132,7 +128,6 @@ ATTR_DRY = "dry"
 ATTR_LEARN_MODE = "learn_mode"
 ATTR_LED = "led"
 ATTR_IONIZER = "ionizer"
-ATTR_ANION = "anion"
 ATTR_LOAD_POWER = "load_power"
 ATTR_MODEL = "model"
 ATTR_POWER = "power"
@@ -193,8 +188,6 @@ MODEL_TO_FEATURES_MAP = {
     MODEL_AIRPURIFIER_PRO_V7: FEATURE_FLAGS_AIRPURIFIER_PRO_V7,
     MODEL_AIRPURIFIER_V1: FEATURE_FLAGS_AIRPURIFIER_V1,
     MODEL_AIRPURIFIER_V3: FEATURE_FLAGS_AIRPURIFIER_V3,
-    MODEL_AIRPURIFIER_4: FEATURE_FLAGS_AIRPURIFIER_4,
-    MODEL_AIRPURIFIER_4_PRO: FEATURE_FLAGS_AIRPURIFIER_4,
     MODEL_FAN_1C: FEATURE_FLAGS_FAN_1C,
     MODEL_FAN_P10: FEATURE_FLAGS_FAN_P10_P11,
     MODEL_FAN_P11: FEATURE_FLAGS_FAN_P10_P11,
@@ -305,15 +298,6 @@ SWITCH_TYPES = (
         icon="mdi:shimmer",
         method_on="async_set_ionizer_on",
         method_off="async_set_ionizer_off",
-        entity_category=EntityCategory.CONFIG,
-    ),
-    XiaomiMiioSwitchDescription(
-        key=ATTR_ANION,
-        feature=FEATURE_SET_ANION,
-        name="Ionizer",
-        icon="mdi:shimmer",
-        method_on="async_set_anion_on",
-        method_off="async_set_anion_off",
         entity_category=EntityCategory.CONFIG,
     ),
     XiaomiMiioSwitchDescription(
@@ -691,22 +675,6 @@ class XiaomiGenericCoordinatedSwitch(XiaomiCoordinatedMiioEntity, SwitchEntity):
         return await self._try_command(
             "Turning ionizer of the miio device off failed.",
             self._device.set_ionizer,
-            False,
-        )
-
-    async def async_set_anion_on(self) -> bool:
-        """Turn ionizer on."""
-        return await self._try_command(
-            "Turning ionizer of the miio device on failed.",
-            self._device.set_anion,
-            True,
-        )
-
-    async def async_set_anion_off(self) -> bool:
-        """Turn ionizer off."""
-        return await self._try_command(
-            "Turning ionizer of the miio device off failed.",
-            self._device.set_anion,
             False,
         )
 

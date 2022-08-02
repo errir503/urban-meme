@@ -1,6 +1,4 @@
 """Support for Axis binary sensors."""
-from __future__ import annotations
-
 from datetime import timedelta
 
 from axis.event_stream import (
@@ -10,8 +8,6 @@ from axis.event_stream import (
     CLASS_OUTPUT,
     CLASS_PTZ,
     CLASS_SOUND,
-    AxisBinaryEvent,
-    AxisEvent,
     FenceGuard,
     LoiteringGuard,
     MotionGuard,
@@ -32,7 +28,6 @@ from homeassistant.util.dt import utcnow
 
 from .axis_base import AxisEventBase
 from .const import DOMAIN as AXIS_DOMAIN
-from .device import AxisNetworkDevice
 
 DEVICE_CLASS = {
     CLASS_INPUT: BinarySensorDeviceClass.CONNECTIVITY,
@@ -48,12 +43,12 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up a Axis binary sensor."""
-    device: AxisNetworkDevice = hass.data[AXIS_DOMAIN][config_entry.unique_id]
+    device = hass.data[AXIS_DOMAIN][config_entry.unique_id]
 
     @callback
     def async_add_sensor(event_id):
         """Add binary sensor from Axis device."""
-        event: AxisEvent = device.api.event[event_id]
+        event = device.api.event[event_id]
 
         if event.CLASS not in (CLASS_OUTPUT, CLASS_PTZ) and not (
             event.CLASS == CLASS_LIGHT and event.TYPE == "Light"
@@ -68,9 +63,7 @@ async def async_setup_entry(
 class AxisBinarySensor(AxisEventBase, BinarySensorEntity):
     """Representation of a binary Axis event."""
 
-    event: AxisBinaryEvent
-
-    def __init__(self, event: AxisEvent, device: AxisNetworkDevice) -> None:
+    def __init__(self, event, device):
         """Initialize the Axis binary sensor."""
         super().__init__(event, device)
         self.cancel_scheduled_update = None
@@ -105,12 +98,12 @@ class AxisBinarySensor(AxisEventBase, BinarySensorEntity):
         )
 
     @property
-    def is_on(self) -> bool:
+    def is_on(self):
         """Return true if event is active."""
         return self.event.is_tripped
 
     @property
-    def name(self) -> str | None:
+    def name(self):
         """Return the name of the event."""
         if (
             self.event.CLASS == CLASS_INPUT

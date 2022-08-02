@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 import voluptuous as vol
 from zengge import zengge
@@ -124,7 +123,7 @@ class ZenggeLight(LightEntity):
         """Set the white state."""
         return self._bulb.set_white(white)
 
-    def turn_on(self, **kwargs: Any) -> None:
+    def turn_on(self, **kwargs):
         """Turn the specified light on."""
         self._state = True
         self._bulb.on()
@@ -154,12 +153,12 @@ class ZenggeLight(LightEntity):
             )
             self._set_rgb(*rgb)
 
-    def turn_off(self, **kwargs: Any) -> None:
+    def turn_off(self, **kwargs):
         """Turn the specified light off."""
         self._state = False
         self._bulb.off()
 
-    def update(self) -> None:
+    def update(self):
         """Synchronise internal state with the actual light state."""
         rgb = self._bulb.get_colour()
         hsv = color_util.color_RGB_to_hsv(*rgb)

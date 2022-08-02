@@ -92,10 +92,11 @@ async def async_setup_entry(
     )
 
 
-class DeconzThermostat(DeconzDevice[Thermostat], ClimateEntity):
+class DeconzThermostat(DeconzDevice, ClimateEntity):
     """Representation of a deCONZ thermostat."""
 
     TYPE = DOMAIN
+    _device: Thermostat
 
     _attr_temperature_unit = TEMP_CELSIUS
 

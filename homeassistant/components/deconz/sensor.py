@@ -273,10 +273,11 @@ async def async_setup_entry(
     )
 
 
-class DeconzSensor(DeconzDevice[SensorResources], SensorEntity):
+class DeconzSensor(DeconzDevice, SensorEntity):
     """Representation of a deCONZ sensor."""
 
     TYPE = DOMAIN
+    _device: SensorResources
     entity_description: DeconzSensorDescription
 
     def __init__(

@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any
 
 import voluptuous as vol
 
@@ -185,7 +184,7 @@ class DimmableRflinkLight(SwitchableRflinkDevice, LightEntity):
     _attr_supported_color_modes = {ColorMode.BRIGHTNESS}
     _brightness = 255
 
-    async def async_added_to_hass(self) -> None:
+    async def async_added_to_hass(self):
         """Restore RFLink light brightness attribute."""
         await super().async_added_to_hass()
 
@@ -197,7 +196,7 @@ class DimmableRflinkLight(SwitchableRflinkDevice, LightEntity):
             # restore also brightness in dimmables devices
             self._brightness = int(old_state.attributes[ATTR_BRIGHTNESS])
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs):
         """Turn the device on."""
         if ATTR_BRIGHTNESS in kwargs:
             # rflink only support 16 brightness levels
@@ -243,7 +242,7 @@ class HybridRflinkLight(DimmableRflinkLight):
     Which results in a nice house disco :)
     """
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs):
         """Turn the device on and set dim level."""
         await super().async_turn_on(**kwargs)
         # if the receiving device does not support dimlevel this
@@ -270,10 +269,10 @@ class ToggleRflinkLight(RflinkLight):
             # if the state is true, it gets set as false
             self._state = self._state in [None, False]
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs):
         """Turn the device on."""
         await self._async_handle_command("toggle")
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
+    async def async_turn_off(self, **kwargs):
         """Turn the device off."""
         await self._async_handle_command("toggle")

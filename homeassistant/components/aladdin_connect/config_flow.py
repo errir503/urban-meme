@@ -44,6 +44,7 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> None:
         CLIENT_ID,
     )
     login = await acc.login()
+    await acc.close()
     if not login:
         raise InvalidAuth
 

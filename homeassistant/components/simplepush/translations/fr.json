@@ -17,10 +17,5 @@
                 }
             }
         }
-    },
-    "issues": {
-        "deprecated_yaml": {
-            "title": "La configuration YAML pour Simplepush est en cours de suppression"
-        }
     }
 }

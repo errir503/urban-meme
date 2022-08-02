@@ -2,7 +2,6 @@
 import binascii
 import logging
 import struct
-from typing import Any
 
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
@@ -114,7 +113,7 @@ class XiaomiGatewayLight(XiaomiDevice, LightEntity):
             self._state = True
             self.schedule_update_ha_state()
 
-    def turn_off(self, **kwargs: Any) -> None:
+    def turn_off(self, **kwargs):
         """Turn the light off."""
         if self._write_to_hub(self._sid, **{self._data_key: 0}):
             self._state = False

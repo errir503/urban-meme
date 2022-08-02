@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 import RFXtrx as rfxtrxmod
 
@@ -60,7 +59,7 @@ class RfxtrxLight(RfxtrxCommandEntity, LightEntity):
     _attr_brightness: int = 0
     _device: rfxtrxmod.LightingDevice
 
-    async def async_added_to_hass(self) -> None:
+    async def async_added_to_hass(self):
         """Restore RFXtrx device state (ON/OFF)."""
         await super().async_added_to_hass()
 
@@ -71,7 +70,7 @@ class RfxtrxLight(RfxtrxCommandEntity, LightEntity):
                 if brightness := old_state.attributes.get(ATTR_BRIGHTNESS):
                     self._attr_brightness = int(brightness)
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs):
         """Turn the device on."""
         brightness = kwargs.get(ATTR_BRIGHTNESS)
         self._attr_is_on = True
@@ -84,7 +83,7 @@ class RfxtrxLight(RfxtrxCommandEntity, LightEntity):
 
         self.async_write_ha_state()
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
+    async def async_turn_off(self, **kwargs):
         """Turn the device off."""
         await self._async_send(self._device.send_off)
         self._attr_is_on = False

@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from datetime import timedelta
 import logging
-from typing import Any
 
 import nikohomecontrol
 import voluptuous as vol
@@ -78,17 +77,17 @@ class NikoHomeControlLight(LightEntity):
         """Return true if light is on."""
         return self._state
 
-    def turn_on(self, **kwargs: Any) -> None:
+    def turn_on(self, **kwargs):
         """Instruct the light to turn on."""
         _LOGGER.debug("Turn on: %s", self.name)
         self._light.turn_on()
 
-    def turn_off(self, **kwargs: Any) -> None:
+    def turn_off(self, **kwargs):
         """Instruct the light to turn off."""
         _LOGGER.debug("Turn off: %s", self.name)
         self._light.turn_off()
 
-    async def async_update(self) -> None:
+    async def async_update(self):
         """Get the latest data from NikoHomeControl API."""
         await self._data.async_update()
         self._state = self._data.get_state(self._light.id)

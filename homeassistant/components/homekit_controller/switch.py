@@ -50,12 +50,6 @@ SWITCH_ENTITIES: dict[str, DeclarativeSwitchEntityDescription] = {
         icon="mdi:lock-open",
         entity_category=EntityCategory.CONFIG,
     ),
-    CharacteristicsTypes.LOCK_PHYSICAL_CONTROLS: DeclarativeSwitchEntityDescription(
-        key=CharacteristicsTypes.LOCK_PHYSICAL_CONTROLS,
-        name="Lock Physical Controls",
-        icon="mdi:lock-open",
-        entity_category=EntityCategory.CONFIG,
-    ),
 }
 
 

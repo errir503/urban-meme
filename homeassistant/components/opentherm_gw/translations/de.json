@@ -3,8 +3,7 @@
         "error": {
             "already_configured": "Ger\u00e4t ist bereits konfiguriert",
             "cannot_connect": "Verbindung fehlgeschlagen",
-            "id_exists": "Gateway-ID ist bereits vorhanden",
-            "timeout_connect": "Zeit\u00fcberschreitung beim Verbindungsaufbau"
+            "id_exists": "Gateway-ID ist bereits vorhanden"
         },
         "step": {
             "init": {

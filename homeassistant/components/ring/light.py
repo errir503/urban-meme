@@ -1,7 +1,6 @@
 """This component provides HA switch support for Ring Door Bell/Chimes."""
 from datetime import timedelta
 import logging
-from typing import Any
 
 import requests
 
@@ -94,10 +93,10 @@ class RingLight(RingEntityMixin, LightEntity):
         self._no_updates_until = dt_util.utcnow() + SKIP_UPDATES_DELAY
         self.async_write_ha_state()
 
-    def turn_on(self, **kwargs: Any) -> None:
+    def turn_on(self, **kwargs):
         """Turn the light on for 30 seconds."""
         self._set_light(ON_STATE)
 
-    def turn_off(self, **kwargs: Any) -> None:
+    def turn_off(self, **kwargs):
         """Turn the light off."""
         self._set_light(OFF_STATE)

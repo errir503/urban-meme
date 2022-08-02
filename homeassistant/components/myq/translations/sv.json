@@ -1,8 +1,7 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Tj\u00e4nsten har redan konfigurerats",
-            "reauth_successful": "\u00c5terautentisering lyckades"
+            "already_configured": "Tj\u00e4nsten har redan konfigurerats"
         },
         "error": {
             "cannot_connect": "Anslutningen misslyckades",
@@ -10,13 +9,6 @@
             "unknown": "Ov\u00e4ntat fel"
         },
         "step": {
-            "reauth_confirm": {
-                "data": {
-                    "password": "L\u00f6senord"
-                },
-                "description": "L\u00f6senordet f\u00f6r {username} \u00e4r inte l\u00e4ngre giltigt.",
-                "title": "Autentisera ditt MyQ-konto igen"
-            },
             "user": {
                 "data": {
                     "password": "L\u00f6senord",

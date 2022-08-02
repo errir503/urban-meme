@@ -7,14 +7,5 @@
                 }
             }
         }
-    },
-    "options": {
-        "step": {
-            "init": {
-                "data": {
-                    "ph_offset": "pH-f\u00f6rskjutning (positiv eller negativ)"
-                }
-            }
-        }
     }
 }

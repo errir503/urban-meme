@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any
 
 from plumlightpad import Plum
 
@@ -70,7 +69,7 @@ class PlumLight(LightEntity):
         self._load = load
         self._brightness = load.level
 
-    async def async_added_to_hass(self) -> None:
+    async def async_added_to_hass(self):
         """Subscribe to dimmerchange events."""
         self._load.add_event_listener("dimmerchange", self.dimmerchange)
 
@@ -126,14 +125,14 @@ class PlumLight(LightEntity):
         """Flag supported color modes."""
         return {self.color_mode}
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs):
         """Turn the light on."""
         if ATTR_BRIGHTNESS in kwargs:
             await self._load.turn_on(kwargs[ATTR_BRIGHTNESS])
         else:
             await self._load.turn_on()
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
+    async def async_turn_off(self, **kwargs):
         """Turn the light off."""
         await self._load.turn_off()
 
@@ -156,7 +155,7 @@ class GlowRing(LightEntity):
         self._green = lightpad.glow_color["green"]
         self._blue = lightpad.glow_color["blue"]
 
-    async def async_added_to_hass(self) -> None:
+    async def async_added_to_hass(self):
         """Subscribe to configchange events."""
         self._lightpad.add_event_listener("configchange", self.configchange_event)
 
@@ -223,7 +222,7 @@ class GlowRing(LightEntity):
         """Return the crop-portrait icon representing the glow ring."""
         return "mdi:crop-portrait"
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs):
         """Turn the light on."""
         if ATTR_BRIGHTNESS in kwargs:
             brightness_pct = kwargs[ATTR_BRIGHTNESS] / 255.0
@@ -235,7 +234,7 @@ class GlowRing(LightEntity):
         else:
             await self._lightpad.set_config({"glowEnabled": True})
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
+    async def async_turn_off(self, **kwargs):
         """Turn the light off."""
         if ATTR_BRIGHTNESS in kwargs:
             brightness_pct = kwargs[ATTR_BRIGHTNESS] / 255.0

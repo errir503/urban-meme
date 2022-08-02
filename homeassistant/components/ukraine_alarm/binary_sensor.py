@@ -98,7 +98,6 @@ class UkraineAlarmSensor(
             identifiers={(DOMAIN, unique_id)},
             manufacturer=MANUFACTURER,
             name=name,
-            configuration_url="https://siren.pp.ua/",
         )
 
     @property

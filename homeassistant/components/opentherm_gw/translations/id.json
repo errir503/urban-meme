@@ -3,8 +3,7 @@
         "error": {
             "already_configured": "Perangkat sudah dikonfigurasi",
             "cannot_connect": "Gagal terhubung",
-            "id_exists": "ID gateway sudah ada",
-            "timeout_connect": "Tenggang waktu membuat koneksi habis"
+            "id_exists": "ID gateway sudah ada"
         },
         "step": {
             "init": {

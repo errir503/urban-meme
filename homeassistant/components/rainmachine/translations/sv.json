@@ -17,9 +17,6 @@
     "options": {
         "step": {
             "init": {
-                "data": {
-                    "zone_run_time": "Standardzonens k\u00f6rtid (i sekunder)"
-                },
                 "title": "Konfigurera RainMachine"
             }
         }

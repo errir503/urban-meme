@@ -13,12 +13,5 @@
                 }
             }
         }
-    },
-    "options": {
-        "step": {
-            "init": {
-                "title": "ScreenLogic"
-            }
-        }
     }
 }

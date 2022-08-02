@@ -640,12 +640,7 @@ class ConfigEntry:
                 await asyncio.gather(*pending)
 
     @callback
-    def async_start_reauth(
-        self,
-        hass: HomeAssistant,
-        context: dict[str, Any] | None = None,
-        data: dict[str, Any] | None = None,
-    ) -> None:
+    def async_start_reauth(self, hass: HomeAssistant) -> None:
         """Start a reauth flow."""
         flow_context = {
             "source": SOURCE_REAUTH,
@@ -653,9 +648,6 @@ class ConfigEntry:
             "title_placeholders": {"name": self.title},
             "unique_id": self.unique_id,
         }
-
-        if context:
-            flow_context.update(context)
 
         for flow in hass.config_entries.flow.async_progress_by_handler(self.domain):
             if flow["context"] == flow_context:
@@ -665,7 +657,7 @@ class ConfigEntry:
             hass.config_entries.flow.async_init(
                 self.domain,
                 context=flow_context,
-                data=self.data | (data or {}),
+                data=self.data,
             )
         )
 

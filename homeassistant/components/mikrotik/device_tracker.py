@@ -6,7 +6,7 @@ from typing import Any
 from homeassistant.components.device_tracker.config_entry import ScannerEntity
 from homeassistant.components.device_tracker.const import (
     DOMAIN as DEVICE_TRACKER,
-    SourceType,
+    SOURCE_TYPE_ROUTER,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
@@ -101,9 +101,9 @@ class MikrotikDataUpdateCoordinatorTracker(
         return False
 
     @property
-    def source_type(self) -> SourceType:
+    def source_type(self) -> str:
         """Return the source type of the client."""
-        return SourceType.ROUTER
+        return SOURCE_TYPE_ROUTER
 
     @property
     def hostname(self) -> str:

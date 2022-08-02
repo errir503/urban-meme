@@ -1,8 +1,6 @@
 """Support for switching devices via Pilight to on and off."""
 from __future__ import annotations
 
-from typing import Any
-
 import voluptuous as vol
 
 from homeassistant.components.light import (
@@ -65,7 +63,7 @@ class PilightLight(PilightBaseDevice, LightEntity):
         """Return the brightness."""
         return self._brightness
 
-    def turn_on(self, **kwargs: Any) -> None:
+    def turn_on(self, **kwargs):
         """Turn the switch on by calling pilight.send service with on code."""
         # Update brightness only if provided as an argument.
         # This will allow the switch to keep its previous brightness level.

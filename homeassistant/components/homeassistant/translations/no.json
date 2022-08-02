@@ -2,7 +2,6 @@
     "system_health": {
         "info": {
             "arch": "CPU-arkitektur",
-            "config_dir": "Konfigurasjonskatalog",
             "dev": "Utvikling",
             "docker": "",
             "hassio": "Supervisor",

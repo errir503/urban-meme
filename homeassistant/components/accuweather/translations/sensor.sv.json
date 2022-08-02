@@ -2,8 +2,7 @@
     "state": {
         "accuweather__pressure_tendency": {
             "falling": "Fallande",
-            "rising": "Stigande",
-            "steady": "Stadig"
+            "rising": "Stigande"
         }
     }
 }
