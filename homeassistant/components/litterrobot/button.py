@@ -32,7 +32,7 @@ async def async_setup_entry(
     )
 
 
-class LitterRobotResetWasteDrawerButton(LitterRobotEntity, ButtonEntity):
+class LitterRobotResetWasteDrawerButton(LitterRobotEntity[LitterRobot3], ButtonEntity):
     """Litter-Robot reset waste drawer button."""
 
     _attr_icon = "mdi:delete-variant"
