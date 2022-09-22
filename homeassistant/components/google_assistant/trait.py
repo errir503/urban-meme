@@ -9,9 +9,11 @@ from homeassistant.components import (
     binary_sensor,
     button,
     camera,
+    climate,
     cover,
     fan,
     group,
+    humidifier,
     input_boolean,
     input_button,
     input_select,
@@ -25,8 +27,6 @@ from homeassistant.components import (
     switch,
     vacuum,
 )
-from homeassistant.components.climate import const as climate
-from homeassistant.components.humidifier import const as humidifier
 from homeassistant.components.lock import STATE_JAMMED, STATE_UNLOCKING
 from homeassistant.components.media_player import MediaType
 from homeassistant.const import (
@@ -260,8 +260,6 @@ class BrightnessTrait(_Trait):
             brightness = self.state.attributes.get(light.ATTR_BRIGHTNESS)
             if brightness is not None:
                 response["brightness"] = round(100 * (brightness / 255))
-            else:
-                response["brightness"] = 0
 
         return response
 
