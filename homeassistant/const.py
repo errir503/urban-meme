@@ -227,6 +227,7 @@ CONF_SENSOR_TYPE: Final = "sensor_type"
 CONF_SEQUENCE: Final = "sequence"
 CONF_SERVICE: Final = "service"
 CONF_SERVICE_DATA: Final = "data"
+CONF_SERVICE_DATA_TEMPLATE: Final = "data_template"
 CONF_SERVICE_TEMPLATE: Final = "service_template"
 CONF_SHOW_ON_MAP: Final = "show_on_map"
 CONF_SLAVE: Final = "slave"
@@ -785,4 +786,4 @@ CAST_APP_ID_HOMEASSISTANT_LOVELACE: Final = "A078F6B0"
 # User used by Supervisor
 HASSIO_USER_NAME = "Supervisor"
 
-SIGNAL_BOOTSTRAP_INTEGRATONS = "bootstrap_integrations"
+SIGNAL_BOOTSTRAP_INTEGRATIONS = "bootstrap_integrations"
