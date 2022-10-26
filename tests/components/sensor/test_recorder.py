@@ -26,7 +26,7 @@ from homeassistant.components.recorder.util import get_instance, session_scope
 from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.setup import async_setup_component, setup_component
 import homeassistant.util.dt as dt_util
-from homeassistant.util.unit_system import IMPERIAL_SYSTEM, METRIC_SYSTEM
+from homeassistant.util.unit_system import METRIC_SYSTEM, US_CUSTOMARY_SYSTEM
 
 from tests.components.recorder.common import (
     async_recorder_block_till_done,
@@ -403,18 +403,18 @@ def test_compile_hourly_statistics_wrong_unit(hass_recorder, caplog, attributes)
 @pytest.mark.parametrize(
     "units, device_class, state_unit, display_unit, statistics_unit, unit_class, factor",
     [
-        (IMPERIAL_SYSTEM, "distance", "m", "m", "m", "distance", 1),
-        (IMPERIAL_SYSTEM, "distance", "mi", "mi", "mi", "distance", 1),
-        (IMPERIAL_SYSTEM, "energy", "kWh", "kWh", "kWh", "energy", 1),
-        (IMPERIAL_SYSTEM, "energy", "Wh", "Wh", "Wh", "energy", 1),
-        (IMPERIAL_SYSTEM, "gas", "m³", "m³", "m³", "volume", 1),
-        (IMPERIAL_SYSTEM, "gas", "ft³", "ft³", "ft³", "volume", 1),
-        (IMPERIAL_SYSTEM, "monetary", "EUR", "EUR", "EUR", None, 1),
-        (IMPERIAL_SYSTEM, "monetary", "SEK", "SEK", "SEK", None, 1),
-        (IMPERIAL_SYSTEM, "volume", "m³", "m³", "m³", "volume", 1),
-        (IMPERIAL_SYSTEM, "volume", "ft³", "ft³", "ft³", "volume", 1),
-        (IMPERIAL_SYSTEM, "weight", "g", "g", "g", "mass", 1),
-        (IMPERIAL_SYSTEM, "weight", "oz", "oz", "oz", "mass", 1),
+        (US_CUSTOMARY_SYSTEM, "distance", "m", "m", "m", "distance", 1),
+        (US_CUSTOMARY_SYSTEM, "distance", "mi", "mi", "mi", "distance", 1),
+        (US_CUSTOMARY_SYSTEM, "energy", "kWh", "kWh", "kWh", "energy", 1),
+        (US_CUSTOMARY_SYSTEM, "energy", "Wh", "Wh", "Wh", "energy", 1),
+        (US_CUSTOMARY_SYSTEM, "gas", "m³", "m³", "m³", "volume", 1),
+        (US_CUSTOMARY_SYSTEM, "gas", "ft³", "ft³", "ft³", "volume", 1),
+        (US_CUSTOMARY_SYSTEM, "monetary", "EUR", "EUR", "EUR", None, 1),
+        (US_CUSTOMARY_SYSTEM, "monetary", "SEK", "SEK", "SEK", None, 1),
+        (US_CUSTOMARY_SYSTEM, "volume", "m³", "m³", "m³", "volume", 1),
+        (US_CUSTOMARY_SYSTEM, "volume", "ft³", "ft³", "ft³", "volume", 1),
+        (US_CUSTOMARY_SYSTEM, "weight", "g", "g", "g", "mass", 1),
+        (US_CUSTOMARY_SYSTEM, "weight", "oz", "oz", "oz", "mass", 1),
         (METRIC_SYSTEM, "distance", "m", "m", "m", "distance", 1),
         (METRIC_SYSTEM, "distance", "mi", "mi", "mi", "distance", 1),
         (METRIC_SYSTEM, "energy", "kWh", "kWh", "kWh", "energy", 1),
@@ -3307,12 +3307,18 @@ def record_states(hass, zero, entity_id, attributes, seq=None):
 @pytest.mark.parametrize(
     "units, attributes, unit, unit2, supported_unit",
     [
-        (IMPERIAL_SYSTEM, POWER_SENSOR_ATTRIBUTES, "W", "kW", "W, kW"),
+        (US_CUSTOMARY_SYSTEM, POWER_SENSOR_ATTRIBUTES, "W", "kW", "W, kW"),
         (METRIC_SYSTEM, POWER_SENSOR_ATTRIBUTES, "W", "kW", "W, kW"),
-        (IMPERIAL_SYSTEM, TEMPERATURE_SENSOR_ATTRIBUTES, "°F", "K", "K, °C, °F"),
+        (
+            US_CUSTOMARY_SYSTEM,
+            TEMPERATURE_SENSOR_ATTRIBUTES,
+            "°F",
+            "K",
+            "K, °C, °F",
+        ),
         (METRIC_SYSTEM, TEMPERATURE_SENSOR_ATTRIBUTES, "°C", "K", "K, °C, °F"),
         (
-            IMPERIAL_SYSTEM,
+            US_CUSTOMARY_SYSTEM,
             PRESSURE_SENSOR_ATTRIBUTES,
             "psi",
             "bar",
@@ -3439,7 +3445,7 @@ async def test_validate_unit_change_convertible(
 @pytest.mark.parametrize(
     "units, attributes",
     [
-        (IMPERIAL_SYSTEM, POWER_SENSOR_ATTRIBUTES),
+        (US_CUSTOMARY_SYSTEM, POWER_SENSOR_ATTRIBUTES),
     ],
 )
 async def test_validate_statistics_unit_ignore_device_class(
@@ -3493,12 +3499,18 @@ async def test_validate_statistics_unit_ignore_device_class(
 @pytest.mark.parametrize(
     "units, attributes, unit, unit2, supported_unit",
     [
-        (IMPERIAL_SYSTEM, POWER_SENSOR_ATTRIBUTES, "W", "kW", "W, kW"),
+        (US_CUSTOMARY_SYSTEM, POWER_SENSOR_ATTRIBUTES, "W", "kW", "W, kW"),
         (METRIC_SYSTEM, POWER_SENSOR_ATTRIBUTES, "W", "kW", "W, kW"),
-        (IMPERIAL_SYSTEM, TEMPERATURE_SENSOR_ATTRIBUTES, "°F", "K", "K, °C, °F"),
+        (
+            US_CUSTOMARY_SYSTEM,
+            TEMPERATURE_SENSOR_ATTRIBUTES,
+            "°F",
+            "K",
+            "K, °C, °F",
+        ),
         (METRIC_SYSTEM, TEMPERATURE_SENSOR_ATTRIBUTES, "°C", "K", "K, °C, °F"),
         (
-            IMPERIAL_SYSTEM,
+            US_CUSTOMARY_SYSTEM,
             PRESSURE_SENSOR_ATTRIBUTES,
             "psi",
             "bar",
@@ -3625,7 +3637,7 @@ async def test_validate_statistics_unit_change_no_device_class(
 @pytest.mark.parametrize(
     "units, attributes, unit",
     [
-        (IMPERIAL_SYSTEM, POWER_SENSOR_ATTRIBUTES, "W"),
+        (US_CUSTOMARY_SYSTEM, POWER_SENSOR_ATTRIBUTES, "W"),
     ],
 )
 async def test_validate_statistics_unsupported_state_class(
@@ -3689,7 +3701,7 @@ async def test_validate_statistics_unsupported_state_class(
 @pytest.mark.parametrize(
     "units, attributes, unit",
     [
-        (IMPERIAL_SYSTEM, POWER_SENSOR_ATTRIBUTES, "W"),
+        (US_CUSTOMARY_SYSTEM, POWER_SENSOR_ATTRIBUTES, "W"),
     ],
 )
 async def test_validate_statistics_sensor_no_longer_recorded(
@@ -3750,7 +3762,7 @@ async def test_validate_statistics_sensor_no_longer_recorded(
 @pytest.mark.parametrize(
     "units, attributes, unit",
     [
-        (IMPERIAL_SYSTEM, POWER_SENSOR_ATTRIBUTES, "W"),
+        (US_CUSTOMARY_SYSTEM, POWER_SENSOR_ATTRIBUTES, "W"),
     ],
 )
 async def test_validate_statistics_sensor_not_recorded(
@@ -3808,7 +3820,7 @@ async def test_validate_statistics_sensor_not_recorded(
 @pytest.mark.parametrize(
     "units, attributes, unit",
     [
-        (IMPERIAL_SYSTEM, POWER_SENSOR_ATTRIBUTES, "W"),
+        (US_CUSTOMARY_SYSTEM, POWER_SENSOR_ATTRIBUTES, "W"),
     ],
 )
 async def test_validate_statistics_sensor_removed(
@@ -3985,6 +3997,180 @@ async def test_validate_statistics_unit_change_no_conversion(
             }
         ],
     }
+    await assert_validation_result(client, expected)
+
+
+@pytest.mark.parametrize(
+    "attributes, unit1, unit2",
+    [
+        (NONE_SENSOR_ATTRIBUTES, "m3", "m³"),
+        (NONE_SENSOR_ATTRIBUTES, "rpm", "RPM"),
+        (NONE_SENSOR_ATTRIBUTES, "RPM", "rpm"),
+    ],
+)
+async def test_validate_statistics_unit_change_equivalent_units(
+    recorder_mock, hass, hass_ws_client, attributes, unit1, unit2
+):
+    """Test validate_statistics.
+
+    This tests no validation issue is created when a sensor's unit changes to an
+    equivalent unit.
+    """
+    id = 1
+
+    def next_id():
+        nonlocal id
+        id += 1
+        return id
+
+    async def assert_validation_result(client, expected_result):
+        await client.send_json(
+            {"id": next_id(), "type": "recorder/validate_statistics"}
+        )
+        response = await client.receive_json()
+        assert response["success"]
+        assert response["result"] == expected_result
+
+    async def assert_statistic_ids(expected_result):
+        with session_scope(hass=hass) as session:
+            db_states = list(session.query(StatisticsMeta))
+            assert len(db_states) == len(expected_result)
+            for i in range(len(db_states)):
+                assert db_states[i].statistic_id == expected_result[i]["statistic_id"]
+                assert (
+                    db_states[i].unit_of_measurement
+                    == expected_result[i]["unit_of_measurement"]
+                )
+
+    now = dt_util.utcnow()
+
+    await async_setup_component(hass, "sensor", {})
+    await async_recorder_block_till_done(hass)
+    client = await hass_ws_client()
+
+    # No statistics, no state - empty response
+    await assert_validation_result(client, {})
+
+    # No statistics, original unit - empty response
+    hass.states.async_set(
+        "sensor.test", 10, attributes={**attributes, **{"unit_of_measurement": unit1}}
+    )
+    await assert_validation_result(client, {})
+
+    # Run statistics
+    await async_recorder_block_till_done(hass)
+    do_adhoc_statistics(hass, start=now)
+    await async_recorder_block_till_done(hass)
+    await assert_statistic_ids(
+        [{"statistic_id": "sensor.test", "unit_of_measurement": unit1}]
+    )
+
+    # Units changed to an equivalent unit - empty response
+    hass.states.async_set(
+        "sensor.test", 12, attributes={**attributes, **{"unit_of_measurement": unit2}}
+    )
+    await assert_validation_result(client, {})
+
+    # Run statistics one hour later, metadata will be updated
+    await async_recorder_block_till_done(hass)
+    do_adhoc_statistics(hass, start=now + timedelta(hours=1))
+    await async_recorder_block_till_done(hass)
+    await assert_statistic_ids(
+        [{"statistic_id": "sensor.test", "unit_of_measurement": unit2}]
+    )
+    await assert_validation_result(client, {})
+
+
+@pytest.mark.parametrize(
+    "attributes, unit1, unit2, supported_unit",
+    [
+        (NONE_SENSOR_ATTRIBUTES, "m³", "m3", "L, fl. oz., ft³, gal, mL, m³"),
+    ],
+)
+async def test_validate_statistics_unit_change_equivalent_units_2(
+    recorder_mock, hass, hass_ws_client, attributes, unit1, unit2, supported_unit
+):
+    """Test validate_statistics.
+
+    This tests a validation issue is created when a sensor's unit changes to an
+    equivalent unit which is not known to the unit converters.
+    """
+
+    id = 1
+
+    def next_id():
+        nonlocal id
+        id += 1
+        return id
+
+    async def assert_validation_result(client, expected_result):
+        await client.send_json(
+            {"id": next_id(), "type": "recorder/validate_statistics"}
+        )
+        response = await client.receive_json()
+        assert response["success"]
+        assert response["result"] == expected_result
+
+    async def assert_statistic_ids(expected_result):
+        with session_scope(hass=hass) as session:
+            db_states = list(session.query(StatisticsMeta))
+            assert len(db_states) == len(expected_result)
+            for i in range(len(db_states)):
+                assert db_states[i].statistic_id == expected_result[i]["statistic_id"]
+                assert (
+                    db_states[i].unit_of_measurement
+                    == expected_result[i]["unit_of_measurement"]
+                )
+
+    now = dt_util.utcnow()
+
+    await async_setup_component(hass, "sensor", {})
+    await async_recorder_block_till_done(hass)
+    client = await hass_ws_client()
+
+    # No statistics, no state - empty response
+    await assert_validation_result(client, {})
+
+    # No statistics, original unit - empty response
+    hass.states.async_set(
+        "sensor.test", 10, attributes={**attributes, **{"unit_of_measurement": unit1}}
+    )
+    await assert_validation_result(client, {})
+
+    # Run statistics
+    await async_recorder_block_till_done(hass)
+    do_adhoc_statistics(hass, start=now)
+    await async_recorder_block_till_done(hass)
+    await assert_statistic_ids(
+        [{"statistic_id": "sensor.test", "unit_of_measurement": unit1}]
+    )
+
+    # Units changed to an equivalent unit which is not known by the unit converters
+    hass.states.async_set(
+        "sensor.test", 12, attributes={**attributes, **{"unit_of_measurement": unit2}}
+    )
+    expected = {
+        "sensor.test": [
+            {
+                "data": {
+                    "metadata_unit": unit1,
+                    "state_unit": unit2,
+                    "statistic_id": "sensor.test",
+                    "supported_unit": supported_unit,
+                },
+                "type": "units_changed",
+            }
+        ],
+    }
+    await assert_validation_result(client, expected)
+
+    # Run statistics one hour later, metadata will not be updated
+    await async_recorder_block_till_done(hass)
+    do_adhoc_statistics(hass, start=now + timedelta(hours=1))
+    await async_recorder_block_till_done(hass)
+    await assert_statistic_ids(
+        [{"statistic_id": "sensor.test", "unit_of_measurement": unit1}]
+    )
     await assert_validation_result(client, expected)
 
 
