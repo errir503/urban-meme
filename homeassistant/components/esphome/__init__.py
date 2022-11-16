@@ -27,7 +27,7 @@ from aioesphomeapi import (
 import voluptuous as vol
 
 from homeassistant import const
-from homeassistant.components import zeroconf
+from homeassistant.components import tag, zeroconf
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_DEVICE_ID,
@@ -131,11 +131,8 @@ async def async_setup_entry(  # noqa: C901
 
             # Call native tag scan
             if service_name == "tag_scanned" and device_id is not None:
-                # Importing tag via hass.components in case it is overridden
-                # in a custom_components (custom_components.tag)
-                tag = hass.components.tag
                 tag_id = service_data["tag_id"]
-                hass.async_create_task(tag.async_scan_tag(tag_id, device_id))
+                hass.async_create_task(tag.async_scan_tag(hass, tag_id, device_id))
                 return
 
             hass.bus.async_fire(
@@ -249,6 +246,8 @@ async def async_setup_entry(  # noqa: C901
 
     async def on_disconnect() -> None:
         """Run disconnect callbacks on API disconnect."""
+        name = entry_data.device_info.name if entry_data.device_info else host
+        _LOGGER.debug("%s: %s disconnected, running disconnected callbacks", name, host)
         for disconnect_cb in entry_data.disconnect_callbacks:
             disconnect_cb()
         entry_data.disconnect_callbacks = []
