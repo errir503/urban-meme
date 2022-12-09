@@ -1,7 +1,7 @@
 """Base classes for HA Bluetooth scanners for bluetooth."""
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
 import datetime
@@ -27,7 +27,7 @@ from .models import HaBluetoothConnector
 MONOTONIC_TIME: Final = monotonic_time_coarse
 
 
-class BaseHaScanner:
+class BaseHaScanner(ABC):
     """Base class for Ha Scanners."""
 
     __slots__ = ("hass", "source", "_connecting", "name", "scanning")
@@ -226,3 +226,19 @@ class BaseHaRemoteScanner(BaseHaScanner):
                 time=now,
             )
         )
+
+    async def async_diagnostics(self) -> dict[str, Any]:
+        """Return diagnostic information about the scanner."""
+        return await super().async_diagnostics() | {
+            "type": self.__class__.__name__,
+            "discovered_devices_and_advertisement_data": [
+                {
+                    "name": device_adv[0].name,
+                    "address": device_adv[0].address,
+                    "rssi": device_adv[0].rssi,
+                    "advertisement_data": device_adv[1],
+                    "details": device_adv[0].details,
+                }
+                for device_adv in self.discovered_devices_and_advertisement_data.values()
+            ],
+        }
