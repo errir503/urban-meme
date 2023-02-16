@@ -41,15 +41,13 @@ from homeassistant.const import (
     MAX_LENGTH_STATE_STATE,
 )
 from homeassistant.core import Context, Event, EventOrigin, State, split_entity_id
-from homeassistant.helpers.json import (
+from homeassistant.helpers.json import JSON_DUMP, json_bytes, json_bytes_strip_null
+import homeassistant.util.dt as dt_util
+from homeassistant.util.json import (
     JSON_DECODE_EXCEPTIONS,
-    JSON_DUMP,
-    json_bytes,
-    json_bytes_strip_null,
     json_loads,
     json_loads_object,
 )
-import homeassistant.util.dt as dt_util
 
 from .const import ALL_DOMAIN_EXCLUDE_ATTRS, SupportedDialect
 from .models import (
@@ -537,6 +535,8 @@ class StatisticsBase:
         """Create object from a statistics."""
         return cls(  # type: ignore[call-arg]
             metadata_id=metadata_id,
+            created=None,
+            created_ts=time.time(),
             start=None,
             start_ts=dt_util.utc_to_timestamp(stats["start"]),
             mean=stats.get("mean"),
