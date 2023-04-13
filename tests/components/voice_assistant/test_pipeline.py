@@ -1,110 +1,104 @@
-"""Pipeline tests for Voice Assistant integration."""
-from unittest.mock import MagicMock, patch
+"""Websocket tests for Voice Assistant integration."""
+from typing import Any
 
-import pytest
-
+from homeassistant.components.voice_assistant.const import DOMAIN
 from homeassistant.components.voice_assistant.pipeline import (
-    AudioPipelineRequest,
-    Pipeline,
-    PipelineEventType,
-    PipelineRun,
+    STORAGE_KEY,
+    STORAGE_VERSION,
+    PipelineStorageCollection,
 )
-from homeassistant.core import Context
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.storage import Store
 from homeassistant.setup import async_setup_component
 
-from tests.components.tts.conftest import (  # noqa: F401, pylint: disable=unused-import
-    mock_get_cache_files,
-    mock_init_cache_dir,
-)
+from tests.common import flush_store
 
 
-@pytest.fixture(autouse=True)
-async def init_components(hass):
-    """Initialize relevant components with empty configs."""
+async def test_load_datasets(hass: HomeAssistant, init_components) -> None:
+    """Make sure that we can load/save data correctly."""
+
+    pipelines = [
+        {
+            "conversation_engine": "conversation_engine_1",
+            "language": "language_1",
+            "name": "name_1",
+            "stt_engine": "stt_engine_1",
+            "tts_engine": "tts_engine_1",
+        },
+        {
+            "conversation_engine": "conversation_engine_2",
+            "language": "language_2",
+            "name": "name_2",
+            "stt_engine": "stt_engine_2",
+            "tts_engine": "tts_engine_2",
+        },
+        {
+            "conversation_engine": "conversation_engine_3",
+            "language": "language_3",
+            "name": "name_3",
+            "stt_engine": "stt_engine_3",
+            "tts_engine": "tts_engine_3",
+        },
+    ]
+    pipeline_ids = []
+
+    store1: PipelineStorageCollection = hass.data[DOMAIN]
+    for pipeline in pipelines:
+        pipeline_ids.append((await store1.async_create_item(pipeline)).id)
+    assert len(store1.data) == 3
+
+    await store1.async_delete_item(pipeline_ids[1])
+    assert len(store1.data) == 2
+
+    store2 = PipelineStorageCollection(Store(hass, STORAGE_VERSION, STORAGE_KEY))
+    await flush_store(store1.store)
+    await store2.async_load()
+
+    assert len(store2.data) == 2
+
+    assert store1.data is not store2.data
+    assert store1.data == store2.data
+
+
+async def test_loading_datasets_from_storage(
+    hass: HomeAssistant, hass_storage: dict[str, Any]
+) -> None:
+    """Test loading stored datasets on start."""
+    hass_storage[STORAGE_KEY] = {
+        "version": 1,
+        "minor_version": 1,
+        "key": "voice_assistant.pipelines",
+        "data": {
+            "items": [
+                {
+                    "conversation_engine": "conversation_engine_1",
+                    "id": "01GX8ZWBAQYWNB1XV3EXEZ75DY",
+                    "language": "language_1",
+                    "name": "name_1",
+                    "stt_engine": "stt_engine_1",
+                    "tts_engine": "tts_engine_1",
+                },
+                {
+                    "conversation_engine": "conversation_engine_2",
+                    "id": "01GX8ZWBAQTKFQNK4W7Q4CTRCX",
+                    "language": "language_2",
+                    "name": "name_2",
+                    "stt_engine": "stt_engine_2",
+                    "tts_engine": "tts_engine_2",
+                },
+                {
+                    "conversation_engine": "conversation_engine_3",
+                    "id": "01GX8ZWBAQSV1HP3WGJPFWEJ8J",
+                    "language": "language_3",
+                    "name": "name_3",
+                    "stt_engine": "stt_engine_3",
+                    "tts_engine": "tts_engine_3",
+                },
+            ]
+        },
+    }
+
     assert await async_setup_component(hass, "voice_assistant", {})
 
-
-@pytest.fixture
-async def mock_get_tts_audio(hass):
-    """Set up media source."""
-    assert await async_setup_component(hass, "media_source", {})
-    assert await async_setup_component(
-        hass,
-        "tts",
-        {
-            "tts": {
-                "platform": "demo",
-            }
-        },
-    )
-
-    with patch(
-        "homeassistant.components.demo.tts.DemoProvider.get_tts_audio",
-        return_value=("mp3", b""),
-    ) as mock_get_tts:
-        yield mock_get_tts
-
-
-async def test_audio_pipeline(hass, mock_get_tts_audio):
-    """Run audio pipeline with mock TTS."""
-    pipeline = Pipeline(
-        name="test",
-        language=hass.config.language,
-        conversation_engine=None,
-        tts_engine=None,
-    )
-
-    event_callback = MagicMock()
-    await AudioPipelineRequest(intent_input="Are the lights on?").execute(
-        PipelineRun(
-            hass,
-            context=Context(),
-            pipeline=pipeline,
-            event_callback=event_callback,
-            language=hass.config.language,
-        )
-    )
-
-    calls = event_callback.mock_calls
-    assert calls[0].args[0].type == PipelineEventType.RUN_START
-    assert calls[0].args[0].data == {
-        "pipeline": "test",
-        "language": hass.config.language,
-    }
-
-    assert calls[1].args[0].type == PipelineEventType.INTENT_START
-    assert calls[1].args[0].data == {
-        "engine": "default",
-        "intent_input": "Are the lights on?",
-    }
-    assert calls[2].args[0].type == PipelineEventType.INTENT_FINISH
-    assert calls[2].args[0].data == {
-        "intent_output": {
-            "conversation_id": None,
-            "response": {
-                "card": {},
-                "data": {"code": "no_intent_match"},
-                "language": hass.config.language,
-                "response_type": "error",
-                "speech": {
-                    "plain": {
-                        "extra_data": None,
-                        "speech": "Sorry, I couldn't understand that",
-                    }
-                },
-            },
-        }
-    }
-
-    assert calls[3].args[0].type == PipelineEventType.TTS_START
-    assert calls[3].args[0].data == {
-        "engine": "default",
-        "tts_input": "Sorry, I couldn't understand that",
-    }
-    assert calls[4].args[0].type == PipelineEventType.TTS_FINISH
-    assert (
-        calls[4].args[0].data["tts_output"]
-        == f"/api/tts_proxy/dae2cdcb27a1d1c3b07ba2c7db91480f9d4bfd8f_{hass.config.language}_-_demo.mp3"
-    )
-
-    assert calls[5].args[0].type == PipelineEventType.RUN_FINISH
+    store: PipelineStorageCollection = hass.data[DOMAIN]
+    assert len(store.data) == 3
