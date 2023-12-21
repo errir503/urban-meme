@@ -32,7 +32,7 @@ from .coordinator import TessieDataUpdateCoordinator
 from .entity import TessieEntity
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class TessieSensorEntityDescription(SensorEntityDescription):
     """Describes Tessie Sensor entity."""
 
