@@ -33,6 +33,7 @@ from .core import (
     CoreState,
     Event,
     HassJob,
+    HassJobType,
     HomeAssistant,
     callback,
 )
@@ -363,7 +364,6 @@ class ConfigEntry:
 
         self._integration_for_domain: loader.Integration | None = None
         self._tries = 0
-        self._setup_again_job: HassJob | None = None
 
     def __repr__(self) -> str:
         """Representation of ConfigEntry."""
@@ -555,12 +555,18 @@ class ConfigEntry:
 
             if hass.state is CoreState.running:
                 self._async_cancel_retry_setup = async_call_later(
-                    hass, wait_time, self._async_get_setup_again_job(hass)
+                    hass,
+                    wait_time,
+                    HassJob(
+                        functools.partial(self._async_setup_again, hass),
+                        job_type=HassJobType.Callback,
+                    ),
                 )
             else:
-                self._async_cancel_retry_setup = hass.bus.async_listen_once(
+                self._async_cancel_retry_setup = hass.bus.async_listen(
                     EVENT_HOMEASSISTANT_STARTED,
                     functools.partial(self._async_setup_again, hass),
+                    run_immediately=True,
                 )
 
             await self._async_process_on_unload(hass)
@@ -585,28 +591,25 @@ class ConfigEntry:
         if not domain_is_integration:
             return
 
+        self.async_cancel_retry_setup()
+
         if result:
             self._async_set_state(hass, ConfigEntryState.LOADED, None)
         else:
             self._async_set_state(hass, ConfigEntryState.SETUP_ERROR, error_reason)
 
-    async def _async_setup_again(self, hass: HomeAssistant, *_: Any) -> None:
-        """Run setup again."""
+    @callback
+    def _async_setup_again(self, hass: HomeAssistant, *_: Any) -> None:
+        """Schedule setup again.
+
+        This method is a callback to ensure that _async_cancel_retry_setup
+        is unset as soon as its callback is called.
+        """
+        self._async_cancel_retry_setup = None
         # Check again when we fire in case shutdown
         # has started so we do not block shutdown
         if not hass.is_stopping:
-            self._async_cancel_retry_setup = None
-            await self.async_setup(hass)
-
-    @callback
-    def _async_get_setup_again_job(self, hass: HomeAssistant) -> HassJob:
-        """Get a job that will call setup again."""
-        if not self._setup_again_job:
-            self._setup_again_job = HassJob(
-                functools.partial(self._async_setup_again, hass),
-                cancel_on_shutdown=True,
-            )
-        return self._setup_again_job
+            hass.async_create_task(self.async_setup(hass), eager_start=True)
 
     @callback
     def async_shutdown(self) -> None:
@@ -929,6 +932,8 @@ class ConfigEntry:
         task = hass.async_create_task(
             target, f"{name} {self.title} {self.domain} {self.entry_id}", eager_start
         )
+        if task.done():
+            return task
         self._tasks.add(task)
         task.add_done_callback(self._tasks.remove)
 
@@ -949,6 +954,8 @@ class ConfigEntry:
         target: target to call.
         """
         task = hass.async_create_background_task(target, name, eager_start)
+        if task.done():
+            return task
         self._background_tasks.add(task)
         task.add_done_callback(self._background_tasks.remove)
         return task
@@ -1008,6 +1015,8 @@ class ConfigEntriesFlowManager(data_entry_flow.FlowManager):
         if not context or "source" not in context:
             raise KeyError("Context not set or doesn't have a source set")
 
+        flow_id = uuid_util.random_uuid_hex()
+
         # Avoid starting a config flow on an integration that only supports
         # a single config entry, but which already has an entry
         if (
@@ -1015,13 +1024,14 @@ class ConfigEntriesFlowManager(data_entry_flow.FlowManager):
             and await _support_single_config_entry_only(self.hass, handler)
             and self.config_entries.async_entries(handler, include_ignore=False)
         ):
-            raise HomeAssistantError(
-                "Cannot start a config flow, the integration"
-                " supports only a single config entry"
-                " but already has one"
+            return FlowResult(
+                type=data_entry_flow.FlowResultType.ABORT,
+                flow_id=flow_id,
+                handler=handler,
+                reason="single_instance_allowed",
+                translation_domain=HA_DOMAIN,
             )
 
-        flow_id = uuid_util.random_uuid_hex()
         loop = self.hass.loop
 
         if context["source"] == SOURCE_IMPORT:
@@ -1110,6 +1120,21 @@ class ConfigEntriesFlowManager(data_entry_flow.FlowManager):
 
         if result["type"] != data_entry_flow.FlowResultType.CREATE_ENTRY:
             return result
+
+        # Avoid adding a config entry for a integration
+        # that only supports a single config entry, but already has an entry
+        if (
+            await _support_single_config_entry_only(self.hass, flow.handler)
+            and flow.context["source"] != SOURCE_IGNORE
+            and self.config_entries.async_entries(flow.handler, include_ignore=False)
+        ):
+            return FlowResult(
+                type=data_entry_flow.FlowResultType.ABORT,
+                flow_id=flow.flow_id,
+                handler=flow.handler,
+                reason="single_instance_allowed",
+                translation_domain=HA_DOMAIN,
+            )
 
         # Check if config entry exists with unique ID. Unload it.
         existing_entry = None
@@ -1396,18 +1421,6 @@ class ConfigEntries:
         if entry.entry_id in self._entries.data:
             raise HomeAssistantError(
                 f"An entry with the id {entry.entry_id} already exists."
-            )
-
-        # Avoid adding a config entry for a integration
-        # that only supports a single config entry, but already has an entry
-        if (
-            await _support_single_config_entry_only(self.hass, entry.domain)
-            and entry.source != SOURCE_IGNORE
-            and self.async_entries(entry.domain, include_ignore=False)
-        ):
-            raise HomeAssistantError(
-                f"An entry for {entry.domain} already exists,"
-                f" but integration supports only one config entry"
             )
 
         self._entries[entry.entry_id] = entry
