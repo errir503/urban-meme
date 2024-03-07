@@ -482,8 +482,10 @@ class HomeAssistant:
                     " phase. We're going to continue anyway. Please report the"
                     " following info at"
                     " https://github.com/home-assistant/core/issues: %s"
+                    " The system is waiting for tasks: %s"
                 ),
                 ", ".join(self.config.components),
+                self._tasks,
             )
 
         # Allow automations to set up the start triggers before changing state
@@ -513,6 +515,11 @@ class HomeAssistant:
         """
         if target is None:
             raise ValueError("Don't call add_job with None")
+        if asyncio.iscoroutine(target):
+            self.loop.call_soon_threadsafe(self.async_add_job, target)
+            return
+        if TYPE_CHECKING:
+            target = cast(Callable[..., Any], target)
         self.loop.call_soon_threadsafe(self.async_add_job, target, *args)
 
     @overload
@@ -600,6 +607,8 @@ class HomeAssistant:
                 hassjob.target = cast(
                     Callable[..., Coroutine[Any, Any, _R]], hassjob.target
                 )
+            # Use loop.create_task
+            # to avoid the extra function call in asyncio.create_task.
             task = self.loop.create_task(hassjob.target(*args), name=hassjob.name)
         elif hassjob.job_type is HassJobType.Callback:
             if TYPE_CHECKING:
@@ -644,6 +653,8 @@ class HomeAssistant:
             if task.done():
                 return task
         else:
+            # Use loop.create_task
+            # to avoid the extra function call in asyncio.create_task.
             task = self.loop.create_task(target, name=name)
         self._tasks.add(task)
         task.add_done_callback(self._tasks.remove)
@@ -666,6 +677,8 @@ class HomeAssistant:
             if task.done():
                 return task
         else:
+            # Use loop.create_task
+            # to avoid the extra function call in asyncio.create_task.
             task = self.loop.create_task(target, name=name)
         self._background_tasks.add(task)
         task.add_done_callback(self._background_tasks.remove)
