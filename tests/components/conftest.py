@@ -8,8 +8,11 @@ import pytest
 
 from homeassistant.const import STATE_OFF, STATE_ON
 
+from tests.common import MockToggleEntity
+
 if TYPE_CHECKING:
-    from tests.components.light.common import MockLight, SetupLightPlatformCallable
+    from tests.components.light.common import MockLight
+    from tests.components.sensor.common import MockSensor
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -121,8 +124,16 @@ def mock_light_entities() -> list["MockLight"]:
 
 
 @pytest.fixture
-def setup_light_platform() -> "SetupLightPlatformCallable":
-    """Return a callable to set up the mock light entity component."""
-    from tests.components.light.common import setup_light_platform
+def mock_sensor_entities() -> dict[str, "MockSensor"]:
+    """Return mocked sensor entities."""
+    from tests.components.sensor.common import get_mock_sensor_entities
 
-    return setup_light_platform
+    return get_mock_sensor_entities()
+
+
+@pytest.fixture
+def mock_toggle_entities() -> list[MockToggleEntity]:
+    """Return mocked toggle entities."""
+    from tests.components.switch.common import get_mock_toggle_entities
+
+    return get_mock_toggle_entities()
